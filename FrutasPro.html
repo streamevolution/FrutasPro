@@ -319,8 +319,8 @@
 
 
 
-                       // ==========================================
-        // COMPONENTE: RECHARGE FLOW (Texto Original Restaurado + Envío Admin)
+                               // ==========================================
+        // COMPONENTE: RECHARGE FLOW (ACTUALIZADO - HORARIOS Y ADVERTENCIA DINERO)
         // ==========================================
         const RechargeFlow = ({ onBack }) => {
             const [step, setStep] = useState(1);
@@ -329,7 +329,7 @@
             const [concept, setConcept] = useState('');
             const [timeLeft, setTimeLeft] = useState(15 * 60);
             const [toast, setToast] = useState(null);
-            const [isSending, setIsSending] = useState(false); // Estado para el envío
+            const [isSending, setIsSending] = useState(false); 
 
             useEffect(() => {
                 const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -364,7 +364,6 @@
                 setStep(2);
             };
 
-            // Función para enviar la solicitud al administrador
             const handleFinalize = async () => {
                 setIsSending(true);
                 try {
@@ -372,13 +371,13 @@
                     await db.collection('recargas').add({
                         userId: user.uid,
                         userEmail: user.email,
-                        monto: 200, // Monto fijo según la UI
+                        monto: 200, 
                         concept: concept,
                         fecha: new Date(),
                         status: 'pendiente'
                     });
                     
-                    alert("¡Solicitud enviada! Tu saldo se reflejará cuando el administrador apruebe la transacción.");
+                    alert("¡Solicitud enviada! Tu saldo se reflejará cuando el sistema procese la transacción.");
                     onBack();
                 } catch (error) {
                     console.error("Error:", error);
@@ -432,15 +431,26 @@
                             </div>
 
                             <div className="bg-slate-900/50 p-6 rounded-xl border border-blue-900/50 mb-6 shadow-inner">
-                                {/* TEXTO ORIGINAL RESTAURADO CON ESTILO NEON */}
+                                {/* TEXTO ACTUALIZADO CON TUS REQUERIMIENTOS */}
                                 <div className="neon-text-blue text-xs md:text-sm text-left space-y-3">
                                     <p className="text-center font-bold mb-3 uppercase tracking-wider border-b border-blue-800/50 pb-2">Instrucciones Importantes</p>
-                                    <ul className="space-y-2 list-none">
+                                    <ul className="space-y-3 list-none">
                                         <li className="flex items-start gap-2"><span className="mt-0.5 text-blue-300">➤</span><span><strong>Recarga Mínima:</strong> $200 MXN.</span></li>
                                         <li className="flex items-start gap-2"><span className="mt-0.5 text-blue-300">➤</span><span><strong>Método:</strong> Solo Transferencias.</span></li>
-                                        <li className="flex items-start gap-2"><span className="mt-0.5 text-blue-300">➤</span><span><strong>Datos:</strong> Comprobante con Nombre, Monto, Concepto.</span></li>
-                                        <li className="flex items-start gap-2"><span className="mt-0.5 text-blue-300">➤</span><span><strong>Concepto:</strong> Úsalo EXACTO.</span></li>
-                                        <li className="flex items-start gap-2"><span className="mt-0.5 text-blue-300">➤</span><span><strong>Tiempo:</strong> Límite de 15 min.</span></li>
+                                        
+                                        {/* NUEVO PUNTO: HORARIO */}
+                                        <li className="flex items-start gap-2">
+                                            <span className="mt-0.5 text-blue-300">➤</span>
+                                            <span><strong>Horario Automático:</strong> De 08:00 AM a 11:00 PM. Si recargas fuera de horario, el saldo llega al día siguiente automáticamente.</span>
+                                        </li>
+
+                                        {/* PUNTO EDITADO: CONCEPTO Y ADVERTENCIA DE DINERO */}
+                                        <li className="flex items-start gap-2">
+                                            <span className="mt-0.5 text-blue-300">➤</span>
+                                            <span><strong>Concepto:</strong> Coloca la referencia EXACTA o <span className="text-rose-400 font-bold underline decoration-rose-500/50">PIERDES TU DINERO</span>.</span>
+                                        </li>
+                                        
+                                        <li className="flex items-start gap-2"><span className="mt-0.5 text-blue-300">➤</span><span><strong>Tiempo:</strong> Límite de 15 min para pagar.</span></li>
                                     </ul>
                                 </div>
                             </div>
@@ -488,6 +498,9 @@
                                             <i data-lucide="copy" className="w-4 h-4"></i>
                                         </button>
                                     </div>
+                                    <div className="text-[9px] text-rose-500 font-bold mt-2 text-center bg-rose-50 p-1 rounded border border-rose-100">
+                                        ⚠ ¡USA ESTE CONCEPTO EXACTO O PIERDES TU DINERO!
+                                    </div>
                                 </div>
 
                                 <div className="space-y-4 text-sm">
@@ -524,6 +537,7 @@
                 </div>
             );
         };
+
 
                                  // ==========================================
         // COMPONENTE: MENU LATERAL (CON NOMBRE DE USUARIO)
@@ -621,24 +635,26 @@
 
 
 
-                                                   // ==========================================
-        // COMPONENTE: TIENDA VIRTUAL (V26 - MUESTRAS PDF EXTENDIDAS)
+                                                                          // ==========================================
+        // COMPONENTE: TIENDA VIRTUAL (VELOCIDAD RESTAURADA)
         // ==========================================
         const StoreFront = ({ onSelectService, onOpenMenu, onSelectCovid, userData, onGoToHistory }) => {
             const [searchTerm, setSearchTerm] = useState("");
             const [services, setServices] = useState([]);
+            const [anuncios, setAnuncios] = useState([]); 
             const [loading, setLoading] = useState(true);
             const [filter, setFilter] = useState('TODOS');
 
-            // --- ESTADOS PARA LA VENTANA DE PEDIDO ---
+            // --- ESTADOS PEDIDO ---
             const [selectedService, setSelectedService] = useState(null);
             const [isOrderOpen, setIsOrderOpen] = useState(false);
             const [formData, setFormData] = useState({});
             const [isSendingOrder, setIsSendingOrder] = useState(false);
 
-            // ============================================================
-            // 🛡️ ICONO INTELIGENTE (Tecnología Anti-Desaparición)
-            // ============================================================
+            // 1. DETECTAR ADMIN
+            const user = firebase.auth().currentUser;
+            const isAdmin = user && user.email === 'mrandroidtutorialeshd@gmail.com';
+
             const Icon = ({ name, className }) => {
                 const iconRef = React.useRef(null);
                 React.useEffect(() => {
@@ -650,25 +666,81 @@
                 return <span ref={iconRef} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} />;
             };
 
-            // 1. Cargar servicios
+            // 2. SUB-COMPONENTE: ANUNCIO INTELIGENTE (BUCLE INFINITO RÁPIDO)
+            const AnuncioTicker = ({ text }) => {
+                const [isOverflowing, setIsOverflowing] = useState(false);
+                const containerRef = React.useRef(null);
+                const textRef = React.useRef(null);
+
+                React.useEffect(() => {
+                    const checkOverflow = () => {
+                        if (containerRef.current && textRef.current) {
+                            setIsOverflowing(textRef.current.scrollWidth > containerRef.current.clientWidth);
+                        }
+                    };
+                    checkOverflow();
+                    setTimeout(checkOverflow, 100);
+                    window.addEventListener('resize', checkOverflow);
+                    return () => window.removeEventListener('resize', checkOverflow);
+                }, [text]);
+
+                const textStyleClass = "whitespace-nowrap font-black text-cyan-500 text-lg md:text-xl uppercase tracking-widest drop-shadow-[0_0_5px_rgba(6,182,212,0.9)]";
+                const textStyleInline = { textShadow: '0 0 8px #22d3ee' };
+
+                return (
+                    <div ref={containerRef} className="w-full overflow-hidden relative h-8 flex items-center my-0 bg-transparent">
+                        {isOverflowing ? (
+                            <div className="flex animate-scroll-seamless w-max">
+                                {/* Copia 1 */}
+                                <span className={`${textStyleClass} pr-12`} style={textStyleInline}>
+                                    {text}
+                                </span>
+                                {/* Copia 2 */}
+                                <span className={`${textStyleClass} pr-12`} style={textStyleInline}>
+                                    {text}
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="w-full flex justify-center">
+                                <span ref={textRef} className={`${textStyleClass} neon-pulse-text relative`} style={textStyleInline}>
+                                    {text}
+                                </span>
+                            </div>
+                        )}
+                        
+                        {isOverflowing && (
+                            <span ref={textRef} className={`${textStyleClass} absolute opacity-0 pointer-events-none`}>
+                                {text}
+                            </span>
+                        )}
+                    </div>
+                );
+            };
+
+            // 3. CARGA DE DATOS
             useEffect(() => {
-                const unsubscribe = db.collection('servicios').onSnapshot(snapshot => {
+                const unsubscribeServices = db.collection('servicios').onSnapshot(snapshot => {
                     const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     setServices(docs);
                     setLoading(false);
                 });
-                return () => unsubscribe();
+                
+                const unsubscribeAnuncios = db.collection('anuncios').orderBy('fecha', 'desc').onSnapshot(snapshot => {
+                    setAnuncios(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                });
+
+                return () => { unsubscribeServices(); unsubscribeAnuncios(); };
             }, []);
 
-            // 2. Filtrado
+            // 4. Filtrado
             const filteredServices = services.filter(service => 
-                (service.active !== false) &&
+                (service.active !== false || isAdmin) &&
                 (filter === 'TODOS' || service.category === filter) &&
                 ((service.title || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
                 (service.category || "").toLowerCase().includes(searchTerm.toLowerCase()))
             );
 
-            // 3. Agrupar
+            // 5. Agrupar
             const groupedServices = filteredServices.reduce((groups, service) => {
                 const category = service.category || 'OTROS';
                 if (!groups[category]) groups[category] = [];
@@ -678,130 +750,105 @@
 
             const sortedCategories = Object.keys(groupedServices).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
 
-            // 4. Manejo de Clics
+            // 6. Manejo de Clics
             const handleServiceClick = (service) => {
                 const title = (service.title || "").toUpperCase();
-                
                 if (title.includes("RECETA") || title.includes("COVID") || title.includes("VACUNA")) {
                     if (title.includes("RECETA")) onSelectService();
                     else onSelectCovid();
                     return; 
                 } 
-
                 setSelectedService(service);
                 setFormData({}); 
                 setIsOrderOpen(true);
             };
 
-            // --- LÓGICA EXTENDIDA: NOMBRES DE PDF ---
             const getPdfFileName = (title) => {
                 if (!title) return "Muestra.pdf";
                 const t = title.toUpperCase();
-                
-                // Actas
                 if (t.includes("NACIMIENTO")) return "nacimiento.pdf";
                 if (t.includes("MATRIMONIO")) return "matrimonio.pdf";
                 if (t.includes("DIVORCIO")) return "divorcio.pdf";
-                if (t.includes("DEFUNCIÓN") || t.includes("DEFUNCION")) return "defuncion.pdf";
-
-                // Infonavit y Fiscal (NUEVOS)
+                if (t.includes("DEFUNCIÓN")) return "defuncion.pdf";
                 if (t.includes("REPORTE HISTÓRICO") || t.includes("REPORTE HISTORICO")) return "historicos.pdf";
                 if (t.includes("RESUMEN CRÉDITO") || t.includes("RESUMEN CREDITO")) return "resumen_credito.pdf";
                 if (t.includes("OPINIÓN DE CUMPLIMIENTO") || t.includes("OPINION DE CUMPLIMIENTO")) return "cumplimiento.pdf";
-                if (t.includes("CSF CON") && t.includes("CURP")) return "clon.pdf"; // Detecta "CSF CON CON CURP"
+                if (t.includes("CSF CON") && t.includes("CURP")) return "clon.pdf"; 
                 if (t.includes("LOCALIZACIÓN DE IDCIF") || t.includes("LOCALIZACION DE IDCIF")) return "idcif.pdf";
-                
-                return "Muestra.pdf"; // Archivo por defecto para otros servicios
+                return "Muestra.pdf"; 
             };
 
-            // 5. FUNCIÓN REALIZAR PEDIDO
             const handleFinalizeOrder = async () => {
                 if (!selectedService) return;
-
                 const priceString = selectedService.price || "0";
-                const price = priceString.toString().toUpperCase().includes('GRATIS') 
-                    ? 0 
-                    : parseFloat(priceString.replace(/[^0-9.]/g, '')) || 0;
-                
+                const price = priceString.toString().toUpperCase().includes('GRATIS') ? 0 : parseFloat(priceString.replace(/[^0-9.]/g, '')) || 0;
                 const currentBalance = userData?.saldo || 0;
-
-                if (currentBalance < price) {
-                    alert(`❌ SALDO INSUFICIENTE\nCosto: $${price}\nTu saldo: $${currentBalance.toFixed(2)}`);
-                    return;
-                }
-
+                if (currentBalance < price) { alert(`❌ SALDO INSUFICIENTE\nCosto: $${price}\nTu saldo: $${currentBalance.toFixed(2)}`); return; }
                 const requiredFields = selectedService.fields || [];
                 const missingFields = requiredFields.filter(field => !formData[field] || formData[field].toString().trim() === "");
-                
-                if (missingFields.length > 0) {
-                    alert(`⚠️ Faltan datos por llenar:\n\n- ${missingFields.join('\n- ')}`);
-                    return;
-                }
-
+                if (missingFields.length > 0) { alert(`⚠️ Faltan datos por llenar:\n\n- ${missingFields.join('\n- ')}`); return; }
                 if (!confirm(`¿Confirmar pedido por $${price}?`)) return;
-
                 setIsSendingOrder(true);
-
                 try {
                     const user = auth.currentUser;
                     const batch = db.batch();
-
                     const userRef = db.collection('usuarios').doc(user.uid);
-                    batch.update(userRef, { 
-                        saldo: firebase.firestore.FieldValue.increment(-price) 
-                    });
-
+                    batch.update(userRef, { saldo: firebase.firestore.FieldValue.increment(-price) });
                     const reqRef = db.collection('solicitudes_servicios').doc();
                     batch.set(reqRef, {
-                        userId: user.uid,
-                        userEmail: user.email,
-                        serviceId: selectedService.id,
-                        serviceName: selectedService.title,
-                        category: selectedService.category,
-                        pricePaid: price,
-                        date: new Date(),
-                        status: 'pendiente',
-                        datosFormulario: formData 
+                        userId: user.uid, userEmail: user.email, serviceId: selectedService.id, serviceName: selectedService.title,
+                        category: selectedService.category, pricePaid: price, date: new Date(), status: 'pendiente', datosFormulario: formData 
                     });
-
-                    await batch.commit();
-                    alert("✅ Pedido realizado con éxito.");
-                    setIsOrderOpen(false);
-                    onGoToHistory(); 
-
-                } catch (error) {
-                    alert("Error: " + error.message);
-                } finally {
-                    setIsSendingOrder(false);
-                }
+                    await batch.commit(); alert("✅ Pedido realizado con éxito."); setIsOrderOpen(false); onGoToHistory(); 
+                } catch (error) { alert("Error: " + error.message); } finally { setIsSendingOrder(false); }
             };
 
-            const handleInputChange = (label, value) => {
-                setFormData(prev => ({...prev, [label]: value}));
-            };
+            const handleInputChange = (label, value) => setFormData(prev => ({...prev, [label]: value}));
 
             return (
                 <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-10">
-                    {/* Header */}
+                    {/* --- ESTILOS CSS INYECTADOS (VELOCIDAD AJUSTADA) --- */}
+                    <style>{`
+                        @keyframes scroll-seamless {
+                            0% { transform: translateX(0); }
+                            100% { transform: translateX(-50%); } 
+                        }
+                        .animate-scroll-seamless {
+                            /* VELOCIDAD RESTAURADA: 7s (Más rápido) */
+                            animation: scroll-seamless 7s linear infinite; 
+                        }
+                        @keyframes neonPulse {
+                            0%, 100% { opacity: 1; transform: scale(1); filter: brightness(1.2); }
+                            50% { opacity: 0.85; transform: scale(0.98); filter: brightness(1); }
+                        }
+                        .neon-pulse-text {
+                            animation: neonPulse 2s ease-in-out infinite;
+                        }
+                    `}</style>
+
+                    {/* Header Fixed */}
                     <div className="bg-white border-b border-slate-200 px-5 py-4 sticky top-0 z-50 flex items-center justify-between shadow-sm">
                         <div className="flex items-center gap-3">
-                            <div onClick={onOpenMenu} className="p-2 hover:bg-slate-100 rounded-full transition cursor-pointer active:scale-95">
-                                <Icon name="menu" className="w-6 h-6 text-slate-600"/>
-                            </div>
-                            <div className="bg-indigo-600 rounded-lg p-1.5 shadow-indigo-200 shadow-md">
-                                <Icon name="file-text" className="w-5 h-5 text-white"/>
-                            </div>
+                            <div onClick={onOpenMenu} className="p-2 hover:bg-slate-100 rounded-full transition cursor-pointer active:scale-95"><Icon name="menu" className="w-6 h-6 text-slate-600"/></div>
+                            <div className="bg-indigo-600 rounded-lg p-1.5 shadow-indigo-200 shadow-md"><Icon name="file-text" className="w-5 h-5 text-white"/></div>
                             <span className="font-extrabold text-xl tracking-tight text-slate-800">FrutasPro<span className="text-indigo-600">Master</span></span>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
-                                ${userData?.saldo?.toFixed(2) || '0.00'}
-                            </div>
+                            <div className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">${userData?.saldo?.toFixed(2) || '0.00'}</div>
                         </div>
                     </div>
 
-                    {/* Buscador */}
-                    <div className="p-5 max-w-3xl mx-auto">
+                    {/* --- ZONA DE ANUNCIOS --- */}
+                    {anuncios.length > 0 && (
+                        <div className="mt-0 w-full overflow-hidden bg-transparent relative z-40 border-b border-slate-100/50">
+                            {anuncios.map(anuncio => (
+                                <AnuncioTicker key={anuncio.id} text={anuncio.texto} />
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Buscador y Título */}
+                    <div className="px-5 pb-5 pt-1 max-w-3xl mx-auto">
                         <h2 className="text-2xl font-light text-slate-600 mb-6">Realizar nuevo pedido</h2>
                         <div className="space-y-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                             <div className="relative w-full">
@@ -812,7 +859,7 @@
                         </div>
                     </div>
 
-                    {/* Lista */}
+                    {/* Lista de Servicios */}
                     <div className="px-5 max-w-3xl mx-auto">
                         {loading ? <div className="py-10 text-center text-slate-400">Cargando...</div> : sortedCategories.length === 0 ? 
                             <div className="text-center py-10 text-slate-400"><p>No se encontraron servicios.</p></div> : (
@@ -826,13 +873,13 @@
                                         <div className="space-y-3">
                                             {groupedServices[category].map((service) => (
                                                 <div key={service.id} onClick={() => handleServiceClick(service)}
-                                                    className={`group relative bg-white overflow-hidden rounded-xl p-4 transition-all duration-300 cursor-pointer border border-slate-100 hover:border-indigo-300 shadow-sm hover:shadow-md flex justify-between items-center`}>
-                                                    
-                                                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${service.color === 'blue' ? 'bg-blue-500' : 'bg-indigo-500'}`}></div>
+                                                    className={`group relative bg-white overflow-hidden rounded-xl p-4 transition-all duration-300 cursor-pointer border hover:border-indigo-300 shadow-sm hover:shadow-md flex justify-between items-center ${service.active === false ? 'border-slate-300 bg-slate-100 opacity-80' : 'border-slate-100'}`}>
+                                                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${service.active === false ? 'bg-slate-400' : (service.color === 'blue' ? 'bg-blue-500' : 'bg-indigo-500')}`}></div>
                                                     <div className="pl-3 flex flex-col gap-1">
                                                         <div className="flex items-center gap-2">
                                                             <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wide group-hover:text-indigo-700 transition-colors">{service.title}</h3>
                                                             {service.isNew && <span className="bg-rose-100 text-rose-600 text-[9px] font-bold px-2 py-0.5 rounded-full border border-rose-200">NUEVO</span>}
+                                                            {service.active === false && <span className="bg-slate-800 text-white text-[9px] font-bold px-2 py-0.5 rounded-full border border-slate-600 flex items-center gap-1"><Icon name="eye-off" className="w-3 h-3"/> OCULTO</span>}
                                                         </div>
                                                         <p className="text-[10px] text-slate-400 font-semibold uppercase">{service.category}</p>
                                                     </div>
@@ -849,99 +896,18 @@
                         )}
                     </div>
 
-                    {/* ========================================================= */}
-                    {/* VENTANA DE PEDIDO (PANTALLA COMPLETA - V26)               */}
-                    {/* ========================================================= */}
                     {isOrderOpen && selectedService && (
                         <div className="fixed inset-0 z-[100] bg-white flex flex-col animate-[fadeIn_0.2s_ease-out]">
-                            {/* Header Ventana */}
-                            <div className="bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between sticky top-0 z-10">
-                                <button onClick={() => setIsOrderOpen(false)} className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
-                                    <Icon name="arrow-left" className="w-6 h-6"/>
-                                </button>
-                                <span className="font-bold text-slate-700">Completar Pedido</span>
-                                <button onClick={() => setIsOrderOpen(false)} className="p-2 -mr-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all">
-                                    <Icon name="x" className="w-6 h-6"/>
-                                </button>
-                            </div>
-
-                            {/* Contenido Scrollable */}
+                            <div className="bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between sticky top-0 z-10"><button onClick={() => setIsOrderOpen(false)} className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"><Icon name="arrow-left" className="w-6 h-6"/></button><span className="font-bold text-slate-700">Completar Pedido</span><button onClick={() => setIsOrderOpen(false)} className="p-2 -mr-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all"><Icon name="x" className="w-6 h-6"/></button></div>
                             <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
-                                {/* Título */}
-                                <div className="mb-6">
-                                    <h2 className="text-xl font-black text-slate-800 uppercase leading-tight mb-2">{selectedService.title}</h2>
-                                    <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-lg">{selectedService.category}</span>
-                                </div>
-
-                                {/* Campos Rellenables */}
-                                <div className="space-y-4">
-                                    {selectedService.fields && selectedService.fields.length > 0 ? (
-                                        selectedService.fields.map((field, idx) => (
-                                            <div key={idx}>
-                                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">{field}</label>
-                                                <input 
-                                                    type="text" 
-                                                    className="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all font-medium text-slate-700"
-                                                    placeholder={`Ingresa ${field}...`}
-                                                    value={formData[field] || ''}
-                                                    onChange={(e) => handleInputChange(field, e.target.value)}
-                                                />
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="text-center p-6 bg-white rounded-xl border border-slate-200 text-slate-400 text-sm">
-                                            No se requieren datos adicionales.
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* --- ZONA DE PAGO Y BOTÓN --- */}
-                                <div className="mt-8 mb-8 p-4 bg-white rounded-2xl border border-slate-200 shadow-md">
-                                    <div className="flex justify-between items-end mb-4 px-1">
-                                        <span className="text-sm font-bold text-slate-400">Total a Pagar</span>
-                                        <span className="text-2xl font-black text-slate-800">{selectedService.price}</span>
-                                    </div>
-                                    <button 
-                                        onClick={handleFinalizeOrder}
-                                        disabled={isSendingOrder}
-                                        className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-lg shadow-xl shadow-slate-300 hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
-                                    >
-                                        {isSendingOrder ? 'Procesando...' : <>Realizar Pedido <Icon name="arrow-right" className="w-4 h-4"/></>}
-                                    </button>
-                                </div>
-
-                                {/* --- SECCIÓN DE INFORMACIÓN Y ALERTAS --- */}
+                                <div className="mb-6"><div className="flex items-center gap-2 mb-2"><h2 className="text-xl font-black text-slate-800 uppercase leading-tight">{selectedService.title}</h2>{selectedService.active === false && <span className="bg-slate-800 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">OCULTO</span>}</div><span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-lg">{selectedService.category}</span></div>
+                                <div className="space-y-4">{selectedService.fields && selectedService.fields.length > 0 ? (selectedService.fields.map((field, idx) => (<div key={idx}><label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">{field}</label><input type="text" className="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all font-medium text-slate-700" placeholder={`Ingresa ${field}...`} value={formData[field] || ''} onChange={(e) => handleInputChange(field, e.target.value)} /></div>))) : (<div className="text-center p-6 bg-white rounded-xl border border-slate-200 text-slate-400 text-sm">No se requieren datos adicionales.</div>)}</div>
+                                <div className="mt-8 mb-8 p-4 bg-white rounded-2xl border border-slate-200 shadow-md"><div className="flex justify-between items-end mb-4 px-1"><span className="text-sm font-bold text-slate-400">Total a Pagar</span><span className="text-2xl font-black text-slate-800">{selectedService.price}</span></div><button onClick={handleFinalizeOrder} disabled={isSendingOrder} className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-lg shadow-xl shadow-slate-300 hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2">{isSendingOrder ? 'Procesando...' : <>Realizar Pedido <Icon name="arrow-right" className="w-4 h-4"/></>}</button></div>
                                 <div className="space-y-4 pt-6 border-t border-slate-200">
-                                    
-                                    {/* Horario */}
-                                    <div className="bg-emerald-100 border-2 border-emerald-400 rounded-2xl p-4 flex flex-col items-center gap-2 text-center animate-pulse shadow-lg">
-                                        <div className="text-emerald-700 bg-white p-2 rounded-full shadow-sm"><Icon name="clock" className="w-8 h-8"/></div>
-                                        <p className="text-base font-black text-emerald-800 uppercase leading-tight">
-                                            Disponible y activo de <br/>08:00 am a 08:00 pm
-                                        </p>
-                                    </div>
-
-                                    {/* Precaución */}
-                                    <div className="bg-amber-100 border-2 border-amber-400 rounded-2xl p-4 flex flex-col items-center gap-2 text-center shadow-lg">
-                                        <div className="text-amber-600 animate-[bounce_2s_infinite]"><Icon name="alert-triangle" className="w-8 h-8"/></div>
-                                        <p className="text-sm font-bold text-amber-900 leading-tight">
-                                            Si adquieres el servicio fuera de ese horario se entrega al día siguiente en horarios establecidos
-                                        </p>
-                                    </div>
-
-                                    {/* Botón de Muestra (DINÁMICO EXTENDIDO) */}
-                                    <div className="pt-4 pb-4 flex justify-center">
-                                        <a 
-                                            href={getPdfFileName(selectedService.title)} 
-                                            download={getPdfFileName(selectedService.title)}
-                                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-base font-black uppercase tracking-widest py-4 px-6 rounded-xl shadow-xl hover:shadow-2xl transition-all cursor-pointer flex items-center justify-center gap-3 animate-bounce border-b-4 border-indigo-900"
-                                        >
-                                            <Icon name="eye" className="w-6 h-6 text-white"/>
-                                            Clic para ver muestra
-                                        </a>
-                                    </div>
-                                </div>
-                                <div className="h-10"></div> 
+                                    <div className="bg-emerald-100 border-2 border-emerald-400 rounded-2xl p-4 flex flex-col items-center gap-2 text-center animate-pulse shadow-lg"><div className="text-emerald-700 bg-white p-2 rounded-full shadow-sm"><Icon name="clock" className="w-8 h-8"/></div><p className="text-base font-black text-emerald-800 uppercase leading-tight">Disponible y activo de <br/>08:00 am a 08:00 pm</p></div>
+                                    <div className="bg-amber-100 border-2 border-amber-400 rounded-2xl p-4 flex flex-col items-center gap-2 text-center shadow-lg"><div className="text-amber-600 animate-[bounce_2s_infinite]"><Icon name="alert-triangle" className="w-8 h-8"/></div><p className="text-sm font-bold text-amber-900 leading-tight">Si adquieres el servicio fuera de ese horario se entrega al día siguiente en horarios establecidos</p></div>
+                                    <div className="pt-4 pb-4 flex justify-center"><a href={getPdfFileName(selectedService.title)} download={getPdfFileName(selectedService.title)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-base font-black uppercase tracking-widest py-4 px-6 rounded-xl shadow-xl hover:shadow-2xl transition-all cursor-pointer flex items-center justify-center gap-3 animate-bounce border-b-4 border-indigo-900"><Icon name="eye" className="w-6 h-6 text-white"/>Clic para ver muestra</a></div>
+                                </div><div className="h-10"></div> 
                             </div>
                         </div>
                     )}
@@ -951,18 +917,87 @@
 
 
 
-
-        // ==========================================
-        // COMPONENTE: EDITOR DE RECETA (Original)
+                // ==========================================
+        // COMPONENTE: EDITOR DE RECETA (V11 - 100 UNIVERSIDADES REALES)
         // ==========================================
         const RecetaEditor = ({ onBack }) => {
+            
+            // LISTA DE DOCTORES (100)
+            const DOCTOR_NAMES = [
+                "Carlos Hernández García", "Juan López Martínez", "Miguel González Rodríguez", "Luis Pérez Sánchez", "Jorge Ramírez Cruz",
+                "Daniel Flores Gómez", "Andrés Morales Vázquez", "Sergio Reyes Torres", "Pedro Díaz Gutiérrez", "Rafael Mendoza Ruiz",
+                "Arturo Aguilar Ortega", "Javier Ortiz Moreno", "Rubén Romero Hernández", "Víctor Chávez Navarro", "Óscar Castillo Ríos",
+                "Iván Herrera Mendoza", "Marco Salazar López", "Héctor Jiménez Aguilar", "Edgar Rojas Ramírez", "Adrián Navarro Flores",
+                "Mario Vega González", "Julio Cárdenas Pérez", "Pablo Campos Sánchez", "Diego Luna Rodríguez", "Alan Cruz Martínez",
+                "Juan Carlos Hernández López", "Luis Ángel García Martínez", "José Antonio González Pérez", "Carlos Eduardo Ramírez Torres",
+                "Miguel Ángel Flores Sánchez", "Jorge Luis Rodríguez Cruz", "José Manuel Díaz Morales", "Juan José Romero Aguilar",
+                "José Alberto Mendoza Reyes", "Carlos Andrés Ortega Gómez", "Luis Fernando Chávez Navarro", "José Luis Castillo Ríos",
+                "Marco Antonio Vega Hernández", "Oscar Daniel Herrera Ruiz", "José Miguel Salazar Ortiz", "Juan Pablo Jiménez Ramírez",
+                "José Ricardo Campos López", "Víctor Manuel Cruz González", "Luis Enrique Cárdenas Pérez", "José Adrián Navarro Torres",
+                "Carlos Iván Rojas Martínez", "José David Luna Sánchez", "Juan Martín Aguilar Romero", "Luis Eduardo Ramos Flores",
+                "José Ángel Morales Vega", "María Hernández García", "Ana López Martínez", "Laura González Rodríguez", "Carmen Pérez Sánchez",
+                "Patricia Ramírez Cruz", "Rosa Flores Gómez", "Sandra Morales Vázquez", "Gabriela Reyes Torres", "Claudia Díaz Gutiérrez",
+                "Daniela Mendoza Ruiz", "Verónica Aguilar Ortega", "Adriana Ortiz Moreno", "Beatriz Romero Hernández", "Liliana Chávez Navarro",
+                "Alejandra Castillo Ríos", "Cecilia Herrera Mendoza", "Karla Salazar López", "Silvia Jiménez Aguilar", "Mónica Rojas Ramírez",
+                "Paola Navarro Flores", "Brenda Vega González", "Jessica Cárdenas Pérez", "Teresa Campos Sánchez", "Lucía Luna Rodríguez",
+                "Fernanda Cruz Martínez", "María Fernanda Hernández López", "Ana Karen García Martínez", "María José González Pérez",
+                "Ana Sofía Ramírez Torres", "María Elena Flores Sánchez", "Rosa María Rodríguez Cruz", "Ana Laura Díaz Morales",
+                "María del Carmen Romero Aguilar", "Ana Patricia Mendoza Reyes", "Laura Beatriz Ortega Gómez", "María Guadalupe Chávez Navarro",
+                "Ana Lucía Castillo Ríos", "Claudia Fernanda Vega Hernández", "María Alejandra Herrera Ruiz", "Ana Victoria Salazar Ortiz",
+                "María Isabel Jiménez Ramírez", "Ana Paola Campos López", "María Teresa Cruz González", "Ana Belén Cárdenas Pérez",
+                "María Eugenia Navarro Torres", "Ana Gabriela Rojas Martínez", "María Soledad Luna Sánchez", "Ana Cecilia Aguilar Romero",
+                "María Elena Ramos Flores", "Ana Cristina Morales Vega"
+            ];
+
+            // LISTA DE 100 UNIVERSIDADES DE MEDICINA (MÉXICO)
+            const UNIVERSITIES = [
+                "UNAM - FACULTAD DE MEDICINA", "IPN - ESCUELA SUPERIOR DE MEDICINA", "IPN - CICS UNIDAD MILPA ALTA", 
+                "UAM - UNIDAD XOCHIMILCO", "UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO", "INSTITUTO POLITÉCNICO NACIONAL",
+                "UNIVERSIDAD AUTÓNOMA DEL ESTADO DE MÉXICO", "UAEMEX - FACULTAD DE MEDICINA", "UNIVERSIDAD DE GUADALAJARA",
+                "UAG - UNIVERSIDAD AUTÓNOMA DE GUADALAJARA", "TECNOLÓGICO DE MONTERREY", "UNIVERSIDAD LA SALLE",
+                "UNIVERSIDAD ANÁHUAC MÉXICO NORTE", "UNIVERSIDAD ANÁHUAC MÉXICO SUR", "UNIVERSIDAD PANAMERICANA",
+                "BUAP - BENEMÉRITA UNIVERSIDAD AUTÓNOMA DE PUEBLA", "UANL - UNIVERSIDAD AUTÓNOMA DE NUEVO LEÓN",
+                "UNIVERSIDAD AUTÓNOMA DE QUERÉTARO", "UNIVERSIDAD AUTÓNOMA DE SAN LUIS POTOSÍ", "UNIVERSIDAD VERACRUZANA",
+                "UNIVERSIDAD AUTÓNOMA DE YUCATÁN", "UNIVERSIDAD AUTÓNOMA DE BAJA CALIFORNIA", "UNIVERSIDAD DE SONORA",
+                "UNIVERSIDAD DE GUANAJUATO", "UNIVERSIDAD MICHOACANA DE SAN NICOLÁS DE HIDALGO", "UNIVERSIDAD AUTÓNOMA DE SINALOA",
+                "ESCUELA MÉDICO MILITAR", "ESCUELA MÉDICO NAVAL", "UNIVERSIDAD DEL EJÉRCITO Y FUERZA AÉREA",
+                "UNIVERSIDAD WESTHILL", "UNIVERSIDAD JUSTO SIERRA", "UNIVERSIDAD TOMINAGA NAKAMOTO", "CENTRO DE ESTUDIOS SUPERIORES TEPEYAC",
+                "UNIVERSIDAD DEL VALLE DE MÉXICO", "UNITEC - UNIVERSIDAD TECNOLÓGICA DE MÉXICO", "UNIVERSIDAD LATINA",
+                "UNIVERSIDAD DE IXTLAHUACA CUI", "UNIVERSIDAD DE MONTERREY", "UPAEP - PUEBLA", "UNIVERSIDAD AUTÓNOMA DE CHIHUAHUA",
+                "UNIVERSIDAD AUTÓNOMA DE TAMAULIPAS", "UNIVERSIDAD AUTÓNOMA DE COAHUILA", "UNIVERSIDAD JUÁREZ DEL ESTADO DE DURANGO",
+                "UNIVERSIDAD AUTÓNOMA DE ZACATECAS", "UNIVERSIDAD AUTÓNOMA DE AGUASCALIENTES", "UNIVERSIDAD DE COLIMA",
+                "UNIVERSIDAD AUTÓNOMA DE NAYARIT", "UNIVERSIDAD AUTÓNOMA DE GUERRERO", "UNIVERSIDAD AUTÓNOMA BENITO JUÁREZ DE OAXACA",
+                "UNIVERSIDAD AUTÓNOMA DE CHIAPAS", "UNIVERSIDAD JUÁREZ AUTÓNOMA DE TABASCO", "UNIVERSIDAD AUTÓNOMA DE CAMPECHE",
+                "UNIVERSIDAD AUTÓNOMA DE TLAXCALA", "UNIVERSIDAD AUTÓNOMA DEL ESTADO DE MORELOS", "UNIVERSIDAD AUTÓNOMA DE HIDALGO",
+                "UNIVERSIDAD AUTÓNOMA DE CIUDAD JUÁREZ", "UNIVERSIDAD DE GUADALAJARA - CU ALTOS", "UNIVERSIDAD DE GUADALAJARA - CU SUR",
+                "UNIVERSIDAD DE GUADALAJARA - CU COSTA", "UNIVERSIDAD AUTÓNOMA DE AGUASCALIENTES - CAMPUS SUR", "UNIVERSIDAD QUETZALCÓATL",
+                "UNIVERSIDAD DE CELAYA", "UNIVERSIDAD AUTÓNOMA DE DURANGO", "UNIVERSIDAD XOCHICALCO - CAMPUS TIJUANA",
+                "UNIVERSIDAD XOCHICALCO - CAMPUS ENSENADA", "UNIVERSIDAD XOCHICALCO - CAMPUS MEXICALI", "CENTRO DE ESTUDIOS UNIVERSITARIOS XOCHICALCO",
+                "UNIVERSIDAD DEL NORESTE", "INSTITUTO DE ESTUDIOS SUPERIORES DE TAMAULIPAS", "UNIVERSIDAD DE MONTEMORELOS",
+                "UNIVERSIDAD VALLE DEL BRAVO", "UNIVERSIDAD PABLO GUARDADO CHÁVEZ", "UNIVERSIDAD DEL MAYAB",
+                "UNIVERSIDAD MODELO", "UNIVERSIDAD MARISTA DE MÉRIDA", "UNIVERSIDAD DE QUINTANA ROO",
+                "UNIVERSIDAD DE COLIMA - FACULTAD DE MEDICINA", "UNIVERSIDAD AUTÓNOMA DE SINALOA - MOCHIS", "UNIVERSIDAD AUTÓNOMA DE SINALOA - CULIACÁN",
+                "UNIVERSIDAD AUTÓNOMA DE SINALOA - MAZATLÁN", "UNIVERSIDAD DE SONORA - CAJEME", "UNIVERSIDAD DE SONORA - HERMOSILLO",
+                "UVM - CAMPUS COYOACÁN", "UVM - CAMPUS QUERÉTARO", "UVM - CAMPUS ZAPOPAN", "UVM - CAMPUS MONTERREY",
+                "UVM - CAMPUS VILLAHERMOSA", "UVM - CAMPUS VERACRUZ", "UVM - CAMPUS PUEBLA", "UVM - CAMPUS TOLUCA",
+                "UNITEC - CAMPUS ECATEPEC", "UNITEC - CAMPUS SUR", "UNITEC - CAMPUS ATIZAPÁN", "UNITEC - CAMPUS MARINA",
+                "UNIVERSIDAD DE LA SALUD DE LA CDMX", "UNIVERSIDAD BENITO JUÁREZ GARCÍA", "UNIVERSIDAD INTERCULTURAL DEL ESTADO DE MÉXICO",
+                "UNIVERSIDAD DE LA SIERRA SUR", "UNIVERSIDAD DEL PAPALOAPAN", "UNIVERSIDAD DE LA CAÑADA"
+            ];
+
             const [selectedSelloId, setSelectedSelloId] = useState(1);
             const [data, setData] = useState({
                 paciente: {
-                    nss: '05209874840', agregado: '1M1999OR',
+                    nss: '05209874840', 
+                    agregado: '1M1999OR', 
                     nombre: 'RICARDO DE JESUS LOPEZ MONTOYA',
-                    curp: 'LOMR980622HMCPN01', sexo: 'MASCULINO', fechaNac: '22/06/1998',
-                    delegacion: 'TOLUCA', ump: '222', consultorio: '16', cve: '281401252110', turno: 'MATUTINO'
+                    curp: 'LOMR980622HMCPN01', 
+                    sexo: 'MASCULINO', 
+                    fechaNac: '22/06/1998',
+                    delegacion: 'TOLUCA', ump: '222', 
+                    consultorio: '16', 
+                    cve: '281401252110', 
+                    turno: 'MATUTINO'
                 },
                 meta: { 
                     folio: '14041564087769', 
@@ -970,7 +1005,11 @@
                     indicaciones: 'CHEQUEO DE PRESIÓN ARTERIAL (T/A) Y GLUCOSA.\nSE INDICA TRATAMIENTO Y SE SOLICITAN ESTUDIOS DE CONTROL.'
                 },
                 medico: { 
-                    nombre: SELLOS_DATA[0].nombre, tipo: SELLOS_DATA[0].tipo, cedula: SELLOS_DATA[0].cedula, matricula: SELLOS_DATA[0].matricula, uni: SELLOS_DATA[0].uni 
+                    nombre: SELLOS_DATA[0].nombre, 
+                    tipo: SELLOS_DATA[0].tipo, 
+                    cedula: SELLOS_DATA[0].cedula, 
+                    matricula: SELLOS_DATA[0].matricula, 
+                    uni: SELLOS_DATA[0].uni 
                 },
                 medicamentos: [
                     { id: 1, text: '6389 CIPROFLOXACINO 500 MG — CADA TABLETA CONTIENE: CIPROFLOXACINO 500 MG', ind: 'Vía de administración Oral una Tableta (s) cada 12 Hora(s) durante 7 Dia(s) Cantidad a Surtir 1 ENV' },
@@ -987,6 +1026,36 @@
             const handleMed = (id, field, val) => setData(p => ({...p, medicamentos: p.medicamentos.map(m => m.id===id ? {...m, [field]: val.toUpperCase()} : m)}));
             const addMed = () => setData(p => ({...p, medicamentos: [...p.medicamentos, {id: Date.now(), text: '', ind: ''}]}));
             const delMed = (id) => setData(p => ({...p, medicamentos: p.medicamentos.filter(m => m.id !== id)}));
+
+            // --- GENERADORES ---
+            const getNum = () => Math.floor(Math.random() * 10).toString();
+            const getLet = () => "ABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt(Math.floor(Math.random() * 26));
+            const generateRandom = (length) => { let res = ''; for(let i=0; i<length; i++) res += getNum(); return res; };
+
+            const genNSS = () => setData(p => ({...p, paciente: {...p.paciente, nss: generateRandom(11)}}));
+            
+            // Patrón Agregado: 1Num + 1Let + 4Num + 2Let
+            const genAgregado = () => {
+                const nuevoAgregado = getNum() + getLet() + getNum() + getNum() + getNum() + getNum() + getLet() + getLet();
+                setData(p => ({...p, paciente: {...p.paciente, agregado: nuevoAgregado}}));
+            };
+
+            const genCve = () => setData(p => ({...p, paciente: {...p.paciente, cve: generateRandom(12)}}));
+            const genFolio = () => setData(p => ({...p, meta: {...p.meta, folio: generateRandom(14)}}));
+            const genCedula = () => setData(p => ({...p, medico: {...p.medico, cedula: generateRandom(8)}}));
+            const genMatricula = () => setData(p => ({...p, medico: {...p.medico, matricula: generateRandom(8)}}));
+
+            // Generador de Doctor
+            const genDoctorName = () => {
+                const randomName = DOCTOR_NAMES[Math.floor(Math.random() * DOCTOR_NAMES.length)];
+                setData(p => ({...p, medico: {...p.medico, nombre: randomName.toUpperCase()}}));
+            };
+
+            // Generador de Universidad (Aletorio de la lista de 100)
+            const genUniversity = () => {
+                const randomUni = UNIVERSITIES[Math.floor(Math.random() * UNIVERSITIES.length)];
+                setData(p => ({...p, medico: {...p.medico, uni: randomUni.toUpperCase()}}));
+            };
 
             const handleSelloSelect = (e) => {
                 const id = parseInt(e.target.value);
@@ -1011,72 +1080,129 @@
             const qrContent = `Nombre: ${data.paciente.nombre}\nNSS: ${data.paciente.nss}\nFecha Nacimiento: ${data.paciente.fechaNac}\nCURP: ${data.paciente.curp}\nDelegación: ${data.paciente.delegacion}\nCVE. PTAL: ${data.paciente.cve}\nFolio: ${data.meta.folio}`;
             const qrCode = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrContent)}`;
 
+            // Componentes UI Auxiliares
+            const Label = ({ children }) => <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 tracking-wide">{children}</label>;
+            const inputClass = "w-full border border-slate-300 rounded-lg p-2 text-xs font-bold text-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 outline-none transition bg-white";
+            const GenBtn = ({ onClick }) => (
+                <button onClick={onClick} className="bg-slate-100 hover:bg-indigo-100 text-slate-500 hover:text-indigo-600 border border-slate-200 rounded-lg px-2.5 transition active:scale-95 flex items-center justify-center" title="Generar Aleatorio">🔄</button>
+            );
+
             return (
                 <div className="flex flex-col lg:flex-row min-h-screen bg-white">
-                    {/* EDITOR */}
-                    <div className="w-full lg:w-1/3 bg-slate-50 border-r border-slate-200 p-4 no-print h-screen overflow-y-auto font-sans shadow-xl z-20">
-                         <div className="mb-4">
-                            <button onClick={onBack} className="group flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors bg-white border border-slate-200 px-3 py-2 rounded-lg shadow-sm">
+                    {/* PANEL EDITOR */}
+                    <div className="w-full lg:w-1/3 bg-slate-50 border-r border-slate-200 p-5 no-print h-screen overflow-y-auto font-sans shadow-xl z-20">
+                         <div className="mb-6">
+                            <button onClick={onBack} className="group flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors bg-white border border-slate-200 px-4 py-2.5 rounded-xl shadow-sm w-full justify-center hover:shadow-md">
                                 <i data-lucide="arrow-left" className="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i> Volver a la Tienda
                             </button>
                         </div>
-                        <div className="flex justify-between items-center mb-4 sticky top-0 bg-slate-50 z-10 py-3 border-b border-slate-200 text-xs">
-                            <h2 className="font-bold flex items-center gap-2 text-sm text-slate-800"><i data-lucide="edit-3" className="w-4 h-4 text-indigo-500"></i> Editar Datos</h2>
-                            <button onClick={() => window.print()} className="bg-slate-900 text-white px-4 py-1.5 rounded-md font-bold hover:bg-indigo-600 transition flex items-center gap-1"><i data-lucide="printer" className="w-3 h-3"></i> IMPRIMIR</button>
+                        
+                        <div className="flex justify-between items-center mb-6 sticky top-0 bg-slate-50 z-10 py-2 border-b border-slate-200">
+                            <h2 className="font-black text-base text-slate-800 flex items-center gap-2 uppercase tracking-tight">
+                                <span className="bg-indigo-100 p-1.5 rounded-lg text-indigo-600"><i data-lucide="edit-3" className="w-4 h-4"></i></span> Editar Datos
+                            </h2>
+                            <button onClick={() => window.print()} className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold hover:bg-emerald-600 transition flex items-center gap-2 text-xs shadow-lg hover:shadow-xl transform active:scale-95">
+                                <i data-lucide="printer" className="w-3 h-3"></i> IMPRIMIR
+                            </button>
                         </div>
-                        <div className="space-y-4 text-xs">
-                             <fieldset className="border border-slate-200 p-3 rounded-xl bg-white shadow-sm">
-                                <legend className="font-bold text-slate-500 px-1">Paciente</legend>
-                                <input className="w-full border border-slate-300 rounded mb-1.5 p-1.5 focus:border-indigo-500 outline-none" placeholder="Nombre" value={data.paciente.nombre} onChange={e=>handleChange('paciente','nombre',e.target.value)} />
-                                <div className="grid grid-cols-2 gap-1.5">
-                                    <input className="border border-slate-300 rounded p-1.5 focus:border-indigo-500 outline-none" placeholder="NSS" value={data.paciente.nss} onChange={e=>handleChange('paciente','nss',e.target.value)} />
-                                    <input className="border border-slate-300 rounded p-1.5 focus:border-indigo-500 outline-none" placeholder="Agregado" value={data.paciente.agregado} onChange={e=>handleChange('paciente','agregado',e.target.value)} />
-                                    <input className="border border-slate-300 rounded p-1.5 focus:border-indigo-500 outline-none" placeholder="CURP" value={data.paciente.curp} onChange={e=>handleChange('paciente','curp',e.target.value)} />
-                                    <input className="border border-slate-300 rounded p-1.5 focus:border-indigo-500 outline-none" placeholder="Fecha Nac" value={data.paciente.fechaNac} onChange={e=>handleChange('paciente','fechaNac',e.target.value)} />
-                                    <input className="border border-slate-300 rounded p-1.5 focus:border-indigo-500 outline-none" placeholder="Delegación" value={data.paciente.delegacion} onChange={e=>handleChange('paciente','delegacion',e.target.value)} />
-                                    <input className="border border-slate-300 rounded p-1.5 focus:border-indigo-500 outline-none" placeholder="UMP" value={data.paciente.ump} onChange={e=>handleChange('paciente','ump',e.target.value)} />
-                                    <input className="border border-slate-300 rounded p-1.5 focus:border-indigo-500 outline-none" placeholder="Consultorio" value={data.paciente.consultorio} onChange={e=>handleChange('paciente','consultorio',e.target.value)} />
-                                    <input className="border border-slate-300 rounded p-1.5 focus:border-indigo-500 outline-none" placeholder="Turno" value={data.paciente.turno} onChange={e=>handleChange('paciente','turno',e.target.value)} />
+
+                        <div className="space-y-6">
+                             {/* SECCIÓN PACIENTE */}
+                             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <div className="font-black text-xs text-indigo-500 uppercase tracking-widest mb-4 border-b border-indigo-50 pb-2">Datos del Paciente</div>
+                                <div className="space-y-3">
+                                    <div><Label>Nombre Completo</Label><input className={inputClass} placeholder="Nombre" value={data.paciente.nombre} onChange={e=>handleChange('paciente','nombre',e.target.value)} /></div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div><Label>NSS</Label><div className="flex gap-1"><input className={inputClass} value={data.paciente.nss} onChange={e=>handleChange('paciente','nss',e.target.value)} /><GenBtn onClick={genNSS} /></div></div>
+                                        <div><Label>Agregado Médico</Label><div className="flex gap-1"><input className={inputClass} value={data.paciente.agregado} onChange={e=>handleChange('paciente','agregado',e.target.value)} /><GenBtn onClick={genAgregado} /></div></div>
+                                        <div className="col-span-2"><Label>CURP</Label><input className={inputClass} placeholder="CURP" value={data.paciente.curp} onChange={e=>handleChange('paciente','curp',e.target.value)} /></div>
+                                        <div>
+                                            <Label>Sexo (Género)</Label>
+                                            <select className={`${inputClass} cursor-pointer appearance-none`} value={data.paciente.sexo} onChange={e => handleChange('paciente', 'sexo', e.target.value)}>
+                                                <option value="MASCULINO">MASCULINO</option>
+                                                <option value="FEMENINO">FEMENINO</option>
+                                            </select>
+                                        </div>
+                                        <div><Label>Fecha Nacimiento</Label><input className={inputClass} placeholder="DD/MM/AAAA" value={data.paciente.fechaNac} onChange={e=>handleChange('paciente','fechaNac',e.target.value)} /></div>
+                                        <div><Label>Delegación</Label><input className={inputClass} placeholder="Delegación" value={data.paciente.delegacion} onChange={e=>handleChange('paciente','delegacion',e.target.value)} /></div>
+                                        <div><Label>U.M.P.</Label><input className={inputClass} placeholder="UMP" value={data.paciente.ump} onChange={e=>handleChange('paciente','ump',e.target.value)} /></div>
+                                        <div>
+                                            <Label>Consultorio</Label>
+                                            <select className={`${inputClass} cursor-pointer`} value={data.paciente.consultorio} onChange={e => handleChange('paciente', 'consultorio', e.target.value)}>
+                                                {Array.from({length: 60}, (_, i) => i + 1).map(num => (<option key={num} value={num}>{num}</option>))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <Label>Turno</Label>
+                                            <select className={`${inputClass} cursor-pointer`} value={data.paciente.turno} onChange={e => handleChange('paciente', 'turno', e.target.value)}>
+                                                <option value="MATUTINO">MATUTINO</option>
+                                                <option value="VESPERTINO">VESPERTINO</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div><Label>Clave Presupuestal (Cve Ptal)</Label><div className="flex gap-1"><input className={inputClass} value={data.paciente.cve} onChange={e=>handleChange('paciente','cve',e.target.value)} /><GenBtn onClick={genCve} /></div></div>
                                 </div>
-                                <input className="w-full border border-slate-300 rounded mt-1.5 p-1.5 focus:border-indigo-500 outline-none" placeholder="Cve Ptal" value={data.paciente.cve} onChange={e=>handleChange('paciente','cve',e.target.value)} />
-                            </fieldset>
-                            <fieldset className="border border-slate-200 p-3 rounded-xl bg-white shadow-sm">
-                                <legend className="font-bold text-slate-500 px-1">Receta</legend>
-                                <input className="w-full border border-slate-300 rounded mb-1.5 p-1.5 focus:border-indigo-500 outline-none" placeholder="Folio" value={data.meta.folio} onChange={e=>handleChange('meta','folio',e.target.value)} />
-                                <input className="w-full border border-slate-300 rounded mb-1.5 p-1.5 focus:border-indigo-500 outline-none" placeholder="Fecha Texto" value={data.meta.fecha} onChange={e=>handleChange('meta','fecha',e.target.value)} />
-                            </fieldset>
-                            <fieldset className="border border-slate-200 p-3 rounded-xl bg-slate-50">
-                                <legend className="font-bold text-slate-500 flex justify-between w-full pb-1 px-1">Medicamentos <button onClick={addMed} className="bg-emerald-500 text-white px-2 rounded hover:bg-emerald-600 transition">+</button></legend>
-                                {data.medicamentos.map(m => (
-                                    <div key={m.id} className="mb-2 border-b border-slate-200 pb-2 bg-white p-2 rounded border shadow-sm">
-                                        <div className="flex justify-between mb-1"><span className="font-bold text-slate-700">Item</span> <button onClick={()=>delMed(m.id)} className="text-rose-500 hover:text-rose-700 font-bold">x</button></div>
-                                        <input className="w-full border border-slate-300 rounded mb-1 p-1.5 font-bold focus:border-indigo-500 outline-none" placeholder="Cod + Nombre" value={m.text} onChange={e=>handleMed(m.id,'text',e.target.value)} />
-                                        <textarea className="w-full border border-slate-300 rounded p-1.5 h-12 resize-none focus:border-indigo-500 outline-none" placeholder="Indicaciones" value={m.ind} onChange={e=>handleMed(m.id,'ind',e.target.value)}></textarea>
+                            </div>
+
+                            {/* SECCIÓN RECETA */}
+                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <div className="font-black text-xs text-emerald-600 uppercase tracking-widest mb-4 border-b border-emerald-50 pb-2">Datos de la Receta</div>
+                                <div className="grid grid-cols-1 gap-3">
+                                    <div><Label>Folio de Receta</Label><div className="flex gap-1"><input className={inputClass} value={data.meta.folio} onChange={e=>handleChange('meta','folio',e.target.value)} /><GenBtn onClick={genFolio} /></div></div>
+                                    <div><Label>Fecha (Texto Completo)</Label><input className={inputClass} placeholder="Ej. LUNES 10 DE ENERO DE 2025" value={data.meta.fecha} onChange={e=>handleChange('meta','fecha',e.target.value)} /></div>
+                                </div>
+                            </div>
+
+                            {/* SECCIÓN MEDICAMENTOS */}
+                            <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
+                                <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-200">
+                                    <div className="font-black text-xs text-slate-500 uppercase tracking-widest">Medicamentos</div>
+                                    <button onClick={addMed} className="bg-indigo-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition flex items-center gap-1 shadow-sm"><i data-lucide="plus" className="w-3 h-3"></i> AGREGAR</button>
+                                </div>
+                                {data.medicamentos.map((m, index) => (
+                                    <div key={m.id} className="mb-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm relative group hover:border-indigo-300 transition">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded uppercase">Medicamento #{index + 1}</span>
+                                            <button onClick={()=>delMed(m.id)} className="text-rose-400 hover:text-rose-600 p-1 bg-rose-50 rounded hover:bg-rose-100 transition"><i data-lucide="trash-2" className="w-3 h-3"></i></button>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div><Label>Nombre / Clave</Label><input className={inputClass} placeholder="Cod + Nombre" value={m.text} onChange={e=>handleMed(m.id,'text',e.target.value)} /></div>
+                                            <div><Label>Indicaciones / Dosis</Label><textarea className={`${inputClass} resize-none h-16`} placeholder="Indicaciones" value={m.ind} onChange={e=>handleMed(m.id,'ind',e.target.value)}></textarea></div>
+                                        </div>
                                     </div>
                                 ))}
-                            </fieldset>
-                            <fieldset className="border border-slate-200 p-3 rounded-xl bg-white shadow-sm">
-                                <legend className="font-bold text-slate-500 px-1">Indicaciones Médicas</legend>
-                                <textarea className="w-full border border-slate-300 rounded p-1.5 h-20 resize-none font-bold uppercase focus:border-indigo-500 outline-none" value={data.meta.indicaciones} onChange={e=>handleChange('meta','indicaciones',e.target.value)}></textarea>
-                            </fieldset>
+                            </div>
 
-                             <fieldset className="border border-slate-200 p-3 rounded-xl bg-white shadow-sm">
-                                <legend className="font-bold text-slate-500 px-1">Médico (Datos y Diseño del Sello)</legend>
-                                <div className="mb-2">
-                                    <label className="block text-slate-600 mb-1 font-bold">Seleccionar Sello Predefinido:</label>
-                                    <select className="w-full border border-slate-300 rounded p-1.5 font-bold bg-slate-50 cursor-pointer hover:bg-slate-100 focus:border-indigo-500 outline-none" value={selectedSelloId} onChange={handleSelloSelect}>
+                            {/* SECCIÓN INDICACIONES */}
+                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <div className="font-black text-xs text-slate-500 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Indicaciones Médicas Generales</div>
+                                <textarea className={`${inputClass} h-24 resize-none`} value={data.meta.indicaciones} onChange={e=>handleChange('meta','indicaciones',e.target.value)}></textarea>
+                            </div>
+
+                             {/* SECCIÓN MÉDICO */}
+                             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <div className="font-black text-xs text-blue-600 uppercase tracking-widest mb-4 border-b border-blue-50 pb-2">Datos del Médico</div>
+                                <div className="mb-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                                    <Label>Seleccionar Sello Predefinido</Label>
+                                    <select className={`${inputClass} bg-white cursor-pointer`} value={selectedSelloId} onChange={handleSelloSelect}>
                                         {SELLOS_DATA.map(sello => <option key={sello.id} value={sello.id}>{sello.label}</option>)}
                                     </select>
                                 </div>
-                                <div className="border-t border-slate-200 mb-2"></div>
-                                <input className="w-full border border-slate-300 rounded mb-1.5 p-1.5 focus:border-indigo-500 outline-none" placeholder="Nombre Dr(a)." value={data.medico.nombre} onChange={e=>handleChange('medico','nombre',e.target.value)} />
-                                <input className="w-full border border-slate-300 rounded mb-1.5 p-1.5 bg-blue-50 font-bold focus:border-indigo-500 outline-none" placeholder="Tipo de Médico" value={data.medico.tipo} onChange={e=>handleChange('medico','tipo',e.target.value)} />
-                                <input className="w-full border border-slate-300 rounded mb-1.5 p-1.5 focus:border-indigo-500 outline-none" placeholder="Universidad" value={data.medico.uni} onChange={e=>handleChange('medico','uni',e.target.value)} />
-                                <div className="grid grid-cols-2 gap-1.5">
-                                    <input className="border border-slate-300 rounded p-1.5 focus:border-indigo-500 outline-none" placeholder="Cédula Prof." value={data.medico.cedula} onChange={e=>handleChange('medico','cedula',e.target.value)} />
-                                    <input className="border border-slate-300 rounded p-1.5 focus:border-indigo-500 outline-none" placeholder="Matrícula" value={data.medico.matricula} onChange={e=>handleChange('medico','matricula',e.target.value)} />
+                                <div className="space-y-3">
+                                    {/* NOMBRE DOCTOR + BOTÓN */}
+                                    <div><Label>Nombre del Doctor(a)</Label><div className="flex gap-1"><input className={inputClass} placeholder="Nombre Dr(a)." value={data.medico.nombre} onChange={e=>handleChange('medico','nombre',e.target.value)} /><GenBtn onClick={genDoctorName} /></div></div>
+                                    
+                                    <div><Label>Especialidad / Tipo</Label><input className={`${inputClass} bg-slate-50 text-slate-500`} placeholder="Tipo de Médico" value={data.medico.tipo} onChange={e=>handleChange('medico','tipo',e.target.value)} /></div>
+                                    
+                                    {/* UNIVERSIDAD + BOTÓN (CON LISTA DE 100 REALES) */}
+                                    <div><Label>Universidad</Label><div className="flex gap-1"><input className={inputClass} placeholder="Universidad" value={data.medico.uni} onChange={e=>handleChange('medico','uni',e.target.value)} /><GenBtn onClick={genUniversity} /></div></div>
+                                    
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div><Label>Cédula Profesional</Label><div className="flex gap-1"><input className={inputClass} value={data.medico.cedula} onChange={e=>handleChange('medico','cedula',e.target.value)} /><GenBtn onClick={genCedula} /></div></div>
+                                        <div><Label>Matrícula</Label><div className="flex gap-1"><input className={inputClass} value={data.medico.matricula} onChange={e=>handleChange('medico','matricula',e.target.value)} /><GenBtn onClick={genMatricula} /></div></div>
+                                    </div>
                                 </div>
-                            </fieldset>
+                            </div>
                         </div>
                     </div>
 
@@ -1122,9 +1248,10 @@
                 </div>
             );
         };
+
         
-                                                                                // ==========================================
-        // COMPONENTE: PANEL DE ADMINISTRACIÓN (V20 - DISEÑO ORIGINAL + ID USUARIO)
+                                                                                        // ==========================================
+        // COMPONENTE: PANEL DE ADMINISTRACIÓN (V21 - CON GESTOR DE ANUNCIOS)
         // ==========================================
         const AdminPanel = ({ onBack }) => {
             const [section, setSection] = useState('menu');
@@ -1134,6 +1261,7 @@
             const [orders, setOrders] = useState([]);
             const [stockList, setStockList] = useState([]);
             const [usersList, setUsersList] = useState([]);
+            const [anuncios, setAnuncios] = useState([]); // <--- NUEVO ESTADO
             
             // --- ESTADOS DE CARGA ---
             const [loadingRequests, setLoadingRequests] = useState(true);
@@ -1141,33 +1269,32 @@
             const [loadingStock, setLoadingStock] = useState(true);
             const [loadingUsers, setLoadingUsers] = useState(true);
 
-            // --- ESTADOS MODALES ---
+            // --- ESTADOS MODALES Y EDICIÓN ---
             const [isModalOpen, setIsModalOpen] = useState(false);
             const [historyModalOpen, setHistoryModalOpen] = useState(false);
-            
-            // --- ESTADO PARA VER DATOS DEL PEDIDO ---
             const [isDetailsOpen, setIsDetailsOpen] = useState(false);
             const [selectedOrderDetails, setSelectedOrderDetails] = useState(null);
+            const [selectedUserHistory, setSelectedUserHistory] = useState({ user: null, compras: [], recargas: [], loading: false });
 
-            // --- ESTADOS EDICIÓN ---
+            // --- ESTADOS EDICIÓN STOCK ---
             const [editingId, setEditingId] = useState(null);
             const [isSaving, setIsSaving] = useState(false);
             const [newService, setNewService] = useState({ title: '', category: '', price: '', time: '', isNew: false, fields: [] });
 
-            // --- ESTADO HISTORIAL ---
-            const [selectedUserHistory, setSelectedUserHistory] = useState({ user: null, compras: [], recargas: [], loading: false });
+            // --- NUEVOS ESTADOS PARA ANUNCIOS ---
+            const [newAnuncio, setNewAnuncio] = useState("");
+            const [editingAnuncioId, setEditingAnuncioId] = useState(null);
 
             const availableFields = [
-                "Curp", "Nombre Completo", "Apellido Paterno", "Apellido Materno", "Fecha de Nacimiento", 
+                "Curp", "Nombre Completo", "Apellido Paterno", "Apellido Materno", "Fecha Nacimiento", 
                 "Domicilio", "Clave de Elector", "Número de servicio CFE", "NSS", "Placa", "Año a pagar", 
                 "Número de serie", "Número de motor", "Marca", "Modelo", "Línea", "Color", 
-                "Nombre del dueño/conductor", "Dirección", "RFC", "Idcif", "Fecha de emisión", "Clínica", 
-                "Delegación o municipio", "Turno", "N. Consultorio", "Sexo", "Clave patronal", 
+                "Nombre del dueño/conductor", "Dirección", "RFC", "Idcif", "Fecha de emisión", "UMP", 
+                "Delegación", "Turno", "Consultorio", "Sexo", "Nombre del Doctor(a)", "Indicaciones Médicas Generales", "Fecha (Texto Completo)", "Clave Presupuestal (Cve Ptal)", 
                 "1 Medicamento", "2 Medicamento", "3 Medicamento", "4 Medicamento", "Indicaciones Médicas", 
                 "Nombre del medico", "De que se enfermo"
             ];
 
-            // 🛡️ COMPONENTE "CÁPSULA" PARA ICONOS
             const Icon = ({ name, className }) => (
                 <span 
                     dangerouslySetInnerHTML={{__html: `<i data-lucide="${name}" class="${className || ''}"></i>`}} 
@@ -1181,7 +1308,7 @@
                     if(window.lucide) window.lucide.createIcons();
                 }, 50);
                 return () => clearTimeout(timer);
-            }, [section, requests, stockList, orders, usersList, isModalOpen, historyModalOpen, selectedUserHistory, newService, isDetailsOpen]);
+            }, [section, requests, stockList, orders, usersList, anuncios, isModalOpen]);
 
             // 2. CARGA DE DATOS
             useEffect(() => {
@@ -1189,7 +1316,8 @@
                 const unsub2 = db.collection('servicios').onSnapshot(s => { setStockList(s.docs.map(d => ({id:d.id,...d.data()})).sort((a,b)=>(a.title||"").localeCompare(b.title||""))); setLoadingStock(false); });
                 const unsub3 = db.collection('solicitudes_servicios').where('status', '==', 'pendiente').onSnapshot(s => { setOrders(s.docs.map(d => ({id:d.id,...d.data()})).sort((a,b)=>(b.date?.seconds||0)-(a.date?.seconds||0))); setLoadingOrders(false); });
                 const unsub4 = db.collection('usuarios').onSnapshot(s => { setUsersList(s.docs.map(d => ({id:d.id,...d.data()}))); setLoadingUsers(false); });
-                return () => { unsub1(); unsub2(); unsub3(); unsub4(); };
+                const unsub5 = db.collection('anuncios').orderBy('fecha', 'desc').onSnapshot(s => { setAnuncios(s.docs.map(d => ({id:d.id,...d.data()}))); }); // <--- CARGA ANUNCIOS
+                return () => { unsub1(); unsub2(); unsub3(); unsub4(); unsub5(); };
             }, []);
 
             // --- FUNCIONES LÓGICAS ---
@@ -1213,12 +1341,9 @@
                 try { await db.collection('solicitudes_servicios').doc(id).update({status:'completado', fechaCompletado: new Date()}); } catch(e){alert(e.message);}
             };
 
-            const handleViewData = (order) => {
-                setSelectedOrderDetails(order);
-                setIsDetailsOpen(true);
-            };
+            const handleViewData = (order) => { setSelectedOrderDetails(order); setIsDetailsOpen(true); };
 
-            // --- LÓGICA DE STOCK ---
+            // LOGICA STOCK
             const handleSaveService = async (e) => {
                 e.preventDefault(); setIsSaving(true);
                 try {
@@ -1227,28 +1352,24 @@
                     setIsModalOpen(false); setEditingId(null); alert("✅ Guardado");
                 } catch(e){alert(e.message);} finally{setIsSaving(false);}
             };
-
             const handleDeleteService = async (id) => { if(confirm("¿Eliminar?")) db.collection('servicios').doc(id).delete(); };
             const handleToggleActive = async (s) => db.collection('servicios').doc(s.id).update({active: !(s.active!==false)});
-            
             const openModal = (s) => {
                 if(s) { setNewService({ title:s.title||'', category:s.category||'', price:s.price||'', time:s.time||'', isNew:!!s.isNew, fields: s.fields || [] }); setEditingId(s.id); }
                 else { setNewService({title:'', category:'', price:'', time:'', isNew:false, fields: []}); setEditingId(null); }
                 setIsModalOpen(true);
             };
-
             const toggleField = (field) => {
                 const currentFields = newService.fields || [];
                 if (currentFields.includes(field)) { setNewService({ ...newService, fields: currentFields.filter(f => f !== field) }); } 
                 else { setNewService({ ...newService, fields: [...currentFields, field] }); }
             };
 
-            // Funciones Usuario
+            // LOGICA USUARIOS
             const handleAddBalance = async (u) => { const m = prompt(`Sumar saldo a ${u.nombre}:`); if(!m) return; try { await db.collection('usuarios').doc(u.id).update({saldo: firebase.firestore.FieldValue.increment(parseFloat(m))}); alert("✅ Listo"); } catch(e){alert(e.message);} };
             const handleSetBalance = async (u) => { const m = prompt(`Nuevo saldo TOTAL para ${u.nombre}:`, u.saldo); if(!m) return; try { await db.collection('usuarios').doc(u.id).update({saldo: parseFloat(m)}); alert("✅ Listo"); } catch(e){alert(e.message);} };
             const handleToggleSuspend = async (u) => { if(confirm("¿Cambiar estado?")) db.collection('usuarios').doc(u.id).update({disabled:!u.disabled}); };
             const handleDeleteUser = async (u) => { if(prompt(`Escribe ELIMINAR para borrar a ${u.email}`)==="ELIMINAR") db.collection('usuarios').doc(u.id).delete(); };
-            
             const handleViewHistory = async (u) => {
                 setSelectedUserHistory({user:u, compras:[], recargas:[], loading:true}); setHistoryModalOpen(true);
                 try {
@@ -1274,6 +1395,34 @@
                 await b.commit(); alert("✅ Borrado"); setHistoryModalOpen(false);
             };
 
+            // LOGICA ANUNCIOS
+            const handleSaveAnuncio = async (e) => {
+                e.preventDefault();
+                if(!newAnuncio.trim()) return;
+                setIsSaving(true);
+                try {
+                    if(editingAnuncioId) {
+                        await db.collection('anuncios').doc(editingAnuncioId).update({ texto: newAnuncio });
+                        setEditingAnuncioId(null);
+                    } else {
+                        await db.collection('anuncios').add({ texto: newAnuncio, fecha: new Date() });
+                    }
+                    setNewAnuncio("");
+                    alert("✅ Anuncio publicado");
+                } catch(e) { alert(e.message); } finally { setIsSaving(false); }
+            };
+            
+            const handleEditAnuncio = (anuncio) => {
+                setNewAnuncio(anuncio.texto);
+                setEditingAnuncioId(anuncio.id);
+            };
+
+            const handleDeleteAnuncio = async (id) => {
+                if(confirm("¿Eliminar este anuncio?")) {
+                    await db.collection('anuncios').doc(id).delete();
+                }
+            };
+
             // ==========================================
             // VISTAS DEL PANEL
             // ==========================================
@@ -1287,6 +1436,16 @@
                         <button onClick={()=>setSection('pedidos')} className="bg-white p-6 rounded-2xl shadow hover:shadow-xl transition group relative overflow-hidden"><div className="flex justify-between items-start mb-4"><div className="p-3 bg-orange-50 rounded-xl text-orange-600"><Icon name="shopping-cart" className="w-8 h-8"/></div>{orders.length>0 && <span className="bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse">{orders.length}</span>}</div><h3 className="text-xl font-bold text-slate-800">Pedidos</h3><p className="text-slate-500 text-sm">Solicitudes</p></button>
                         <button onClick={()=>setSection('stock')} className="bg-white p-6 rounded-2xl shadow hover:shadow-xl transition group relative overflow-hidden"><div className="flex justify-between items-start mb-4"><div className="p-3 bg-emerald-50 rounded-xl text-emerald-600"><Icon name="package" className="w-8 h-8"/></div><span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full">{stockList.length}</span></div><h3 className="text-xl font-bold text-slate-800">Stock</h3><p className="text-slate-500 text-sm">Inventario</p></button>
                         <button onClick={()=>setSection('usuarios')} className="bg-white p-6 rounded-2xl shadow hover:shadow-xl transition group relative overflow-hidden"><div className="flex justify-between items-start mb-4"><div className="p-3 bg-blue-50 rounded-xl text-blue-600"><Icon name="users" className="w-8 h-8"/></div><span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full">{usersList.length}</span></div><h3 className="text-xl font-bold text-slate-800">Usuarios</h3><p className="text-slate-500 text-sm">Gestión</p></button>
+                        
+                        {/* --- NUEVO BOTÓN ANUNCIOS --- */}
+                        <button onClick={()=>setSection('anuncios')} className="bg-slate-900 p-6 rounded-2xl shadow hover:shadow-xl transition group relative overflow-hidden border border-slate-700">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="p-3 bg-cyan-900/50 rounded-xl text-cyan-400 border border-cyan-800"><Icon name="megaphone" className="w-8 h-8"/></div>
+                            </div>
+                            <h3 className="text-xl font-bold text-white">Anuncios</h3>
+                            <p className="text-slate-400 text-sm">Publicidad Neón</p>
+                        </button>
+
                     </div></div></div>
             );
 
@@ -1295,7 +1454,6 @@
                 <div className="bg-white rounded-xl shadow p-4 space-y-2">{requests.length===0?<p className="text-center text-slate-400 p-4">Sin datos.</p>:requests.map(r=>(<div key={r.id} className="flex justify-between items-center p-3 hover:bg-slate-50 border-b"><div><div className="font-bold">{r.userEmail}</div><div className="text-xs text-slate-500">${r.monto}</div></div><div className="flex gap-2"><button onClick={()=>handleProcessRecarga(r,false)} className="text-rose-600 font-bold text-xs bg-rose-50 px-3 py-2 rounded">RECHAZAR</button><button onClick={()=>handleProcessRecarga(r,true)} className="text-white font-bold text-xs bg-emerald-500 px-3 py-2 rounded">APROBAR</button></div></div>))}</div></div></div>
             );
 
-            // --- VISTA PEDIDOS (CORREGIDA PARA INCLUIR MODAL) ---
             if (section === 'pedidos') return (
                 <div className="min-h-screen bg-slate-100 p-6 font-sans">
                     <div className="max-w-4xl mx-auto">
@@ -1318,37 +1476,12 @@
                             ))}
                         </div>
                     </div>
-
-                    {/* MODAL VER DATOS (AHORA DENTRO DE LA VISTA DE PEDIDOS) */}
                     {isDetailsOpen && selectedOrderDetails && (
                         <div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
                             <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
-                                <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
-                                    <div><h3 className="font-bold text-slate-800">Datos del Pedido</h3><p className="text-xs text-slate-500 uppercase">{selectedOrderDetails.serviceName}</p></div>
-                                    <button onClick={() => setIsDetailsOpen(false)}><Icon name="x" className="w-5 h-5 text-slate-400"/></button>
-                                </div>
-                                <div className="p-6 max-h-[60vh] overflow-y-auto">
-                                    {(() => {
-                                        const dataToShow = selectedOrderDetails.datosFormulario || selectedOrderDetails.formulario || {};
-                                        const keys = Object.keys(dataToShow);
-                                        
-                                        if (keys.length === 0) return <div className="text-center text-slate-400 py-4">No hay datos adicionales registrados.</div>;
-
-                                        return (
-                                            <div className="space-y-3">
-                                                {keys.map((key, index) => (
-                                                    <div key={index} className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                                                        <div className="text-[10px] font-bold text-slate-400 uppercase mb-1">{key}</div>
-                                                        <div className="text-sm font-bold text-slate-800 select-text break-all">{dataToShow[key]}</div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        );
-                                    })()}
-                                </div>
-                                <div className="p-4 border-t bg-slate-50 text-right">
-                                    <button onClick={() => setIsDetailsOpen(false)} className="bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-bold">CERRAR</button>
-                                </div>
+                                <div className="p-4 border-b bg-slate-50 flex justify-between items-center"><div><h3 className="font-bold text-slate-800">Datos</h3><p className="text-xs text-slate-500 uppercase">{selectedOrderDetails.serviceName}</p></div><button onClick={() => setIsDetailsOpen(false)}><Icon name="x" className="w-5 h-5 text-slate-400"/></button></div>
+                                <div className="p-6 max-h-[60vh] overflow-y-auto"><div className="space-y-3">{Object.keys(selectedOrderDetails.datosFormulario||{}).map((key,i)=>(<div key={i} className="bg-slate-50 p-3 rounded-lg border border-slate-200"><div className="text-[10px] font-bold text-slate-400 uppercase mb-1">{key}</div><div className="text-sm font-bold text-slate-800 select-text break-all">{selectedOrderDetails.datosFormulario[key]}</div></div>))}</div></div>
+                                <div className="p-4 border-t bg-slate-50 text-right"><button onClick={() => setIsDetailsOpen(false)} className="bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-bold">CERRAR</button></div>
                             </div>
                         </div>
                     )}
@@ -1365,24 +1498,18 @@
                 <button className="w-full bg-slate-900 text-white py-3 rounded font-bold">GUARDAR</button></form></div></div>)}</div>
             );
 
-            // --- VISTA USUARIOS (V20 - DISEÑO ORIGINAL RESTAURADO + ID AGREGADO) ---
             if (section === 'usuarios') return (
                 <div className="min-h-screen bg-slate-100 p-6 font-sans"><div className="max-w-6xl mx-auto"><button onClick={()=>setSection('menu')} className="mb-6 flex gap-2 font-bold text-slate-600"><Icon name="arrow-left" className="w-5 h-5"/> Volver</button><h2 className="text-2xl font-bold mb-6 flex gap-2"><Icon name="users" className="w-6 h-6 text-indigo-600"/> Usuarios</h2>
                 <div className="bg-white rounded-xl shadow border border-slate-200 overflow-hidden"><div className="p-4 bg-slate-50 border-b border-slate-200"><span className="font-bold text-xs uppercase">Total: {usersList.length}</span></div><div className="overflow-x-auto"><table className="w-full text-left text-sm text-slate-600"><thead className="bg-slate-50 font-bold text-xs uppercase border-b"><tr><th className="px-6 py-4">Usuario</th><th className="px-6 py-4">Acciones</th></tr></thead><tbody className="divide-y divide-slate-100">
                 {usersList.map(u => (<tr key={u.id} className={u.disabled?"bg-red-50":"hover:bg-slate-50"}><td className="px-6 py-4 w-1/3"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600">{u.nombre?u.nombre[0]:'U'}</div><div>
                     <div className="font-black text-slate-800 flex items-center gap-2">{u.nombre||'SIN NOMBRE'} <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 rounded font-bold">${(u.saldo||0).toFixed(2)}</span></div>
-                    <div className="text-xs text-indigo-500">{u.email}</div>
-                    
-                    {/* --- AQUÍ AGREGAMOS EL ID DEL USUARIO SIN CAMBIAR EL DISEÑO --- */}
-                    <div className="text-[9px] text-slate-400 font-mono mt-0.5 select-text">ID: {u.id}</div>
-
+                    <div className="text-xs text-indigo-500">{u.email}</div><div className="text-[9px] text-slate-400 font-mono mt-0.5 select-text">ID: {u.id}</div>
                 </div></div></td>
                 <td className="px-6 py-4"><div className="flex flex-wrap gap-2">
                     <div className="flex bg-emerald-50 rounded border border-emerald-100"><button onClick={()=>handleAddBalance(u)} className="p-2 border-r border-emerald-100 text-emerald-700"><Icon name="plus" className="w-4 h-4"/></button><button onClick={()=>handleSetBalance(u)} className="p-2 text-emerald-700"><Icon name="edit-3" className="w-4 h-4"/></button></div>
                     <div className="flex bg-blue-50 rounded border border-blue-100"><button onClick={()=>handleViewHistory(u)} className="p-2 border-r border-blue-100 text-blue-700"><Icon name="file-clock" className="w-4 h-4"/></button><button onClick={()=>handleWipeHistory(u)} className="p-2 text-blue-700"><Icon name="file-x" className="w-4 h-4"/></button></div>
                     <div className="flex bg-slate-100 rounded border border-slate-200"><button onClick={()=>handleToggleSuspend(u)} className="p-2 border-r border-slate-200 text-slate-600"><Icon name={u.disabled?"check-circle":"ban"} className="w-4 h-4"/></button><button onClick={()=>handleDeleteUser(u)} className="p-2 text-rose-600"><Icon name="user-x" className="w-4 h-4"/></button></div>
                 </div></td></tr>))}</tbody></table></div></div></div>
-                
                 {historyModalOpen && (<div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4"><div className="bg-white w-full max-w-3xl h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
                     <div className="p-4 border-b bg-slate-50 flex justify-between items-center"><div><h3 className="font-bold">Historial</h3><p className="text-xs text-slate-500">{selectedUserHistory.user?.email}</p></div><button onClick={()=>setHistoryModalOpen(false)}><Icon name="x" className="w-5 h-5"/></button></div>
                     <div className="flex-1 overflow-y-auto p-6 bg-slate-100"><div className="grid md:grid-cols-2 gap-6">
@@ -1392,10 +1519,52 @@
                 )}</div>
             );
 
+            // --- VISTA DE ANUNCIOS ---
+            if (section === 'anuncios') return (
+                <div className="min-h-screen bg-slate-100 p-6 font-sans">
+                    <div className="max-w-2xl mx-auto">
+                        <button onClick={()=>setSection('menu')} className="mb-6 flex gap-2 font-bold text-slate-600"><Icon name="arrow-left" className="w-5 h-5"/> Volver</button>
+                        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2"><Icon name="megaphone" className="w-6 h-6 text-cyan-500"/> Gestión de Anuncios</h2>
+                        
+                        {/* FORMULARIO */}
+                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-8">
+                            <form onSubmit={handleSaveAnuncio}>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Texto del Anuncio</label>
+                                <textarea 
+                                    className="w-full border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 transition-all font-medium text-slate-700 h-24 resize-none"
+                                    placeholder="Escribe aquí el anuncio que aparecerá en la tienda..."
+                                    value={newAnuncio}
+                                    onChange={(e) => setNewAnuncio(e.target.value)}
+                                ></textarea>
+                                <div className="flex justify-end mt-3 gap-2">
+                                    {editingAnuncioId && <button type="button" onClick={() => { setEditingAnuncioId(null); setNewAnuncio(""); }} className="text-slate-500 font-bold text-xs px-4">CANCELAR</button>}
+                                    <button type="submit" disabled={isSaving} className="bg-slate-900 text-white px-6 py-2 rounded-lg font-bold hover:bg-slate-800 transition flex items-center gap-2">
+                                        {isSaving ? 'Guardando...' : <><Icon name="send" className="w-4 h-4"/> {editingAnuncioId ? 'ACTUALIZAR' : 'PUBLICAR'}</>}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        {/* LISTA */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Anuncios Activos ({anuncios.length})</h3>
+                            {anuncios.map(anuncio => (
+                                <div key={anuncio.id} className="bg-slate-900 text-cyan-400 p-4 rounded-xl shadow-lg border border-slate-800 flex justify-between items-center relative overflow-hidden group">
+                                    <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500"></div>
+                                    <p className="font-bold text-sm pr-4 shadow-cyan-500/50 drop-shadow-md">{anuncio.texto}</p>
+                                    <div className="flex gap-2 bg-slate-900/80 p-1 rounded-lg">
+                                        <button onClick={() => handleEditAnuncio(anuncio)} className="p-2 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-white rounded transition"><Icon name="pencil" className="w-4 h-4"/></button>
+                                        <button onClick={() => handleDeleteAnuncio(anuncio.id)} className="p-2 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded transition"><Icon name="trash-2" className="w-4 h-4"/></button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+
             return null;
         };
-
-
 
 
 
