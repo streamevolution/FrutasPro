@@ -1506,8 +1506,8 @@
             );
         };
         
-                // ==========================================
-        // COMPONENTE: HISTORIAL DE COMPRAS (NUEVO)
+                      // ==========================================
+        // COMPONENTE: HISTORIAL DE COMPRAS (V3 - URL ABSOLUTA CORREGIDA)
         // ==========================================
         const PurchaseHistory = ({ onBack }) => {
             const [history, setHistory] = useState([]);
@@ -1519,12 +1519,10 @@
                 const user = auth.currentUser;
                 if (!user) return;
 
-                // Consultamos las solicitudes donde el userId sea el del usuario actual
                 const unsubscribe = db.collection('solicitudes_servicios')
                     .where('userId', '==', user.uid)
                     .onSnapshot(snapshot => {
                         const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        // Ordenamos por fecha (más reciente primero)
                         docs.sort((a, b) => (b.date?.seconds || 0) - (a.date?.seconds || 0));
                         setHistory(docs);
                         setLoading(false);
@@ -1532,6 +1530,40 @@
 
                 return () => unsubscribe();
             }, []);
+
+            // --- FUNCIÓN DE LIMPIEZA DE URL ---
+            const openCleanUrl = (rawText) => {
+                if (!rawText) {
+                    alert("No hay enlace disponible.");
+                    return;
+                }
+
+                // 1. Buscamos explícitamente una URL que empiece por http:// o https://
+                // Esta expresión regular extrae la URL sin importar qué texto haya antes.
+                const urlRegex = /(https?:\/\/[^\s]+)/g;
+                const match = rawText.match(urlRegex);
+
+                let finalUrl = "";
+
+                if (match && match.length > 0) {
+                    // CASO A: Encontramos "https://..." dentro del texto. Usamos SOLO eso.
+                    finalUrl = match[0];
+                } else {
+                    // CASO B: El admin puso "www.google.com" o "drive.google.com" SIN http.
+                    // Si lo dejamos así, el navegador le pone "127.0.0.1..." antes.
+                    // SOLUCIÓN: Forzamos el "https://" al principio.
+                    
+                    // Limpiamos espacios y posibles etiquetas de texto
+                    let cleanText = rawText.trim();
+                    // Quitamos prefijos comunes si el admin escribió "Link: www..."
+                    cleanText = cleanText.replace(/^(Link|Ver|Url|Descargar)[:\s]*/i, '');
+                    
+                    finalUrl = 'https://' + cleanText;
+                }
+
+                // Abrir en nueva pestaña
+                window.open(finalUrl, '_blank');
+            };
 
             return (
                 <div className="min-h-screen bg-slate-50 p-6 font-sans">
@@ -1580,16 +1612,10 @@
                                             <div className="flex items-center gap-4">
                                                  <span className="font-bold text-slate-700 text-sm">${item.pricePaid}</span>
                                                  
-                                                 {/* BOTÓN DE DESCARGA REAL */}
+                                                 {/* BOTÓN DE DESCARGA CON FUNCIÓN CORREGIDA */}
                                                  {item.status === 'completado' && (
                                                      <button 
-                                                        onClick={() => {
-                                                            if(item.downloadUrl) {
-                                                                window.open(item.downloadUrl, '_blank');
-                                                            } else {
-                                                                alert("El administrador marcó el pedido como completado pero no adjuntó enlace.");
-                                                            }
-                                                        }} 
+                                                        onClick={() => openCleanUrl(item.downloadUrl)} 
                                                         className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-md shadow-indigo-200 transition font-bold text-xs flex items-center gap-2" 
                                                         title="Descargar Documento"
                                                      >
@@ -1606,6 +1632,7 @@
                 </div>
             );
         };
+
         
                 // ==========================================
         // COMPONENTE: PERFIL DE USUARIO (V9 - SOLUCIÓN "ZONA SEGURA")
