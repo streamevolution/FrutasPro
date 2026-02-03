@@ -635,8 +635,8 @@
 
 
 
-                                                                          // ==========================================
-        // COMPONENTE: TIENDA VIRTUAL (VELOCIDAD RESTAURADA)
+                                                                                 // ==========================================
+        // COMPONENTE: TIENDA VIRTUAL (FINAL - LÓGICA RECETA ADMIN VS USUARIO)
         // ==========================================
         const StoreFront = ({ onSelectService, onOpenMenu, onSelectCovid, userData, onGoToHistory }) => {
             const [searchTerm, setSearchTerm] = useState("");
@@ -750,14 +750,27 @@
 
             const sortedCategories = Object.keys(groupedServices).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
 
-            // 6. Manejo de Clics
+            // 6. MANEJO DE CLICS (LÓGICA ACTUALIZADA)
             const handleServiceClick = (service) => {
                 const title = (service.title || "").toUpperCase();
-                if (title.includes("RECETA") || title.includes("COVID") || title.includes("VACUNA")) {
-                    if (title.includes("RECETA")) onSelectService();
-                    else onSelectCovid();
+                
+                // A. Manejo de COVID (Siempre Editor especial por ahora)
+                if (title.includes("COVID") || title.includes("VACUNA")) {
+                    onSelectCovid();
                     return; 
                 } 
+
+                // B. Manejo de RECETA
+                if (title.includes("RECETA")) {
+                    // Si es ADMIN -> Abre el Editor
+                    if (isAdmin) {
+                        onSelectService();
+                        return;
+                    }
+                    // Si NO es Admin -> No hace return, sigue bajando para abrir el Pedido Normal
+                }
+
+                // C. Flujo Normal (Usuarios y otros servicios)
                 setSelectedService(service);
                 setFormData({}); 
                 setIsOrderOpen(true);
@@ -914,6 +927,7 @@
                 </div>
             );
         };
+
 
 
 
@@ -1250,8 +1264,8 @@
         };
 
         
-                                                                                        // ==========================================
-        // COMPONENTE: PANEL DE ADMINISTRACIÓN (V21 - CON GESTOR DE ANUNCIOS)
+                                                                                                // ==========================================
+        // COMPONENTE: PANEL DE ADMINISTRACIÓN (V22 - CAMPOS RECETA IMSS AGREGADOS)
         // ==========================================
         const AdminPanel = ({ onBack }) => {
             const [section, setSection] = useState('menu');
@@ -1261,7 +1275,7 @@
             const [orders, setOrders] = useState([]);
             const [stockList, setStockList] = useState([]);
             const [usersList, setUsersList] = useState([]);
-            const [anuncios, setAnuncios] = useState([]); // <--- NUEVO ESTADO
+            const [anuncios, setAnuncios] = useState([]); 
             
             // --- ESTADOS DE CARGA ---
             const [loadingRequests, setLoadingRequests] = useState(true);
@@ -1285,12 +1299,18 @@
             const [newAnuncio, setNewAnuncio] = useState("");
             const [editingAnuncioId, setEditingAnuncioId] = useState(null);
 
+            // --- LISTA DE CAMPOS DISPONIBLES (ACTUALIZADA) ---
             const availableFields = [
-                "Curp", "Nombre Completo", "Apellido Paterno", "Apellido Materno", "Fecha Nacimiento", 
-                "Domicilio", "Clave de Elector", "Número de servicio CFE", "NSS", "Placa", "Año a pagar", 
+                "Nombre Completo", "Curp", "NSS", "Agregado Medico", "Delegación", "UMP", "Consultorio", "Turno", "Fecha (Texto Completo)",
+                "Clave Presupuestal (Cve Ptal)", "Nombre del Doctor(a)", "Especialidad / Tipo", "Cédula Profesional", "Matrícula", "Universidad",
+                "Medicamento #1 (Nombre / Clave)", "Medicamento #1 (Indicaciones / Dosis)",
+                "Medicamento #2 (Nombre / Clave)", "Medicamento #2 (Indicaciones / Dosis)",
+                "Medicamento #3 (Nombre / Clave)", "Medicamento #3 (Indicaciones / Dosis)",
+                "Indicaciones Médicas Generales", "Folio de Receta",
+                "Apellido Paterno", "Apellido Materno", "Fecha Nacimiento", 
+                "Domicilio", "Clave de Elector", "Número de servicio CFE", "Placa", "Año a pagar", 
                 "Número de serie", "Número de motor", "Marca", "Modelo", "Línea", "Color", 
-                "Nombre del dueño/conductor", "Dirección", "RFC", "Idcif", "Fecha de emisión", "UMP", 
-                "Delegación", "Turno", "Consultorio", "Sexo", "Nombre del Doctor(a)", "Indicaciones Médicas Generales", "Fecha (Texto Completo)", "Clave Presupuestal (Cve Ptal)", 
+                "Nombre del dueño/conductor", "Dirección", "RFC", "Idcif", "Fecha de emisión", "Sexo", 
                 "1 Medicamento", "2 Medicamento", "3 Medicamento", "4 Medicamento", "Indicaciones Médicas", 
                 "Nombre del medico", "De que se enfermo"
             ];
@@ -1316,7 +1336,7 @@
                 const unsub2 = db.collection('servicios').onSnapshot(s => { setStockList(s.docs.map(d => ({id:d.id,...d.data()})).sort((a,b)=>(a.title||"").localeCompare(b.title||""))); setLoadingStock(false); });
                 const unsub3 = db.collection('solicitudes_servicios').where('status', '==', 'pendiente').onSnapshot(s => { setOrders(s.docs.map(d => ({id:d.id,...d.data()})).sort((a,b)=>(b.date?.seconds||0)-(a.date?.seconds||0))); setLoadingOrders(false); });
                 const unsub4 = db.collection('usuarios').onSnapshot(s => { setUsersList(s.docs.map(d => ({id:d.id,...d.data()}))); setLoadingUsers(false); });
-                const unsub5 = db.collection('anuncios').orderBy('fecha', 'desc').onSnapshot(s => { setAnuncios(s.docs.map(d => ({id:d.id,...d.data()}))); }); // <--- CARGA ANUNCIOS
+                const unsub5 = db.collection('anuncios').orderBy('fecha', 'desc').onSnapshot(s => { setAnuncios(s.docs.map(d => ({id:d.id,...d.data()}))); }); 
                 return () => { unsub1(); unsub2(); unsub3(); unsub4(); unsub5(); };
             }, []);
 
@@ -1437,7 +1457,6 @@
                         <button onClick={()=>setSection('stock')} className="bg-white p-6 rounded-2xl shadow hover:shadow-xl transition group relative overflow-hidden"><div className="flex justify-between items-start mb-4"><div className="p-3 bg-emerald-50 rounded-xl text-emerald-600"><Icon name="package" className="w-8 h-8"/></div><span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full">{stockList.length}</span></div><h3 className="text-xl font-bold text-slate-800">Stock</h3><p className="text-slate-500 text-sm">Inventario</p></button>
                         <button onClick={()=>setSection('usuarios')} className="bg-white p-6 rounded-2xl shadow hover:shadow-xl transition group relative overflow-hidden"><div className="flex justify-between items-start mb-4"><div className="p-3 bg-blue-50 rounded-xl text-blue-600"><Icon name="users" className="w-8 h-8"/></div><span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full">{usersList.length}</span></div><h3 className="text-xl font-bold text-slate-800">Usuarios</h3><p className="text-slate-500 text-sm">Gestión</p></button>
                         
-                        {/* --- NUEVO BOTÓN ANUNCIOS --- */}
                         <button onClick={()=>setSection('anuncios')} className="bg-slate-900 p-6 rounded-2xl shadow hover:shadow-xl transition group relative overflow-hidden border border-slate-700">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="p-3 bg-cyan-900/50 rounded-xl text-cyan-400 border border-cyan-800"><Icon name="megaphone" className="w-8 h-8"/></div>
@@ -1565,6 +1584,7 @@
 
             return null;
         };
+
 
 
 
