@@ -92,130 +92,211 @@
             { id: 5, label: 'Sello 5 (Verde, Desgastado)', nombre: 'HECTOR SALINAS CRUZ', tipo: 'CIRUJANO', cedula: '67123900', matricula: '98334455', uni: 'Benemérita Universidad Autónoma de Puebla (BUAP)', style: { borderColor: '#005221', color: '#005221', borderStyle: 'solid', borderWidth: '3px', transform: 'rotate(-5deg)', opacity: 0.8, filter: 'url(#stamp-texture-2)' }, position: { top: '5px', left: '120px' } }
         ];
 
-                // ==========================================
-        // COMPONENTE: PANTALLA DE LOGIN Y REGISTRO
+                               // ==========================================
+        // COMPONENTE: PANTALLA DE LOGIN Y REGISTRO (V7 - SIN BOTÓN DESCARGA)
         // ==========================================
         const LoginScreen = ({ onLogin }) => {
+            // Estados Básicos
             const [email, setEmail] = useState('');
             const [password, setPassword] = useState('');
             const [isLoading, setIsLoading] = useState(false);
-            const [isRegistering, setIsRegistering] = useState(false); // Alternar entre Login y Registro
+            const [isRegistering, setIsRegistering] = useState(false);
 
-            // 1. CORRECCIÓN: Inicializar iconos cada vez que cambia el modo (Login/Registro)
+            // Estados Extra (Registro)
+            const [nombre, setNombre] = useState('');
+            const [confirmPassword, setConfirmPassword] = useState('');
+            const [telefono, setTelefono] = useState('');
+            const [direccion, setDireccion] = useState('');
+            const [genero, setGenero] = useState('Masculino'); 
+
+            // Carga segura de iconos (Anti-Pantalla Blanca)
             useEffect(() => {
-                if(window.lucide) window.lucide.createIcons();
-            }, [isRegistering]);
+                const timer = setTimeout(() => {
+                    try {
+                        if(window.lucide) window.lucide.createIcons();
+                    } catch(e) { console.warn("Icon error ignorado", e); }
+                }, 100);
+                return () => clearTimeout(timer);
+            }, [isRegistering]); 
 
-            // Manejo de Auth (Login o Registro)
             const handleAuth = async (e) => {
                 e.preventDefault();
                 setIsLoading(true);
 
                 try {
                     if (isRegistering) {
-                        // --- FLUJO DE REGISTRO ---
+                        // --- VALIDACIONES ---
+                        if (password !== confirmPassword) {
+                            alert("❌ Las contraseñas no coinciden.");
+                            setIsLoading(false);
+                            return;
+                        }
+                        if (!nombre.trim() || !telefono.trim() || !direccion.trim()) {
+                            alert("⚠️ Por favor completa todos los campos.");
+                            setIsLoading(false);
+                            return;
+                        }
+
+                        // 1. Crear usuario
                         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                         const user = userCredential.user;
                         
-                        // Enviar correo de verificación
-                        await user.sendEmailVerification();
-                        
-                        alert("¡Cuenta creada con éxito! Se ha enviado un correo de verificación a " + email + ". Por favor, verifícalo antes de iniciar sesión.");
-                        
-                        // Opcional: Crear documento en Firestore para el usuario
+                        // 2. Guardar en Firestore
                         await db.collection('usuarios').doc(user.uid).set({
                             email: email,
-                            fechaRegistro: new Date()
+                            nombre: nombre.toUpperCase(),
+                            telefono: telefono,
+                            direccion: direccion.toUpperCase(),
+                            genero: genero,
+                            fechaRegistro: new Date(),
+                            saldo: 0
                         });
-
-                        setIsRegistering(false); // Volver a la pantalla de login
-                        firebase.auth().signOut(); // Cerrar sesión para obligar el login limpio
+                        
+                        // 3. Verificar
+                        await user.sendEmailVerification();
+                        alert("¡Cuenta creada con éxito! ✅\n\nSe ha enviado un correo de verificación a " + email);
+                        
+                        // 4. Recarga segura
+                        window.location.reload();
 
                     } else {
-                        // --- FLUJO DE LOGIN ---
+                        // --- LOGIN ---
                         const userCredential = await auth.signInWithEmailAndPassword(email, password);
                         const user = userCredential.user;
 
                         if (user.emailVerified) {
-                            // Usuario verificado -> Acceso concedido
                             onLogin();
                         } else {
-                            // Usuario NO verificado -> Cerrar sesión y avisar
                             await auth.signOut();
-                            alert("Tu correo electrónico no ha sido verificado. Por favor revisa tu bandeja de entrada (y spam) y haz clic en el enlace de verificación.");
+                            alert("⚠️ Tu correo no ha sido verificado. Revisa tu bandeja de entrada.");
                         }
                     }
 
                 } catch (error) {
-                    console.error("Error de autenticación:", error);
-                    let msg = "Ocurrió un error.";
-                    // Mensajes de error amigables
-                    if (error.code === 'auth/email-already-in-use') msg = "Este correo ya está registrado.";
-                    if (error.code === 'auth/wrong-password') msg = "La contraseña es incorrecta.";
-                    if (error.code === 'auth/user-not-found') msg = "No existe una cuenta con este correo.";
-                    if (error.code === 'auth/weak-password') msg = "La contraseña debe tener al menos 6 caracteres.";
-                    if (error.code === 'auth/invalid-email') msg = "El formato del correo no es válido.";
-                    
+                    console.error("Error Auth:", error);
+                    let msg = "Error al procesar.";
+                    if (error.code === 'auth/email-already-in-use') msg = "El correo ya está registrado.";
+                    if (error.code === 'auth/wrong-password') msg = "Contraseña incorrecta.";
+                    if (error.code === 'auth/user-not-found') msg = "Cuenta no encontrada.";
+                    if (error.code === 'auth/weak-password') msg = "La contraseña es muy débil.";
                     alert(msg);
                 } finally {
                     setIsLoading(false);
                 }
             };
 
+            const toggleMode = () => {
+                setIsRegistering(!isRegistering);
+                setEmail(''); setPassword(''); setConfirmPassword('');
+            };
+
             return (
-                <div className="flex items-center justify-center min-h-screen bg-slate-900 p-4">
-                    <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 transition-all duration-500">
-                        <div className="text-center mb-8">
-                            <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-indigo-600 text-white mb-4">
-                                {/* El icono se generará correctamente gracias al useEffect */}
+                <div className="flex items-center justify-center min-h-screen bg-slate-900 p-4 font-sans">
+                    <div key={isRegistering ? 'register-mode' : 'login-mode'} className={`w-full ${isRegistering ? 'max-w-2xl' : 'max-w-md'} bg-white rounded-2xl shadow-2xl p-8 transition-all duration-500`}>
+                        
+                        <div className="text-center mb-6">
+                            <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-indigo-600 text-white mb-4 shadow-lg shadow-indigo-200">
                                 <i data-lucide={isRegistering ? "user-plus" : "lock"} className="w-6 h-6"></i>
                             </div>
-                            <h2 className="text-2xl font-bold text-slate-800">
-                                {isRegistering ? "Crear Nueva Cuenta" : "Iniciar Sesión"}
+                            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">
+                                {isRegistering ? "Crear Cuenta" : "Iniciar Sesión"}
                             </h2>
-                            <p className="text-slate-500 text-sm">
-                                {isRegistering ? "Ingresa tus datos para registrarte" : "Bienvenido al Panel de Administración"}
+                            <p className="text-slate-500 text-sm font-bold">
+                                {isRegistering ? "Completa el formulario" : "Bienvenido al Panel de Administración"}
                             </p>
                         </div>
 
-                        <form onSubmit={handleAuth} className="space-y-6">
+                        <form onSubmit={handleAuth} className="space-y-4">
+                            
+                            {/* --- CAMPOS EXCLUSIVOS DE REGISTRO --- */}
+                            {isRegistering && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-[fadeIn_0.3s_ease-out]">
+                                    <div className="md:col-span-2">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre Completo</label>
+                                        <div className="relative">
+                                            <input type="text" required value={nombre} onChange={e => setNombre(e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition font-bold text-slate-700" placeholder="Ej. Juan Pérez" />
+                                            <i data-lucide="user" className="absolute left-3 top-3.5 w-5 h-5 text-slate-400"></i>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Teléfono</label>
+                                        <div className="relative">
+                                            <input type="tel" required value={telefono} onChange={e => setTelefono(e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition font-medium" placeholder="55 1234 5678" />
+                                            <i data-lucide="phone" className="absolute left-3 top-3.5 w-5 h-5 text-slate-400"></i>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Género</label>
+                                        <div className="relative">
+                                            <select value={genero} onChange={e => setGenero(e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition font-medium appearance-none cursor-pointer">
+                                                <option value="Masculino">Masculino</option>
+                                                <option value="Femenino">Femenino</option>
+                                                <option value="No Binario">No Binario</option>
+                                            </select>
+                                            <i data-lucide="users" className="absolute left-3 top-3.5 w-5 h-5 text-slate-400"></i>
+                                            <i data-lucide="chevron-down" className="absolute right-3 top-3.5 w-5 h-5 text-slate-400 pointer-events-none"></i>
+                                        </div>
+                                    </div>
+
+                                    <div className="md:col-span-2">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Dirección (Ciudad, Estado)</label>
+                                        <div className="relative">
+                                            <input type="text" required value={direccion} onChange={e => setDireccion(e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition font-medium" placeholder="Ej. Toluca, Estado de México" />
+                                            <i data-lucide="map-pin" className="absolute left-3 top-3.5 w-5 h-5 text-slate-400"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* --- CAMPOS COMUNES --- */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Correo Electrónico</label>
-                                <input 
-                                    type="email" 
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
-                                    placeholder="usuario@ejemplo.com"
-                                    required
-                                />
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Correo Electrónico</label>
+                                <div className="relative">
+                                    <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition font-medium" placeholder="nombre@correo.com" />
+                                    <i data-lucide="mail" className="absolute left-3 top-3.5 w-5 h-5 text-slate-400"></i>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Contraseña</label>
-                                <input 
-                                    type="password" 
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
-                                    placeholder="••••••••"
-                                    required
-                                />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className={isRegistering ? "" : "md:col-span-2"}>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Contraseña</label>
+                                    <div className="relative">
+                                        <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition" placeholder="••••••••" />
+                                        <i data-lucide="lock" className="absolute left-3 top-3.5 w-5 h-5 text-slate-400"></i>
+                                    </div>
+                                </div>
+
+                                {isRegistering && (
+                                    <div className="animate-[fadeIn_0.3s_ease-out]">
+                                        <label className="block text-xs font-bold text-indigo-600 uppercase mb-1">Confirmar Contraseña</label>
+                                        <div className="relative">
+                                            <input type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={`w-full pl-10 pr-4 py-3 rounded-xl bg-indigo-50 border ${password && confirmPassword && password !== confirmPassword ? 'border-rose-400 focus:border-rose-500' : 'border-indigo-200 focus:border-indigo-500'} focus:ring-2 focus:ring-indigo-100 outline-none transition font-medium`} placeholder="••••••••" />
+                                            <i data-lucide="check-circle" className="absolute left-3 top-3.5 w-5 h-5 text-indigo-400"></i>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             
                             {/* Boton Principal */}
-                            <button type="submit" disabled={isLoading} className={`w-full text-white font-bold py-3 rounded-lg transition duration-300 shadow-lg disabled:opacity-50 ${isRegistering ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-900 hover:bg-indigo-600'}`}>
-                                {isLoading ? 'PROCESANDO...' : (isRegistering ? 'CREAR CUENTA' : 'INGRESAR')}
+                            <button type="submit" disabled={isLoading} className={`w-full text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-xl shadow-slate-200 disabled:opacity-50 disabled:cursor-not-allowed mt-4 flex items-center justify-center gap-2 ${isRegistering ? 'bg-gradient-to-r from-slate-800 to-slate-900 hover:scale-[1.01]' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-200'}`}>
+                                {isLoading ? (
+                                    <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Procesando...</>
+                                ) : (
+                                    isRegistering ? 'CREAR CUENTA' : 'INGRESAR AL SISTEMA'
+                                )}
                             </button>
                         </form>
 
-                        {/* Botones Secundarios y Toggle */}
-                        <div className="mt-6 flex flex-col gap-3 text-center text-sm">
+                        {/* Toggle Login/Registro */}
+                        <div className="mt-6 flex flex-col gap-3 text-center text-sm border-t border-slate-100 pt-6">
                             <button 
                                 type="button"
-                                onClick={() => { setIsRegistering(!isRegistering); setEmail(''); setPassword(''); }} 
-                                className="text-indigo-600 font-bold hover:underline"
+                                onClick={toggleMode} 
+                                className="text-slate-600 font-bold hover:text-indigo-600 transition flex items-center justify-center gap-2 mx-auto px-4 py-2 rounded-lg hover:bg-slate-50"
                             >
-                                {isRegistering ? "¿Ya tienes cuenta? Inicia Sesión" : "¿No tienes cuenta? Crear Cuenta"}
+                                {isRegistering ? <><i data-lucide="arrow-left" className="w-4 h-4"></i> Volver al Login</> : "No tienes cuenta? Crear Cuenta"}
                             </button>
                             
                             {!isRegistering && (
@@ -226,8 +307,8 @@
                                             .then(() => alert("Correo de recuperación enviado."))
                                             .catch(e => alert("Error: " + e.message));
                                     }
-                                }} className="text-slate-500 hover:text-slate-700">
-                                    Olvidé Contraseña
+                                }} className="text-slate-400 hover:text-slate-600 text-xs">
+                                    Olvidé mi contraseña
                                 </button>
                             )}
                         </div>
@@ -235,6 +316,7 @@
                 </div>
             );
         };
+
 
 
                        // ==========================================
@@ -443,10 +525,10 @@
             );
         };
 
-                          // ==========================================
+                                 // ==========================================
         // COMPONENTE: MENU LATERAL (CON NOMBRE DE USUARIO)
         // ==========================================
-        const SidebarMenu = ({ isOpen, onClose, onNavigate, userBalance, userData }) => { // 1. Recibimos userData
+        const SidebarMenu = ({ isOpen, onClose, onNavigate, userBalance, userData }) => { 
             const user = firebase.auth().currentUser;
             const isAdmin = user && user.email === 'mrandroidtutorialeshd@gmail.com';
 
@@ -471,7 +553,7 @@
                                     <i data-lucide="x" className="w-5 h-5 text-slate-400"></i>
                                 </button>
                             </div>
-                            {/* 2. Mostramos el nombre guardado o 'USUARIO' si no hay nada */}
+                            {/* Mostramos el nombre guardado o 'USUARIO' si no hay nada */}
                             <h3 className="font-bold text-slate-800 text-lg uppercase break-words leading-tight">
                                 {userData?.nombre ? userData.nombre : 'USUARIO'}
                             </h3>
@@ -513,15 +595,30 @@
                         </nav>
 
                         <div className="p-4 border-t border-slate-100">
+                            {/* --- BOTÓN DESCARGAR APP CON ICONO ANDROID SVG --- */}
+                            <a 
+                                href="https://www.mediafire.com/file/dumddjmhpfqobqb/FrutasPro-Master.apk/file" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full flex items-center gap-3 px-4 py-3 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all group font-bold mb-1"
+                            >
+                                {/* SVG del Robot de Android en color verde esmeralda */}
+                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-emerald-500 group-hover:text-emerald-600 transition-colors">
+                                    <path d="M17.523 15.3414c0 1.3704-1.1164 2.4813-2.4936 2.4813-1.3771 0-2.4935-1.1109-2.4935-2.4813 0-1.3704 1.1164-2.4813 2.4935-2.4813 1.3772 0 2.4936 1.1109 2.4936 2.4813zM6.4764 15.3414c0 1.3704-1.1164 2.4813-2.4935 2.4813-1.3772 0-2.4936-1.1109-2.4936-2.4813 0-1.3704 1.1164-2.4813 2.4936-2.4813 1.3771 0 2.4935 1.1109 2.4935 2.4813zM18.7891 7.2922l2.3967-4.137c.088-.1519.0384-.348-.1107-.4364-.1492-.0883-.3416-.0386-.4302.112l-2.4346 4.2023c-1.8953-.8701-4.0435-1.3537-6.3146-1.3537-2.1648 0-4.2208.4395-6.0594 1.2393l-2.3551-4.086c-.088-.152-.2807-.202-.4305-.1136-.1498.0883-.1996.2842-.1113.4367l2.3164 4.019C2.4795 9.4796.5333 13.065.5333 17.152h22.9333c0-4.2185-2.0717-7.8963-4.6775-9.8598z" />
+                                </svg>
+                                Descargar Aplicación
+                            </a>
+
                              <button onClick={() => { onClose(); auth.signOut(); }} className="w-full flex items-center gap-3 px-4 py-3 text-rose-600 hover:bg-rose-50 rounded-xl transition-all group font-bold">
                                 <i data-lucide="log-out" className="w-5 h-5 text-rose-400 group-hover:text-rose-600"></i> Cerrar Sesion
                             </button>
-                            <div className="text-center mt-4 text-[10px] text-slate-300">Power bye Juan Zamora</div>
+                            <div className="text-center mt-4 text-[10px] text-slate-300">Power Revolution Team©</div>
                         </div>
                     </div>
                 </>
             );
         };
+
 
 
                                                    // ==========================================
@@ -694,7 +791,7 @@
                             <div className="bg-indigo-600 rounded-lg p-1.5 shadow-indigo-200 shadow-md">
                                 <Icon name="file-text" className="w-5 h-5 text-white"/>
                             </div>
-                            <span className="font-extrabold text-xl tracking-tight text-slate-800">Docu<span className="text-indigo-600">Fast</span></span>
+                            <span className="font-extrabold text-xl tracking-tight text-slate-800">FrutasPro<span className="text-indigo-600">Master</span></span>
                         </div>
                         <div className="flex items-center gap-3">
                             <div className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
@@ -1026,8 +1123,8 @@
             );
         };
         
-                                                                        // ==========================================
-        // COMPONENTE: PANEL DE ADMINISTRACIÓN (V16 - CORRECCIÓN BOTÓN VER DATOS)
+                                                                                // ==========================================
+        // COMPONENTE: PANEL DE ADMINISTRACIÓN (V20 - DISEÑO ORIGINAL + ID USUARIO)
         // ==========================================
         const AdminPanel = ({ onBack }) => {
             const [section, setSection] = useState('menu');
@@ -1268,10 +1365,18 @@
                 <button className="w-full bg-slate-900 text-white py-3 rounded font-bold">GUARDAR</button></form></div></div>)}</div>
             );
 
+            // --- VISTA USUARIOS (V20 - DISEÑO ORIGINAL RESTAURADO + ID AGREGADO) ---
             if (section === 'usuarios') return (
                 <div className="min-h-screen bg-slate-100 p-6 font-sans"><div className="max-w-6xl mx-auto"><button onClick={()=>setSection('menu')} className="mb-6 flex gap-2 font-bold text-slate-600"><Icon name="arrow-left" className="w-5 h-5"/> Volver</button><h2 className="text-2xl font-bold mb-6 flex gap-2"><Icon name="users" className="w-6 h-6 text-indigo-600"/> Usuarios</h2>
                 <div className="bg-white rounded-xl shadow border border-slate-200 overflow-hidden"><div className="p-4 bg-slate-50 border-b border-slate-200"><span className="font-bold text-xs uppercase">Total: {usersList.length}</span></div><div className="overflow-x-auto"><table className="w-full text-left text-sm text-slate-600"><thead className="bg-slate-50 font-bold text-xs uppercase border-b"><tr><th className="px-6 py-4">Usuario</th><th className="px-6 py-4">Acciones</th></tr></thead><tbody className="divide-y divide-slate-100">
-                {usersList.map(u => (<tr key={u.id} className={u.disabled?"bg-red-50":"hover:bg-slate-50"}><td className="px-6 py-4 w-1/3"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600">{u.nombre?u.nombre[0]:'U'}</div><div><div className="font-black text-slate-800 flex items-center gap-2">{u.nombre||'SIN NOMBRE'} <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 rounded font-bold">${(u.saldo||0).toFixed(2)}</span></div><div className="text-xs text-indigo-500">{u.email}</div></div></div></td>
+                {usersList.map(u => (<tr key={u.id} className={u.disabled?"bg-red-50":"hover:bg-slate-50"}><td className="px-6 py-4 w-1/3"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600">{u.nombre?u.nombre[0]:'U'}</div><div>
+                    <div className="font-black text-slate-800 flex items-center gap-2">{u.nombre||'SIN NOMBRE'} <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 rounded font-bold">${(u.saldo||0).toFixed(2)}</span></div>
+                    <div className="text-xs text-indigo-500">{u.email}</div>
+                    
+                    {/* --- AQUÍ AGREGAMOS EL ID DEL USUARIO SIN CAMBIAR EL DISEÑO --- */}
+                    <div className="text-[9px] text-slate-400 font-mono mt-0.5 select-text">ID: {u.id}</div>
+
+                </div></div></td>
                 <td className="px-6 py-4"><div className="flex flex-wrap gap-2">
                     <div className="flex bg-emerald-50 rounded border border-emerald-100"><button onClick={()=>handleAddBalance(u)} className="p-2 border-r border-emerald-100 text-emerald-700"><Icon name="plus" className="w-4 h-4"/></button><button onClick={()=>handleSetBalance(u)} className="p-2 text-emerald-700"><Icon name="edit-3" className="w-4 h-4"/></button></div>
                     <div className="flex bg-blue-50 rounded border border-blue-100"><button onClick={()=>handleViewHistory(u)} className="p-2 border-r border-blue-100 text-blue-700"><Icon name="file-clock" className="w-4 h-4"/></button><button onClick={()=>handleWipeHistory(u)} className="p-2 text-blue-700"><Icon name="file-x" className="w-4 h-4"/></button></div>
@@ -1289,6 +1394,7 @@
 
             return null;
         };
+
 
 
 
@@ -1634,8 +1740,8 @@
         };
 
         
-                // ==========================================
-        // COMPONENTE: PERFIL DE USUARIO (V9 - SOLUCIÓN "ZONA SEGURA")
+                       // ==========================================
+        // COMPONENTE: PERFIL DE USUARIO (V13 - BLINDAJE TOTAL CON SAFE-ICON)
         // ==========================================
         const UserProfile = ({ onBack }) => {
             const [user, setUser] = useState(null);
@@ -1648,17 +1754,29 @@
             const [tempValue, setTempValue] = useState("");
             const [isSaving, setIsSaving] = useState(false);
             
-            // ESTADO NUEVO: Zona Segura. Almacena qué campo se acaba de guardar.
+            // Estado para mensaje de éxito
             const [successField, setSuccessField] = useState(null);
 
-            // 1. CARGA DE ICONOS ESTABLE
+            // --- 1. COMPONENTE DE SEGURIDAD PARA ICONOS ---
+            // Esto evita que React se rompa cuando los iconos cambian
+            const SafeIcon = ({ name, className }) => (
+                <span 
+                    dangerouslySetInnerHTML={{
+                        __html: `<i data-lucide="${name}" class="${className || ''}"></i>`
+                    }}
+                    style={{ display: 'inline-flex' }}
+                />
+            );
+
+            // 2. MOTOR DE ICONOS BLINDADO
             useEffect(() => {
-                if (!loading && window.lucide) {
-                    // Damos un respiro al navegador antes de pintar iconos
-                    setTimeout(() => {
-                        try { window.lucide.createIcons(); } catch(e) {}
-                    }, 100);
-                }
+                // Pequeño retraso para asegurar que el DOM está listo
+                const timer = setTimeout(() => {
+                    try {
+                        if(window.lucide) window.lucide.createIcons();
+                    } catch(e) { console.warn("Error de iconos prevenido"); }
+                }, 100);
+                return () => clearTimeout(timer);
             }, [loading, editingField, successField, userData]);
 
             useEffect(() => {
@@ -1686,7 +1804,7 @@
             }, []);
 
             const startEditing = (field, currentValue) => {
-                setSuccessField(null); // Limpiamos mensajes de éxito previos
+                setSuccessField(null); 
                 setEditingField(field);
                 setTempValue(currentValue || "");
             };
@@ -1706,14 +1824,10 @@
                         [field]: finalValue
                     }, { merge: true });
                     
-                    // --- AQUÍ ESTÁ EL TRUCO DE SEGURIDAD ---
-                    setEditingField(null); // 1. Quitamos el modo editor
-                    setSuccessField(field); // 2. Activamos la "Zona Segura" (Texto sin iconos)
+                    setEditingField(null); 
+                    setSuccessField(field); 
                     
-                    // 3. Después de 1.5 segundos, volvemos a mostrar el lápiz
-                    setTimeout(() => {
-                        setSuccessField(null);
-                    }, 1500);
+                    setTimeout(() => setSuccessField(null), 1500);
 
                 } catch (error) {
                     alert("Error: " + error.message);
@@ -1728,47 +1842,47 @@
                 return new Date(timestamp).toLocaleDateString();
             };
 
-            const renderEditableField = (field, label, icon, placeholder, type = "text") => {
+            // RENDERIZADOR DE CAMPOS (USANDO SAFEICON)
+            const renderEditableField = (field, label, iconName, placeholder, type = "text") => {
                 const isEditing = editingField === field;
-                const isSuccess = successField === field; // ¿Se acaba de guardar este campo?
+                const isSuccess = successField === field;
                 const value = isEditing ? tempValue : (userData[field] || "");
 
-                // Determinar qué botones mostrar a la derecha
+                // KEY ÚNICA: Obliga a React a limpiar el componente al cambiar de estado
+                const componentKey = `field-${field}-${isEditing ? 'edit' : 'view'}-${isSuccess ? 'ok' : 'no'}`;
+
                 let actionButtons;
 
                 if (isEditing) {
-                    // MODO EDICIÓN: Botones Guardar/Cancelar
                     actionButtons = (
                         <div className="flex gap-2">
                             <button onClick={cancelEditing} disabled={isSaving} className="text-slate-400 hover:text-slate-600 bg-slate-100 p-1 rounded">
-                                <i data-lucide="x" className="w-4 h-4"></i>
+                                <SafeIcon name="x" className="w-4 h-4" />
                             </button>
                             <button onClick={() => saveField(field)} disabled={isSaving} className="text-white bg-emerald-500 hover:bg-emerald-600 p-1 rounded font-bold shadow-emerald-200 shadow-sm">
-                                {isSaving ? <span className="text-[10px]">...</span> : <i data-lucide="check" className="w-4 h-4"></i>}
+                                {isSaving ? <span className="text-[10px]">...</span> : <SafeIcon name="check" className="w-4 h-4" />}
                             </button>
                         </div>
                     );
                 } else if (isSuccess) {
-                    // MODO ÉXITO (ZONA SEGURA): Texto simple SIN ICONOS LUCIDE para evitar choque
                     actionButtons = (
-                        <span className="text-emerald-600 text-[10px] font-bold px-2 py-1 bg-emerald-50 rounded border border-emerald-100">
+                        <span className="text-emerald-600 text-[10px] font-bold px-2 py-1 bg-emerald-50 rounded border border-emerald-100 animate-pulse">
                             ¡GUARDADO!
                         </span>
                     );
                 } else {
-                    // MODO VISTA: Botón Lápiz
                     actionButtons = (
                         <button onClick={() => startEditing(field, userData[field])} className="text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 p-1.5 rounded-full transition">
-                            <i data-lucide="pencil" className="w-4 h-4"></i>
+                            <SafeIcon name="pencil" className="w-4 h-4" />
                         </button>
                     );
                 }
 
                 return (
-                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm mb-3 transition-all hover:shadow-md">
+                    <div key={componentKey} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm mb-3 transition-all hover:shadow-md">
                         <div className="flex justify-between items-center mb-1">
                             <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1">
-                                <i data-lucide={icon} className="w-3 h-3"></i> {label}
+                                <SafeIcon name={iconName} className="w-3 h-3" /> {label}
                             </label>
                             {actionButtons}
                         </div>
@@ -1790,12 +1904,12 @@
                 <div className="min-h-screen bg-slate-50 p-6 font-sans pb-20">
                     <div className="max-w-xl mx-auto">
                         <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-600 font-bold hover:text-indigo-600 transition">
-                            <i data-lucide="arrow-left" className="w-5 h-5"></i> Volver a la Tienda
+                            <SafeIcon name="arrow-left" className="w-5 h-5" /> Volver a la Tienda
                         </button>
                         
                         <div className="flex items-center gap-4 mb-8">
                             <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 border-2 border-indigo-200 shadow-sm">
-                                <i data-lucide="user-cog" className="w-8 h-8"></i>
+                                <SafeIcon name="user-cog" className="w-8 h-8" />
                             </div>
                             <div>
                                 <h2 className="text-2xl font-bold text-slate-800">Mi Perfil</h2>
@@ -1813,11 +1927,11 @@
                                 <div>
                                     <div className="mb-2 px-1 text-xs font-black text-slate-400 uppercase tracking-widest">Información Personal</div>
                                     
-                                    {/* CORREO */}
+                                    {/* CORREO (NO EDITABLE) */}
                                     <div className="bg-slate-100 p-4 rounded-xl border border-slate-200 mb-3 opacity-70">
                                         <div className="flex justify-between items-center mb-1">
-                                            <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1"><i data-lucide="mail" className="w-3 h-3"></i> Correo</label>
-                                            <i data-lucide="lock" className="w-3 h-3 text-slate-400"></i>
+                                            <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1"><SafeIcon name="mail" className="w-3 h-3" /> Correo</label>
+                                            <SafeIcon name="lock" className="w-3 h-3 text-slate-400" />
                                         </div>
                                         <div className="font-bold text-slate-600 break-all">{user?.email}</div>
                                     </div>
@@ -1826,26 +1940,25 @@
                                     {renderEditableField("telefono", "Teléfono", "phone", "55 0000 0000", "tel")}
                                     {renderEditableField("direccion", "Dirección", "map-pin", "Ciudad, Estado")}
 
-                                    {/* GÉNERO (ZONA SEGURA IMPLEMENTADA TAMBIÉN AQUÍ) */}
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm mb-3 transition-all hover:shadow-md">
+                                    {/* GÉNERO */}
+                                    <div key={`genero-${editingField === 'genero' ? 'edit' : 'view'}-${successField === 'genero' ? 'ok' : 'normal'}`} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm mb-3 transition-all hover:shadow-md">
                                         <div className="flex justify-between items-center mb-3">
                                             <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1">
-                                                <i data-lucide="users" className="w-3 h-3"></i> Género
+                                                <SafeIcon name="users" className="w-3 h-3" /> Género
                                             </label>
                                             
-                                            {/* Lógica de Zona Segura para Género */}
                                             {editingField === 'genero' ? (
                                                  <div className="flex gap-2">
-                                                    <button onClick={cancelEditing} disabled={isSaving} className="text-slate-400 hover:text-slate-600 bg-slate-100 p-1 rounded"><i data-lucide="x" className="w-4 h-4"></i></button>
+                                                    <button onClick={cancelEditing} disabled={isSaving} className="text-slate-400 hover:text-slate-600 bg-slate-100 p-1 rounded"><SafeIcon name="x" className="w-4 h-4" /></button>
                                                     <button onClick={() => saveField('genero')} disabled={isSaving} className="text-white bg-emerald-500 hover:bg-emerald-600 p-1 rounded font-bold shadow-emerald-200 shadow-sm">
-                                                        {isSaving ? <span className="text-[10px]">...</span> : <i data-lucide="check" className="w-4 h-4"></i>}
+                                                        {isSaving ? <span className="text-[10px]">...</span> : <SafeIcon name="check" className="w-4 h-4" />}
                                                     </button>
                                                 </div>
                                             ) : successField === 'genero' ? (
-                                                <span className="text-emerald-600 text-[10px] font-bold px-2 py-1 bg-emerald-50 rounded border border-emerald-100">¡GUARDADO!</span>
+                                                <span className="text-emerald-600 text-[10px] font-bold px-2 py-1 bg-emerald-50 rounded border border-emerald-100 animate-pulse">¡GUARDADO!</span>
                                             ) : (
                                                 <button onClick={() => startEditing('genero', userData.genero)} className="text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 p-1.5 rounded-full transition">
-                                                    <i data-lucide="pencil" className="w-4 h-4"></i>
+                                                    <SafeIcon name="pencil" className="w-4 h-4" />
                                                 </button>
                                             )}
                                         </div>
@@ -1857,7 +1970,7 @@
                                                 return (
                                                     <label key={option} className={`flex-shrink-0 cursor-pointer px-4 py-2 rounded-lg border text-xs font-bold transition-all flex items-center gap-2 ${isSelected ? 'bg-indigo-600 text-white border-indigo-600 shadow-md ring-2 ring-indigo-200' : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'} ${editingField !== 'genero' ? 'pointer-events-none opacity-60' : ''}`}>
                                                         <input type="radio" name="genero" value={option} checked={isSelected} onChange={(e) => setTempValue(e.target.value)} className="sr-only" disabled={editingField !== 'genero'} />
-                                                        {isSelected && <i data-lucide="check-circle" className="w-3 h-3"></i>}
+                                                        {isSelected && <SafeIcon name="check-circle" className="w-3 h-3" />}
                                                         {option}
                                                     </label>
                                                 );
@@ -1870,25 +1983,25 @@
                                     <div className="mb-2 px-1 text-xs font-black text-slate-400 uppercase tracking-widest mt-6">Estadísticas de Cuenta</div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center">
-                                            <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-2 border border-rose-100"><i data-lucide="trending-down" className="w-5 h-5"></i></div>
+                                            <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-2 border border-rose-100"><SafeIcon name="trending-down" className="w-5 h-5" /></div>
                                             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Saldo Gastado</div>
                                             <div className="text-xl font-black text-slate-800 mt-1">${stats.spent.toFixed(2)}</div>
                                         </div>
                                         <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center">
-                                            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 mb-2 border border-emerald-100"><i data-lucide="trending-up" className="w-5 h-5"></i></div>
+                                            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 mb-2 border border-emerald-100"><SafeIcon name="trending-up" className="w-5 h-5" /></div>
                                             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Saldo Recargado</div>
                                             <div className="text-xl font-black text-slate-800 mt-1">${stats.recharged.toFixed(2)}</div>
                                         </div>
                                         <div className="col-span-2 bg-slate-800 p-5 rounded-2xl shadow-lg flex items-center justify-between text-white relative overflow-hidden">
                                             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500 rounded-full blur-3xl opacity-20 -mr-10 -mt-10"></div>
                                             <div className="flex items-center gap-4 relative z-10">
-                                                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm border border-white/10"><i data-lucide="calendar-days" className="w-5 h-5 text-indigo-300"></i></div>
+                                                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm border border-white/10"><SafeIcon name="calendar-days" className="w-5 h-5 text-indigo-300" /></div>
                                                 <div>
                                                     <div className="text-[10px] font-bold opacity-60 uppercase tracking-wider">Fecha de registro</div>
                                                     <div className="font-bold text-base text-white">{formatDate(userData.fechaRegistro)}</div>
                                                 </div>
                                             </div>
-                                            <i data-lucide="award" className="w-12 h-12 text-yellow-400 opacity-20 relative z-10"></i>
+                                            <SafeIcon name="award" className="w-12 h-12 text-yellow-400 opacity-20 relative z-10" />
                                         </div>
                                     </div>
                                 </div>
@@ -1898,6 +2011,7 @@
                 </div>
             );
         };
+
 
 
                                     // ==========================================
