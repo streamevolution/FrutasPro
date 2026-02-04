@@ -2203,8 +2203,8 @@
 
 
 
-                                    // ==========================================
-        // COMPONENTE PRINCIPAL (MainApp) - ACTUALIZADO
+                                           // ==========================================
+        // COMPONENTE PRINCIPAL (MainApp) - CORREGIDO
         // ==========================================
         const MainApp = () => {
             const [view, setView] = useState('login'); 
@@ -2219,9 +2219,16 @@
                     if (user && user.emailVerified) {
                         setView('store');
                         
+                        // --- CORRECCIÓN AQUÍ ---
+                        // Eliminamos la instrucción que forzaba el saldo a 0 si había un error de lectura
                         db.collection('usuarios').doc(user.uid).onSnapshot(doc => {
-                            if (doc.exists) setUserData(doc.data());
-                            else db.collection('usuarios').doc(user.uid).set({ email: user.email, saldo: 0 }, { merge: true });
+                            if (doc.exists) {
+                                setUserData(doc.data());
+                            } else {
+                                // Si el documento no existe (raro), solo actualizamos el estado local
+                                // PERO NO escribimos en la base de datos para no borrar saldo por error.
+                                setUserData({ email: user.email, saldo: 0 });
+                            }
                         });
 
                     } else {
@@ -2241,9 +2248,8 @@
                     case 'covid': return <CovidEditor onBack={() => setView('store')} />;
                     case 'recharge': return <RechargeFlow onBack={() => setView('store')} />;
                     case 'admin': return <AdminPanel onBack={() => setView('store')} />;
-                    // NUEVA RUTA: HISTORIAL
                     case 'history': return <PurchaseHistory onBack={() => setView('store')} />;
-                                        case 'profile': return <UserProfile onBack={() => setView('store')} />;
+                    case 'profile': return <UserProfile onBack={() => setView('store')} />;
 
                     default: return <LoginScreen onLogin={() => setView('store')} />;
                 }
@@ -2265,13 +2271,14 @@
                             onClose={() => setIsMenuOpen(false)} 
                             onNavigate={(v) => { setIsMenuOpen(false); setView(v); }}
                             userBalance={userData?.saldo || 0}
-                            userData={userData} // <-- AQUÍ PASAMOS LA INFORMACIÓN DEL USUARIO
+                            userData={userData}
                         />
                     )}
                     {renderView()}
                 </div>
             );
         };
+
 
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
