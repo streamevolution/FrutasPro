@@ -632,11 +632,17 @@
                 </>
             );
         };
+        
+        // Render del Input
+            const RInput = ({ label, val, onChange, placeholder, w }) => (
+                <div className={w || "w-full"}>
+                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">{label}</label>
+                    <input type="text" className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs focus:outline-none focus:border-indigo-500 font-bold text-slate-700 uppercase" placeholder={placeholder} value={val} onChange={e => onChange(e.target.value)} />
+                </div>
+            );
 
-
-
-                                                                                 // ==========================================
-        // COMPONENTE: TIENDA VIRTUAL (FINAL - LÓGICA RECETA ADMIN VS USUARIO)
+                                                                                        // ==========================================
+        // COMPONENTE: TIENDA VIRTUAL (ACTUALIZADO RECETA IMSS DIRECTA)
         // ==========================================
         const StoreFront = ({ onSelectService, onOpenMenu, onSelectCovid, userData, onGoToHistory }) => {
             const [searchTerm, setSearchTerm] = useState("");
@@ -650,6 +656,23 @@
             const [isOrderOpen, setIsOrderOpen] = useState(false);
             const [formData, setFormData] = useState({});
             const [isSendingOrder, setIsSendingOrder] = useState(false);
+            const [isConfirmOpen, setIsConfirmOpen] = React.useState(false);
+
+            // --- ESTADO ESPECIAL RECETA IMSS ---
+            const [recipeData, setRecipeData] = useState({
+                paciente: { nss: '', agregado: '', nombre: '', curp: '', sexo: 'MASCULINO', fechaNac: '', delegacion: '', ump: '', consultorio: '', cve: '', turno: 'MATUTINO' },
+                meta: { 
+                    folio: '', 
+                    fecha: '', 
+                    indicaciones: 'SE INDICA REPOSO ABSOLUTO POR 3 DÍAS. INCREMENTAR LA INGESTA DE LÍQUIDOS Y EVITAR CAMBIOS BRUSCOS DE TEMPERATURA.' 
+                },
+                medico: { nombre: '', tipo: '', cedula: '', matricula: '', uni: '' },
+                medicamentos: [
+                    { id: 1, text: '6389 CIPROFLOXACINO 500 MG — CADA TABLETA CONTIENE: CIPROFLOXACINO 500 MG', ind: 'Vía de administración Oral una Tableta (s) cada 12 Hora(s) durante 7 Dia(s) Cantidad a Surtir 1 ENV' },
+                    { id: 2, text: '6338 FENIRAMINA 25 MG — CADA TABLETA CONTIENE: FENIRAMINA 25 MG', ind: 'Vía de administración Oral una Tableta (s) cada 8 Hora(s) durante 5 Dia(s) Cantidad a Surtir 1 ENV' },
+                    { id: 3, text: '6482 GOTAS DE MANZANILLA — SOLUCIÓN OFTÁLMICA', ind: 'Vía de administración Oftálmica, aplicar 2 gotas en cada ojo cada 8 horas durante 5 día(s). Cantidad a surtir 1 FRASCO.' }
+                ]
+            });
 
             // 1. DETECTAR ADMIN
             const user = firebase.auth().currentUser;
@@ -666,73 +689,22 @@
                 return <span ref={iconRef} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} />;
             };
 
-            // 2. SUB-COMPONENTE: ANUNCIO INTELIGENTE (BUCLE INFINITO RÁPIDO)
-            const AnuncioTicker = ({ text }) => {
-                const [isOverflowing, setIsOverflowing] = useState(false);
-                const containerRef = React.useRef(null);
-                const textRef = React.useRef(null);
-
-                React.useEffect(() => {
-                    const checkOverflow = () => {
-                        if (containerRef.current && textRef.current) {
-                            setIsOverflowing(textRef.current.scrollWidth > containerRef.current.clientWidth);
-                        }
-                    };
-                    checkOverflow();
-                    setTimeout(checkOverflow, 100);
-                    window.addEventListener('resize', checkOverflow);
-                    return () => window.removeEventListener('resize', checkOverflow);
-                }, [text]);
-
-                const textStyleClass = "whitespace-nowrap font-black text-cyan-500 text-lg md:text-xl uppercase tracking-widest drop-shadow-[0_0_5px_rgba(6,182,212,0.9)]";
-                const textStyleInline = { textShadow: '0 0 8px #22d3ee' };
-
-                return (
-                    <div ref={containerRef} className="w-full overflow-hidden relative h-8 flex items-center my-0 bg-transparent">
-                        {isOverflowing ? (
-                            <div className="flex animate-scroll-seamless w-max">
-                                {/* Copia 1 */}
-                                <span className={`${textStyleClass} pr-12`} style={textStyleInline}>
-                                    {text}
-                                </span>
-                                {/* Copia 2 */}
-                                <span className={`${textStyleClass} pr-12`} style={textStyleInline}>
-                                    {text}
-                                </span>
-                            </div>
-                        ) : (
-                            <div className="w-full flex justify-center">
-                                <span ref={textRef} className={`${textStyleClass} neon-pulse-text relative`} style={textStyleInline}>
-                                    {text}
-                                </span>
-                            </div>
-                        )}
-                        
-                        {isOverflowing && (
-                            <span ref={textRef} className={`${textStyleClass} absolute opacity-0 pointer-events-none`}>
-                                {text}
-                            </span>
-                        )}
-                    </div>
-                );
+            const AnuncioTicker = ({ text }) => { /* ... código ticker ... */ 
+                return <div className="w-full bg-slate-900 text-cyan-400 p-2 text-center font-bold overflow-hidden whitespace-nowrap">{text}</div>
             };
 
-            // 3. CARGA DE DATOS
             useEffect(() => {
                 const unsubscribeServices = db.collection('servicios').onSnapshot(snapshot => {
                     const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     setServices(docs);
                     setLoading(false);
                 });
-                
                 const unsubscribeAnuncios = db.collection('anuncios').orderBy('fecha', 'desc').onSnapshot(snapshot => {
                     setAnuncios(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
                 });
-
                 return () => { unsubscribeServices(); unsubscribeAnuncios(); };
             }, []);
 
-            // 4. Filtrado
             const filteredServices = services.filter(service => 
                 (service.active !== false || isAdmin) &&
                 (filter === 'TODOS' || service.category === filter) &&
@@ -740,7 +712,6 @@
                 (service.category || "").toLowerCase().includes(searchTerm.toLowerCase()))
             );
 
-            // 5. Agrupar
             const groupedServices = filteredServices.reduce((groups, service) => {
                 const category = service.category || 'OTROS';
                 if (!groups[category]) groups[category] = [];
@@ -750,57 +721,77 @@
 
             const sortedCategories = Object.keys(groupedServices).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
 
-            // 6. MANEJO DE CLICS (LÓGICA ACTUALIZADA)
             const handleServiceClick = (service) => {
                 const title = (service.title || "").toUpperCase();
                 
-                // A. Manejo de COVID (Siempre Editor especial por ahora)
-                if (title.includes("COVID") || title.includes("VACUNA")) {
-                    onSelectCovid();
-                    return; 
-                } 
+                if (title.includes("COVID") || title.includes("VACUNA")) { onSelectCovid(); return; } 
 
-                // B. Manejo de RECETA
+                // SI ES RECETA Y ES ADMIN -> EDITOR
+                if (title.includes("RECETA") && isAdmin) { onSelectService(); return; }
+
+                // SI ES RECETA Y NO ES ADMIN -> ABRIR MODAL ESPECIAL (AQUÍ ESTÁ LA MAGIA)
                 if (title.includes("RECETA")) {
-                    // Si es ADMIN -> Abre el Editor
-                    if (isAdmin) {
-                        onSelectService();
-                        return;
-                    }
-                    // Si NO es Admin -> No hace return, sigue bajando para abrir el Pedido Normal
+                     const getNum = () => Math.floor(Math.random() * 10).toString();
+                     const getLet = () => "ABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt(Math.floor(Math.random() * 26));
+                     
+                     const randomFolio = Array.from({length: 14}, getNum).join('');
+                     const randomAgregado = getNum() + getLet() + getNum() + getNum() + getNum() + getNum() + getLet() + getLet();
+                     const randomCve = Array.from({length: 12}, getNum).join('');
+
+                     // Selección aleatoria del Doctor de la lista de 100
+                     const doctorAzar = DOCTORES_POOL[Math.floor(Math.random() * DOCTORES_POOL.length)];
+
+                     setRecipeData(prev => ({
+                         ...prev,
+                         paciente: { 
+                            ...prev.paciente, 
+                            agregado: randomAgregado,
+                            cve: randomCve 
+                         },
+                         medico: {
+                            nombre: doctorAzar.nombre,
+                            cedula: doctorAzar.cedula,
+                            matricula: doctorAzar.matricula,
+                            uni: doctorAzar.uni,
+                            tipo: 'MÉDICO GENERAL'
+                         },
+                         meta: { 
+                            ...prev.meta, 
+                            folio: randomFolio, 
+                            fecha: new Date().toLocaleDateString('es-ES', {weekday:'long', year:'numeric', month:'long', day:'numeric'}).toUpperCase() 
+                         }
+                     }));
                 }
 
-                // C. Flujo Normal (Usuarios y otros servicios)
                 setSelectedService(service);
                 setFormData({}); 
                 setIsOrderOpen(true);
             };
 
-            const getPdfFileName = (title) => {
-                if (!title) return "Muestra.pdf";
-                const t = title.toUpperCase();
-                if (t.includes("NACIMIENTO")) return "nacimiento.pdf";
-                if (t.includes("MATRIMONIO")) return "matrimonio.pdf";
-                if (t.includes("DIVORCIO")) return "divorcio.pdf";
-                if (t.includes("DEFUNCIÓN")) return "defuncion.pdf";
-                if (t.includes("REPORTE HISTÓRICO") || t.includes("REPORTE HISTORICO")) return "historicos.pdf";
-                if (t.includes("RESUMEN CRÉDITO") || t.includes("RESUMEN CREDITO")) return "resumen_credito.pdf";
-                if (t.includes("OPINIÓN DE CUMPLIMIENTO") || t.includes("OPINION DE CUMPLIMIENTO")) return "cumplimiento.pdf";
-                if (t.includes("CSF CON") && t.includes("CURP")) return "clon.pdf"; 
-                if (t.includes("LOCALIZACIÓN DE IDCIF") || t.includes("LOCALIZACION DE IDCIF")) return "idcif.pdf";
-                return "Muestra.pdf"; 
-            };
-
-            const handleFinalizeOrder = async () => {
+                        const handleFinalizeOrder = async (confirmed = false) => {
                 if (!selectedService) return;
+                
+                const isReceta = (selectedService.title || "").toUpperCase().includes("RECETA");
                 const priceString = selectedService.price || "0";
                 const price = priceString.toString().toUpperCase().includes('GRATIS') ? 0 : parseFloat(priceString.replace(/[^0-9.]/g, '')) || 0;
                 const currentBalance = userData?.saldo || 0;
+
                 if (currentBalance < price) { alert(`❌ SALDO INSUFICIENTE\nCosto: $${price}\nTu saldo: $${currentBalance.toFixed(2)}`); return; }
-                const requiredFields = selectedService.fields || [];
-                const missingFields = requiredFields.filter(field => !formData[field] || formData[field].toString().trim() === "");
-                if (missingFields.length > 0) { alert(`⚠️ Faltan datos por llenar:\n\n- ${missingFields.join('\n- ')}`); return; }
-                if (!confirm(`¿Confirmar pedido por $${price}?`)) return;
+
+                if (!isReceta) {
+                    const requiredFields = selectedService.fields || [];
+                    const missingFields = requiredFields.filter(field => !formData[field] || formData[field].toString().trim() === "");
+                    if (missingFields.length > 0) { alert(`⚠️ Faltan datos por llenar:\n\n- ${missingFields.join('\n- ')}`); return; }
+                } else {
+                    if(!recipeData.paciente.nombre || !recipeData.paciente.curp) { alert("⚠️ Faltan datos obligatorios del paciente (Nombre, CURP)."); return; }
+                }
+
+                if (!confirmed) {
+                    setIsConfirmOpen(true);
+                    return;
+                }
+
+                setIsConfirmOpen(false);
                 setIsSendingOrder(true);
                 try {
                     const user = auth.currentUser;
@@ -808,127 +799,322 @@
                     const userRef = db.collection('usuarios').doc(user.uid);
                     batch.update(userRef, { saldo: firebase.firestore.FieldValue.increment(-price) });
                     const reqRef = db.collection('solicitudes_servicios').doc();
-                    batch.set(reqRef, {
-                        userId: user.uid, userEmail: user.email, serviceId: selectedService.id, serviceName: selectedService.title,
-                        category: selectedService.category, pricePaid: price, date: new Date(), status: 'pendiente', datosFormulario: formData 
-                    });
-                    await batch.commit(); alert("✅ Pedido realizado con éxito."); setIsOrderOpen(false); onGoToHistory(); 
+                    
+                    if (isReceta) {
+                        let finalRecipeData = JSON.parse(JSON.stringify(recipeData));
+                        if (!finalRecipeData.paciente.nss || finalRecipeData.paciente.nss.trim() === "") {
+                            const getNum = () => Math.floor(Math.random() * 10).toString();
+                            finalRecipeData.paciente.nss = Array.from({ length: 11 }, getNum).join('');
+                        }
+
+                        batch.set(reqRef, {
+                            userId: user.uid, userEmail: user.email, serviceId: selectedService.id, 
+                            serviceName: selectedService.title, category: selectedService.category, 
+                            pricePaid: price, date: new Date(), status: 'completado', 
+                            fechaCompletado: new Date(), recipeData: finalRecipeData, downloadUrl: 'GENERATED_PDF'
+                        });
+                        alert("✅ Operación completada con éxito.");
+                    } else {
+                        batch.set(reqRef, {
+                            userId: user.uid, userEmail: user.email, serviceId: selectedService.id, serviceName: selectedService.title,
+                            category: selectedService.category, pricePaid: price, date: new Date(), status: 'pendiente', datosFormulario: formData 
+                        });
+                        alert("✅ Pedido realizado con éxito.");
+                    }
+                    await batch.commit(); 
+                    setIsOrderOpen(false); 
+                    onGoToHistory(); 
                 } catch (error) { alert("Error: " + error.message); } finally { setIsSendingOrder(false); }
             };
 
-            const handleInputChange = (label, value) => setFormData(prev => ({...prev, [label]: value}));
+
+            // Helpers para el form de Receta
+            const handleRecipeChange = (section, field, val) => setRecipeData(p => ({...p, [section]: {...p[section], [field]: val.toUpperCase()}}));
+            const handleRecipeMed = (id, field, val) => setRecipeData(p => ({...p, medicamentos: p.medicamentos.map(m => m.id===id ? {...m, [field]: val.toUpperCase()} : m)}));
+            const addMed = () => setRecipeData(p => ({...p, medicamentos: [...p.medicamentos, {id: Date.now(), text: '', ind: ''}]}));
+            const delMed = (id) => setRecipeData(p => ({...p, medicamentos: p.medicamentos.filter(m => m.id !== id)}));
+                        
 
             return (
                 <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-10">
-                    {/* --- ESTILOS CSS INYECTADOS (VELOCIDAD AJUSTADA) --- */}
                     <style>{`
-                        @keyframes scroll-seamless {
-                            0% { transform: translateX(0); }
-                            100% { transform: translateX(-50%); } 
-                        }
-                        .animate-scroll-seamless {
-                            /* VELOCIDAD RESTAURADA: 7s (Más rápido) */
-                            animation: scroll-seamless 7s linear infinite; 
-                        }
-                        @keyframes neonPulse {
-                            0%, 100% { opacity: 1; transform: scale(1); filter: brightness(1.2); }
-                            50% { opacity: 0.85; transform: scale(0.98); filter: brightness(1); }
-                        }
-                        .neon-pulse-text {
-                            animation: neonPulse 2s ease-in-out infinite;
-                        }
-                    `}</style>
+    .animate-scroll-custom {
+        display: flex;
+        width: max-content;
+        animation: scroll-left 7s linear infinite;
+    }
+    @keyframes scroll-left {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    /* Efecto Neón Azul Parpadeante */
+    .neon-blue-blink {
+        color: #fff;
+        text-shadow: 0 0 7px #3b82f6, 0 0 10px #3b82f6, 0 0 21px #3b82f6;
+        animation: neon-blink-pulse 1.5s infinite alternate;
+    }
+    @keyframes neon-blink-pulse {
+        0%, 100% { opacity: 1; text-shadow: 0 0 7px #3b82f6, 0 0 10px #3b82f6, 0 0 21px #3b82f6; }
+        50% { opacity: 0.6; text-shadow: 0 0 2px #3b82f6, 0 0 5px #3b82f6; }
+    }
+`}</style>
 
-                    {/* Header Fixed */}
+
+
+                    {/* Header */}
                     <div className="bg-white border-b border-slate-200 px-5 py-4 sticky top-0 z-50 flex items-center justify-between shadow-sm">
                         <div className="flex items-center gap-3">
-                            <div onClick={onOpenMenu} className="p-2 hover:bg-slate-100 rounded-full transition cursor-pointer active:scale-95"><Icon name="menu" className="w-6 h-6 text-slate-600"/></div>
-                            <div className="bg-indigo-600 rounded-lg p-1.5 shadow-indigo-200 shadow-md"><Icon name="file-text" className="w-5 h-5 text-white"/></div>
+                            <div onClick={onOpenMenu} className="p-2 hover:bg-slate-100 rounded-full cursor-pointer"><Icon name="menu" className="w-6 h-6 text-slate-600"/></div>
                             <span className="font-extrabold text-xl tracking-tight text-slate-800">FrutasPro<span className="text-indigo-600">Master</span></span>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <div className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">${userData?.saldo?.toFixed(2) || '0.00'}</div>
-                        </div>
+                        <div className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">${userData?.saldo?.toFixed(2) || '0.00'}</div>
                     </div>
-
-                    {/* --- ZONA DE ANUNCIOS --- */}
-                    {anuncios.length > 0 && (
-                        <div className="mt-0 w-full overflow-hidden bg-transparent relative z-40 border-b border-slate-100/50">
-                            {anuncios.map(anuncio => (
-                                <AnuncioTicker key={anuncio.id} text={anuncio.texto} />
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Buscador y Título */}
-                    <div className="px-5 pb-5 pt-1 max-w-3xl mx-auto">
-                        <h2 className="text-2xl font-light text-slate-600 mb-6">Realizar nuevo pedido</h2>
-                        <div className="space-y-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                            <div className="relative w-full">
-                                <input type="text" placeholder="Buscar servicio..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 pl-11 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium" />
-                                <div className="absolute left-4 top-3.5"><Icon name="search" className="w-4 h-4 text-indigo-400"/></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Lista de Servicios */}
-                    <div className="px-5 max-w-3xl mx-auto">
-                        {loading ? <div className="py-10 text-center text-slate-400">Cargando...</div> : sortedCategories.length === 0 ? 
-                            <div className="text-center py-10 text-slate-400"><p>No se encontraron servicios.</p></div> : (
-                            <div className="space-y-8">
-                                {sortedCategories.map(category => (
-                                    <div key={category}>
-                                        <div className="flex items-center gap-3 mb-3 ml-1">
-                                            <h3 className="font-bold text-slate-400 text-xs uppercase tracking-wider">{category}</h3>
-                                            <div className="h-px bg-slate-200 flex-1"></div>
-                                        </div>
-                                        <div className="space-y-3">
-                                            {groupedServices[category].map((service) => (
-                                                <div key={service.id} onClick={() => handleServiceClick(service)}
-                                                    className={`group relative bg-white overflow-hidden rounded-xl p-4 transition-all duration-300 cursor-pointer border hover:border-indigo-300 shadow-sm hover:shadow-md flex justify-between items-center ${service.active === false ? 'border-slate-300 bg-slate-100 opacity-80' : 'border-slate-100'}`}>
-                                                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${service.active === false ? 'bg-slate-400' : (service.color === 'blue' ? 'bg-blue-500' : 'bg-indigo-500')}`}></div>
-                                                    <div className="pl-3 flex flex-col gap-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wide group-hover:text-indigo-700 transition-colors">{service.title}</h3>
-                                                            {service.isNew && <span className="bg-rose-100 text-rose-600 text-[9px] font-bold px-2 py-0.5 rounded-full border border-rose-200">NUEVO</span>}
-                                                            {service.active === false && <span className="bg-slate-800 text-white text-[9px] font-bold px-2 py-0.5 rounded-full border border-slate-600 flex items-center gap-1"><Icon name="eye-off" className="w-3 h-3"/> OCULTO</span>}
-                                                        </div>
-                                                        <p className="text-[10px] text-slate-400 font-semibold uppercase">{service.category}</p>
-                                                    </div>
-                                                    <div className="flex flex-col items-end gap-1.5">
-                                                        <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${service.price === 'GRATIS' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'}`}>{service.price}</span>
-                                                        <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1"><Icon name="clock" className="w-3 h-3"/> {service.time}</span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
+                    
+                                        {/* ANUNCIOS NEÓN AZUL PARPADEANTE PEGADOS ARRIBA */}
+                    {anuncios && anuncios.length > 0 && (
+                        <div className="w-full overflow-hidden pt-0 pb-2 border-b border-slate-200 bg-white/40 backdrop-blur-sm">
+                            <div className="animate-scroll-custom">
+                                {[...anuncios, ...anuncios].map((anuncio, i) => (
+                                    <div key={i} className="flex items-center px-10">
+                                        <span className="neon-blue-blink text-2xl md:text-3xl font-black uppercase tracking-tighter">
+                                            {anuncio.texto}
+                                        </span>
+                                        <span className="mx-10 text-slate-300 text-3xl font-light opacity-30">|</span>
                                     </div>
                                 ))}
                             </div>
-                        )}
+                        </div>
+                    )}
+
+                    {/* Buscador */}
+                    <div className="px-5 pb-5 pt-6 max-w-3xl mx-auto">
+                        <h2 className="text-2xl font-light text-slate-600 mb-6">Realizar nuevo pedido</h2>
+                        <div className="relative w-full">
+                            <input type="text" placeholder="Buscar servicio..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl p-3 pl-11 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium" />
+                            <div className="absolute left-4 top-3.5"><Icon name="search" className="w-4 h-4 text-indigo-400"/></div>
+                        </div>
                     </div>
 
+                    {/* Lista Servicios */}
+                    <div className="px-5 max-w-3xl mx-auto space-y-8">
+                        {loading ? <div className="text-center py-10">Cargando...</div> : sortedCategories.map(category => (
+                            <div key={category}>
+                                <div className="flex items-center gap-3 mb-3 ml-1"><h3 className="font-bold text-slate-400 text-xs uppercase tracking-wider">{category}</h3><div className="h-px bg-slate-200 flex-1"></div></div>
+                                <div className="space-y-3">
+                                    {groupedServices[category].map((service) => (
+                                        <div key={service.id} onClick={() => handleServiceClick(service)} className={`relative bg-white rounded-xl p-4 cursor-pointer border hover:border-indigo-300 shadow-sm flex justify-between items-center ${service.active===false?'opacity-70 bg-slate-100':''}`}>
+                                            <div className={`absolute left-0 h-full w-1.5 rounded-l-xl ${service.active===false?'bg-slate-400':(service.color==='blue'?'bg-blue-500':'bg-indigo-500')}`}></div>
+                                            <div className="pl-3">
+                                                <h3 className="font-bold text-slate-800 text-sm uppercase">{service.title} {service.active===false&&'(OCULTO)'}</h3>
+                                                <p className="text-[10px] text-slate-400 font-semibold uppercase">{service.category}</p>
+                                            </div>
+                                            <div className="text-right"><span className="text-xs font-bold bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg border border-emerald-100">{service.price}</span></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* MODAL DE COMPRA */}
                     {isOrderOpen && selectedService && (
                         <div className="fixed inset-0 z-[100] bg-white flex flex-col animate-[fadeIn_0.2s_ease-out]">
-                            <div className="bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between sticky top-0 z-10"><button onClick={() => setIsOrderOpen(false)} className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"><Icon name="arrow-left" className="w-6 h-6"/></button><span className="font-bold text-slate-700">Completar Pedido</span><button onClick={() => setIsOrderOpen(false)} className="p-2 -mr-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all"><Icon name="x" className="w-6 h-6"/></button></div>
+                            <div className="bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between sticky top-0 z-10">
+                                <button onClick={() => setIsOrderOpen(false)} className="p-2 -ml-2 text-slate-500 rounded-full"><Icon name="arrow-left" className="w-6 h-6"/></button>
+                                <span className="font-bold text-slate-700">Completar Pedido</span>
+                                <div className="w-8"></div>
+                            </div>
+                            
                             <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
-                                <div className="mb-6"><div className="flex items-center gap-2 mb-2"><h2 className="text-xl font-black text-slate-800 uppercase leading-tight">{selectedService.title}</h2>{selectedService.active === false && <span className="bg-slate-800 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">OCULTO</span>}</div><span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-lg">{selectedService.category}</span></div>
-                                <div className="space-y-4">{selectedService.fields && selectedService.fields.length > 0 ? (selectedService.fields.map((field, idx) => (<div key={idx}><label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">{field}</label><input type="text" className="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all font-medium text-slate-700" placeholder={`Ingresa ${field}...`} value={formData[field] || ''} onChange={(e) => handleInputChange(field, e.target.value)} /></div>))) : (<div className="text-center p-6 bg-white rounded-xl border border-slate-200 text-slate-400 text-sm">No se requieren datos adicionales.</div>)}</div>
-                                <div className="mt-8 mb-8 p-4 bg-white rounded-2xl border border-slate-200 shadow-md"><div className="flex justify-between items-end mb-4 px-1"><span className="text-sm font-bold text-slate-400">Total a Pagar</span><span className="text-2xl font-black text-slate-800">{selectedService.price}</span></div><button onClick={handleFinalizeOrder} disabled={isSendingOrder} className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-lg shadow-xl shadow-slate-300 hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2">{isSendingOrder ? 'Procesando...' : <>Realizar Pedido <Icon name="arrow-right" className="w-4 h-4"/></>}</button></div>
-                                <div className="space-y-4 pt-6 border-t border-slate-200">
-                                    <div className="bg-emerald-100 border-2 border-emerald-400 rounded-2xl p-4 flex flex-col items-center gap-2 text-center animate-pulse shadow-lg"><div className="text-emerald-700 bg-white p-2 rounded-full shadow-sm"><Icon name="clock" className="w-8 h-8"/></div><p className="text-base font-black text-emerald-800 uppercase leading-tight">Disponible y activo de <br/>08:00 am a 08:00 pm</p></div>
-                                    <div className="bg-amber-100 border-2 border-amber-400 rounded-2xl p-4 flex flex-col items-center gap-2 text-center shadow-lg"><div className="text-amber-600 animate-[bounce_2s_infinite]"><Icon name="alert-triangle" className="w-8 h-8"/></div><p className="text-sm font-bold text-amber-900 leading-tight">Si adquieres el servicio fuera de ese horario se entrega al día siguiente en horarios establecidos</p></div>
-                                    <div className="pt-4 pb-4 flex justify-center"><a href={getPdfFileName(selectedService.title)} download={getPdfFileName(selectedService.title)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-base font-black uppercase tracking-widest py-4 px-6 rounded-xl shadow-xl hover:shadow-2xl transition-all cursor-pointer flex items-center justify-center gap-3 animate-bounce border-b-4 border-indigo-900"><Icon name="eye" className="w-6 h-6 text-white"/>Clic para ver muestra</a></div>
-                                </div><div className="h-10"></div> 
+                                <div className="mb-6">
+                                    <h2 className="text-xl font-black text-slate-800 uppercase leading-tight mb-2">{selectedService.title}</h2>
+                                    <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-lg">{selectedService.category}</span>
+                                </div>
+
+                                {/* --- FORMULARIO DINÁMICO --- */}
+                                {(selectedService.title || "").toUpperCase().includes("RECETA") ? (
+                                    <div className="space-y-6">
+                                        {/* PACIENTE */}
+                                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                            <div className="font-black text-xs text-indigo-500 uppercase tracking-widest mb-4 border-b pb-2">Datos del Paciente</div>
+                                            <div className="space-y-3">
+                                                <RInput label="Nombre Completo" val={recipeData.paciente.nombre} onChange={v=>handleRecipeChange('paciente','nombre',v)} placeholder="NOMBRE COMPLETO" />
+                                                <div className="grid grid-cols-2 gap-3">
+    {/* CAMPO NSS CON LEYENDA VERDE LLAMATIVA */}
+    <div>
+        <div className="flex justify-between items-center mb-1 ml-1">
+            <label className="block text-[10px] font-black text-slate-500 uppercase">NSS</label>
+            <span className="text-[9px] font-black text-emerald-600 animate-pulse bg-emerald-50 px-1.5 rounded border border-emerald-200">
+                ¡DEJA VACÍO PARA GENERAR!
+            </span>
+        </div>
+        <input 
+            type="text" 
+            className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs focus:outline-none focus:border-indigo-500 font-bold text-slate-700 uppercase" 
+            placeholder="NSS" 
+            value={recipeData.paciente.nss} 
+            onChange={e => handleRecipeChange('paciente', 'nss', e.target.value)} 
+        />
+    </div>
+    
+    {/* CAMPO CURP MANTIENE SU DISEÑO ORIGINAL */}
+    <RInput 
+        label="CURP" 
+        val={recipeData.paciente.curp} 
+        onChange={v => handleRecipeChange('paciente', 'curp', v)} 
+        placeholder="CURP" 
+    />
+</div>
+
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <RInput label="Fecha Nac." val={recipeData.paciente.fechaNac} onChange={v=>handleRecipeChange('paciente','fechaNac',v)} placeholder="DD/MM/AAAA" />
+                                                    <RInput label="Delegación" val={recipeData.paciente.delegacion} onChange={v=>handleRecipeChange('paciente','delegacion',v)} placeholder="DELEGACIÓN" />
+                                                </div>
+                                                
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Sexo</label>
+                                                        <select className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold" value={recipeData.paciente.sexo} onChange={e=>handleRecipeChange('paciente','sexo',e.target.value)}>
+                                                            <option>MASCULINO</option>
+                                                            <option>FEMENINO</option>
+                                                        </select>
+                                                    </div>
+                                                    <RInput label="UMP" val={recipeData.paciente.ump} onChange={v=>handleRecipeChange('paciente','ump',v)} placeholder="UMP" />
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Consultorio</label>
+                                                        <select 
+                                                            className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500"
+                                                            value={recipeData.paciente.consultorio} 
+                                                            onChange={e => handleRecipeChange('paciente', 'consultorio', e.target.value)}
+                                                        >
+                                                            {Array.from({length: 60}, (_, i) => i + 1).map(num => (
+                                                                <option key={num} value={num}>{num}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Turno</label>
+                                                        <select 
+                                                            className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500"
+                                                            value={recipeData.paciente.turno} 
+                                                            onChange={e => handleRecipeChange('paciente', 'turno', e.target.value)}
+                                                        >
+                                                            <option value="MATUTINO">MATUTINO</option>
+                                                            <option value="VESPERTINO">VESPERTINO</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* CAMPOS QUE SÍ DEBEN QUEDAR OCULTOS (LOS AUTOMÁTICOS) */}
+                                                <div className="hidden">
+                                                    <RInput label="Agregado Med." val={recipeData.paciente.agregado} onChange={v=>handleRecipeChange('paciente','agregado',v)} />
+                                                    <RInput label="CVE Ptal" val={recipeData.paciente.cve} onChange={v=>handleRecipeChange('paciente','cve',v)} />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* MEDICAMENTOS */}
+<div className="bg-slate-200 p-4 rounded-xl border border-slate-300">
+    <div className="flex justify-between items-center mb-4 border-b border-slate-300 pb-2">
+        <div className="font-black text-xs text-slate-600 uppercase tracking-widest">Medicamentos</div>
+        <button onClick={addMed} className="bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-lg">+ AGREGAR</button>
+    </div>
+    {recipeData.medicamentos.map((m) => (
+        <div key={m.id} className="mb-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+            <div className="flex justify-between mb-1">
+                <span className="text-[10px] font-bold text-slate-400">MEDICAMENTO</span>
+                <button onClick={() => delMed(m.id)} className="text-rose-500">
+                    <Icon name="trash-2" className="w-3 h-3"/>
+                </button>
+            </div>
+            <input 
+                className="w-full border-b border-slate-200 p-1 text-xs font-bold mb-2 uppercase outline-none focus:border-indigo-500" 
+                placeholder="CLAVE + NOMBRE" 
+                value={m.text} 
+                onChange={e => handleRecipeMed(m.id, 'text', e.target.value)} 
+            />
+            <textarea 
+                className="w-full bg-slate-50 border border-slate-200 p-2 text-xs rounded uppercase resize-none h-14 outline-none focus:border-indigo-500" 
+                placeholder="INDICACIONES" 
+                value={m.ind} 
+                onChange={e => handleRecipeMed(m.id, 'ind', e.target.value)}
+            ></textarea>
+        </div>
+    ))}
+    <div className="mt-4">
+        <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">Indicaciones Generales</label>
+        <textarea 
+            className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-bold h-20 uppercase outline-none focus:border-indigo-500" 
+            value={recipeData.meta.indicaciones} 
+            onChange={e => handleRecipeChange('meta', 'indicaciones', e.target.value)}
+        ></textarea>
+    </div>
+</div>
+
+
+                                        {/* MÉDICO (OCULTO) */}
+                                        <div className="hidden">
+                                            <RInput label="Nombre Doctor(a)" val={recipeData.medico.nombre} onChange={v=>handleRecipeChange('medico','nombre',v)} />
+                                            <RInput label="Especialidad" val={recipeData.medico.tipo} onChange={v=>handleRecipeChange('medico','tipo',v)} />
+                                            <RInput label="Universidad" val={recipeData.medico.uni} onChange={v=>handleRecipeChange('medico','uni',v)} />
+                                            <RInput label="Cédula" val={recipeData.medico.cedula} onChange={v=>handleRecipeChange('medico','cedula',v)} />
+                                            <RInput label="Matrícula" val={recipeData.medico.matricula} onChange={v=>handleRecipeChange('medico','matricula',v)} />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    // FORMULARIO NORMAL PARA OTROS SERVICIOS
+                                    <div className="space-y-4">
+                                        {selectedService.fields && selectedService.fields.length > 0 ? (selectedService.fields.map((field, idx) => (<div key={idx}><label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">{field}</label><input type="text" className="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 font-medium text-slate-700" placeholder={`Ingresa ${field}...`} value={formData[field] || ''} onChange={(e) => setFormData(p => ({...p, [field]: e.target.value}))} /></div>))) : (<div className="text-center p-6 bg-white rounded-xl border border-slate-200 text-slate-400 text-sm">No se requieren datos adicionales.</div>)}
+                                    </div>
+                                )}
+
+                                {/* TOTAL Y BOTÓN */}
+                                <div className="mt-8 mb-8 p-4 bg-white rounded-2xl border border-slate-200 shadow-md">
+                                    <div className="flex justify-between items-end mb-4 px-1"><span className="text-sm font-bold text-slate-400">Total a Pagar</span><span className="text-2xl font-black text-slate-800">{selectedService.price}</span></div>
+                                    <button onClick={handleFinalizeOrder} disabled={isSendingOrder} className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-lg shadow-xl hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-70 flex justify-center items-center gap-2">
+                                        {isSendingOrder ? 'Procesando...' : (selectedService.title.includes("RECETA") ? 'GENERAR Y GUARDAR PDF' : 'REALIZAR PEDIDO')}
+                                    </button>
+                                </div>
+                                <div className="h-10"></div> 
+                            </div>
+                        </div>
+                    )}
+                                        {/* MODAL DE CONFIRMACIÓN CON DISEÑO PROFESIONAL */}
+                    {isConfirmOpen && (
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
+                            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[280px] overflow-hidden border border-slate-200">
+                                <div className="p-6 text-center">
+                                    <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-100 rotate-3">
+                                        <Icon name="shopping-bag" className="w-7 h-7"/>
+                                    </div>
+                                    <h3 className="text-lg font-black text-slate-800 uppercase mb-2 tracking-tight">¿Confirmar?</h3>
+                                    <p className="text-slate-500 text-[10px] font-bold leading-tight px-2">
+                                        EL COSTO SE DESCONTARÁ DE TU SALDO ACTUAL DE FORMA INMEDIATA.
+                                    </p>
+                                </div>
+                                <div className="flex border-t border-slate-100 bg-slate-50">
+                                    <button 
+                                        onClick={() => setIsConfirmOpen(false)} 
+                                        className="flex-1 px-4 py-4 text-[10px] font-black text-slate-400 hover:text-slate-600 transition uppercase border-r border-slate-100"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button 
+                                        onClick={() => handleFinalizeOrder(true)} 
+                                        className="flex-1 px-4 py-4 text-[10px] font-black text-indigo-600 hover:bg-indigo-100 transition uppercase"
+                                    >
+                                        Pagar ahora
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
                 </div>
             );
         };
-
-
 
 
                 // ==========================================
@@ -1801,16 +1987,15 @@
             );
         };
         
-                      // ==========================================
-        // COMPONENTE: HISTORIAL DE COMPRAS (V3 - URL ABSOLUTA CORREGIDA)
+                              // ==========================================
+        // COMPONENTE: HISTORIAL DE COMPRAS (CON SOPORTE DE IMPRESIÓN)
         // ==========================================
-        const PurchaseHistory = ({ onBack }) => {
+        const PurchaseHistory = ({ onBack, onPrintRecipe }) => { // <--- Agregamos prop onPrintRecipe
             const [history, setHistory] = useState([]);
             const [loading, setLoading] = useState(true);
 
             useEffect(() => {
                 if(window.lucide) window.lucide.createIcons();
-                
                 const user = auth.currentUser;
                 if (!user) return;
 
@@ -1822,42 +2007,29 @@
                         setHistory(docs);
                         setLoading(false);
                     });
-
                 return () => unsubscribe();
             }, []);
 
-            // --- FUNCIÓN DE LIMPIEZA DE URL ---
-            const openCleanUrl = (rawText) => {
-                if (!rawText) {
-                    alert("No hay enlace disponible.");
+            const handleDownload = (item) => {
+                // CASO 1: ES UNA RECETA GENERADA
+                if (item.recipeData) {
+                    // Cambiamos el título de la pestaña al CURP del paciente.
+                    // Esto hace que al "Guardar como PDF", el navegador proponga el CURP como nombre de archivo.
+                    const curpPaciente = item.recipeData.paciente?.curp || "RECETA_IMSS";
+                    document.title = curpPaciente.toUpperCase();
+                    
+                    onPrintRecipe(item.recipeData);
                     return;
                 }
-
-                // 1. Buscamos explícitamente una URL que empiece por http:// o https://
-                // Esta expresión regular extrae la URL sin importar qué texto haya antes.
-                const urlRegex = /(https?:\/\/[^\s]+)/g;
-                const match = rawText.match(urlRegex);
-
-                let finalUrl = "";
-
-                if (match && match.length > 0) {
-                    // CASO A: Encontramos "https://..." dentro del texto. Usamos SOLO eso.
-                    finalUrl = match[0];
+                
+                // CASO 2: ES UN ARCHIVO NORMAL (URL externa)
+                if (item.downloadUrl && item.downloadUrl !== 'GENERATED_PDF') {
+                    let url = item.downloadUrl;
+                    if (!url.startsWith('http')) url = 'https://' + url.trim();
+                    window.open(url, '_blank');
                 } else {
-                    // CASO B: El admin puso "www.google.com" o "drive.google.com" SIN http.
-                    // Si lo dejamos así, el navegador le pone "127.0.0.1..." antes.
-                    // SOLUCIÓN: Forzamos el "https://" al principio.
-                    
-                    // Limpiamos espacios y posibles etiquetas de texto
-                    let cleanText = rawText.trim();
-                    // Quitamos prefijos comunes si el admin escribió "Link: www..."
-                    cleanText = cleanText.replace(/^(Link|Ver|Url|Descargar)[:\s]*/i, '');
-                    
-                    finalUrl = 'https://' + cleanText;
+                    alert("El documento aún no está listo.");
                 }
-
-                // Abrir en nueva pestaña
-                window.open(finalUrl, '_blank');
             };
 
             return (
@@ -1877,44 +2049,29 @@
                                 Mis Documentos ({history.length})
                             </div>
                             
-                            {loading ? (
-                                <div className="p-10 text-center text-slate-400">Cargando historial...</div>
-                            ) : history.length === 0 ? (
-                                <div className="p-10 text-center text-slate-400">
-                                    <i data-lucide="shopping-bag" className="w-12 h-12 mx-auto mb-3 opacity-30 text-indigo-500"></i>
-                                    <p>Aún no has realizado ninguna compra.</p>
-                                </div>
-                            ) : (
+                            {loading ? <div className="p-10 text-center text-slate-400">Cargando...</div> : history.length === 0 ? 
+                                <div className="p-10 text-center text-slate-400"><p>Sin compras aún.</p></div> : (
                                 <div className="divide-y divide-slate-100">
                                     {history.map(item => (
                                         <div key={item.id} className="p-4 hover:bg-slate-50 transition flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <h4 className="font-bold text-slate-800 text-sm">{item.serviceName}</h4>
-                                                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase ${
-                                                        item.status === 'completado' 
-                                                            ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
-                                                            : 'bg-amber-100 text-amber-700 border-amber-200'
-                                                    }`}>
+                                                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase ${item.status === 'completado' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-700 border-amber-200'}`}>
                                                         {item.status === 'completado' ? 'Listo / Entregado' : 'En Proceso'}
                                                     </span>
                                                 </div>
                                                 <div className="text-[11px] text-slate-500 flex items-center gap-3">
-                                                    <span className="flex items-center gap-1"><i data-lucide="calendar" className="w-3 h-3"></i> {item.date ? new Date(item.date.seconds * 1000).toLocaleDateString() : 'Fecha desc.'}</span>
-                                                    <span className="flex items-center gap-1"><i data-lucide="tag" className="w-3 h-3"></i> {item.category}</span>
+                                                    <span>{item.date ? new Date(item.date.seconds * 1000).toLocaleDateString() : 'Fecha desc.'}</span>
+                                                    <span>• {item.category}</span>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">
                                                  <span className="font-bold text-slate-700 text-sm">${item.pricePaid}</span>
-                                                 
-                                                 {/* BOTÓN DE DESCARGA CON FUNCIÓN CORREGIDA */}
                                                  {item.status === 'completado' && (
-                                                     <button 
-                                                        onClick={() => openCleanUrl(item.downloadUrl)} 
-                                                        className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-md shadow-indigo-200 transition font-bold text-xs flex items-center gap-2" 
-                                                        title="Descargar Documento"
-                                                     >
-                                                        <i data-lucide="download" className="w-4 h-4"></i> DESCARGAR
+                                                     <button onClick={() => handleDownload(item)} className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-md font-bold text-xs flex items-center gap-2">
+                                                        <i data-lucide={item.recipeData ? "printer" : "download"} className="w-4 h-4"></i> 
+                                                        {item.recipeData ? 'IMPRIMIR PDF' : 'DESCARGAR'}
                                                      </button>
                                                  )}
                                             </div>
@@ -2200,17 +2357,154 @@
                 </div>
             );
         };
+        
+                // ==========================================
+        // NUEVO COMPONENTE: VISOR DE IMPRESIÓN (RECETA)
+        // ==========================================
+        const RecipePrinter = ({ data, onBack }) => {
+            
+            useEffect(() => {
+                // Guardamos el título original de la página para restaurarlo después
+                const tituloOriginal = document.title;
+                
+                // Forzamos el nombre del CURP en el título antes de imprimir
+                if (data.paciente?.curp) {
+                    document.title = data.paciente.curp.toUpperCase();
+                }
+
+                const timer = setTimeout(() => {
+                    window.print();
+                }, 800);
+
+                // Esta función se ejecuta cuando el usuario sale de la vista de impresión
+                return () => {
+                    document.title = tituloOriginal;
+                    clearTimeout(timer);
+                };
+            }, [data]);
+
+            // Recuperamos el sello basado en el nombre del médico si coincide, si no, usa el default
+            const findSello = () => {
+                const sello = SELLOS_DATA.find(s => s.nombre === data.medico.nombre);
+                return sello || SELLOS_DATA[0];
+            };
+            const activeSello = findSello();
+            
+            const logoUrl = "https://i.postimg.cc/gJ8kqq0g/1766127957062.png";
+            const qrContent = `Nombre: ${data.paciente.nombre}\nNSS: ${data.paciente.nss}\nFecha Nacimiento: ${data.paciente.fechaNac}\nCURP: ${data.paciente.curp}\nDelegación: ${data.paciente.delegacion}\nCVE. PTAL: ${data.paciente.cve}\nFolio: ${data.meta.folio}`;
+            const qrCode = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrContent)}`;
+
+            return (
+                <div className="min-h-screen bg-white flex flex-col items-center justify-start pt-5 font-sans">
+                    <div className="no-print mb-6 flex gap-4">
+                         <button onClick={onBack} className="bg-white text-slate-800 px-6 py-2 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center gap-2">
+                            <i data-lucide="arrow-left"></i> Volver al Historial
+                         </button>
+                         <button onClick={() => window.print()} className="bg-indigo-600 text-white px-6 py-2 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center gap-2">
+                            <i data-lucide="printer"></i> Imprimir / Guardar PDF
+                         </button>
+                    </div>
+
+                    <div className="print-area bg-white w-[21.59cm] min-h-[13.97cm] p-8 relative text-black shadow-none overflow-hidden mx-auto">
+                         <div className="flex justify-between items-start">
+                            <div className="w-[55%] pr-2">
+                                <div className="flex flex-col items-center mb-1"><img src={logoUrl} className="h-10 w-auto mb-1 opacity-90" alt="Logo" /><h1 className="text-[10px] font-bold tracking-wide text-center leading-none">INSTITUTO MEXICANO DEL SEGURO SOCIAL</h1><p className="text-[5px] font-bold tracking-[0.2em] text-gray-500 mt-0.5 uppercase">Seguridad y Solidaridad Social</p></div>
+                                <div className="w-full border-t border-b border-gray-400 py-0.5 my-2 text-center text-[7px] uppercase">Dirección de Prestaciones Médicas</div>
+                                <div className="text-center mb-2"><h2 className="text-xl font-bold font-[Tinos] uppercase tracking-wide">Receta Individual</h2></div>
+                                <div className="relative h-12 mt-2 mb-2 w-full"><div className="absolute left-1/2 -translate-x-1/2 top-0"><div className="barcode"></div></div><div className="absolute -right-40 top-8"><div className="text-left leading-[1.1] font-sans"><div className="text-base font-bold text-gray-900 mb-0.5 whitespace-nowrap">Folio: <span className="text-black text-base font-black tracking-tight ml-1">{data.meta.folio}</span></div><div className="text-[11px] font-bold text-black uppercase max-w-[220px]">ESTA RECETA NO SE SURTIRÁ DESPUÉS DE LAS 72 HORAS DE SU EXPEDICIÓN</div></div></div></div>
+                            </div>
+                            <div className="w-[45%] pl-2 pt-2 relative">
+                                <div className="double-box pt-box w-full -mt-6"><div className="flex justify-between mb-2"><div><span className="pt-label">NSS:</span><span className="pt-val">{data.paciente.nss}</span></div><div><span className="pt-label">AGREGADO. MED:</span><span className="pt-val">{data.paciente.agregado}</span></div></div><div className="text-center mb-2"><span className="pt-label block w-full mb-px">NOMBRE DEL PACIENTE:</span><div className="pt-val uppercase">{data.paciente.nombre}</div></div><div className="mb-0.5"><span className="pt-label">CURP:</span><span className="pt-val">{data.paciente.curp}</span></div><div className="mb-0.5"><span className="pt-label">SEXO:</span><span className="pt-val">{data.paciente.sexo}</span></div><div className="mb-0.5"><span className="pt-label">FECHA DE NACIMIENTO:</span><span className="pt-val">{data.paciente.fechaNac}</span></div><div className="mb-0.5"><span className="pt-label">DELEGACION:</span><span className="pt-val">{data.paciente.delegacion}</span></div><div className="flex justify-between mb-0.5"><div className="flex gap-2"><div><span className="pt-label">UMP:</span><span className="pt-val">{data.paciente.ump}</span></div><div><span className="pt-label">CONSULTORIO:</span><span className="pt-val">{data.paciente.consultorio}</span></div></div></div><div className="flex justify-end"><div className="text-left"><div><span className="pt-label">CVE.PTAL</span><span className="pt-val">{data.paciente.cve}</span></div><div><span className="pt-label">TURNO:</span><span className="pt-val">{data.paciente.turno}</span></div></div></div></div>
+                                <img src={qrCode} className="absolute -bottom-20 right-20 w-14 h-14" alt="QR" />
+                            </div>
+                        </div>
+
+                        <div className="double-box min-h-[500px] flex flex-col relative mt-12">
+                            <div className="flex justify-between items-center px-2 pt-1 text-[10px] font-bold uppercase"><div>FECHA: {data.meta.fecha}</div><div>Primer Nivel de Atención</div></div>
+                            <div className="border-b border-black w-auto mx-4 mb-1"></div>
+                            <div className="p-2 flex-grow">
+                                {data.medicamentos.map(m => (<div key={m.id} className="med-item text-[10px] leading-snug mb-6"><div className="font-bold text-black px-1 mb-0.5">{m.text}</div><div className="border-b border-black w-auto mx-4 mb-1"></div><div className="pl-1 whitespace-pre-wrap">{m.ind}</div></div>))}
+                                {data.meta.indicaciones && (<div className="text-[10px] leading-snug whitespace-pre-wrap mt-4 font-bold px-1">{data.meta.indicaciones}</div>)}
+                            </div>
+                            
+                            <div className="border-t border-black mt-auto bg-white relative">
+                                <div className="pt-3 px-4 flex text-[9px] items-start relative z-20">
+                                    <div className="w-[55%] pr-2 relative"><div className="flex flex-col items-start relative"><span className="font-bold mb-0.5 leading-none">Nombre y firma del médico: {data.medico.nombre}</span><span className="font-bold uppercase leading-tight text-[8px] w-full">{data.medico.uni}</span></div></div>
+                                    <div className="w-[45%] flex justify-between items-start pl-4"><div className="flex flex-col items-start"><span className="font-bold mb-1 leading-none">Cédula Profesional:</span><span className="font-[Arimo] font-bold leading-none">{data.medico.cedula}</span></div><div className="flex flex-col items-end"><span className="font-bold mb-1 leading-none">Matrícula:</span><span className="font-[Arimo] font-bold leading-none">{data.medico.matricula}</span></div></div>
+                                </div>
+                                <div className="doctor-stamp-base absolute z-30" style={{ ...activeSello.style, ...activeSello.position }}>
+                                    <img src={logoUrl} className="stamp-logo" alt="Sello" style={{ filter: activeSello.style.color !== '#003366' ? 'grayscale(100%) brightness(30%) contrast(150%)' : undefined }} />
+                                    <div className="text-left text-[8px]"><div>DR(A). {data.medico.nombre}</div><div>{data.medico.tipo}</div><div>CED. PROF. {data.medico.cedula}</div><div>MATRICULA {data.medico.matricula}</div></div>
+                                </div>
+                                <div className="border-b border-black w-auto mx-4 mt-1 mb-1 relative z-10"></div>
+                                <div className="h-20 w-full bg-white relative z-0 flex flex-col items-end justify-start px-4"><span className="font-bold text-[9px] uppercase mt-1">PACIENTE</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        const DOCTORES_POOL = [
+    "Carlos Hernández García", "Juan López Martínez", "Miguel González Rodríguez", "Luis Pérez Sánchez", "Jorge Ramírez Cruz",
+    "Daniel Flores Gómez", "Andrés Morales Vázquez", "Sergio Reyes Torres", "Pedro Díaz Gutiérrez", "Rafael Mendoza Ruiz",
+    "Arturo Aguilar Ortega", "Javier Ortiz Moreno", "Rubén Romero Hernández", "Víctor Chávez Navarro", "Óscar Castillo Ríos",
+    "Iván Herrera Mendoza", "Marco Salazar López", "Héctor Jiménez Aguilar", "Edgar Rojas Ramírez", "Adrián Navarro Flores",
+    "Mario Vega González", "Julio Cárdenas Pérez", "Pablo Campos Sánchez", "Diego Luna Rodríguez", "Alan Cruz Martínez",
+    "Juan Carlos Hernández López", "Luis Ángel García Martínez", "José Antonio González Pérez", "Carlos Eduardo Ramírez Torres",
+    "Miguel Ángel Flores Sánchez", "Jorge Luis Rodríguez Cruz", "José Manuel Díaz Morales", "Juan José Romero Aguilar",
+    "José Alberto Mendoza Reyes", "Carlos Andrés Ortega Gómez", "Luis Fernando Chávez Navarro", "José Luis Castillo Ríos",
+    "Marco Antonio Vega Hernández", "Oscar Daniel Herrera Ruiz", "José Miguel Salazar Ortiz", "Juan Pablo Jiménez Ramírez",
+    "José Ricardo Campos López", "Víctor Manuel Cruz González", "Luis Enrique Cárdenas Pérez", "José Adrián Navarro Torres",
+    "Carlos Iván Rojas Martínez", "José David Luna Sánchez", "Juan Martín Aguilar Romero", "Luis Eduardo Ramos Flores",
+    "José Ángel Morales Vega", "María Hernández García", "Ana López Martínez", "Laura González Rodríguez", "Carmen Pérez Sánchez",
+    "Patricia Ramírez Cruz", "Rosa Flores Gómez", "Sandra Morales Vázquez", "Gabriela Reyes Torres", "Claudia Díaz Gutiérrez",
+    "Daniela Mendoza Ruiz", "Verónica Aguilar Ortega", "Adriana Ortiz Moreno", "Beatriz Romero Hernández", "Liliana Chávez Navarro",
+    "Alejandra Castillo Ríos", "Cecilia Herrera Mendoza", "Karla Salazar López", "Silvia Jiménez Aguilar", "Mónica Rojas Ramírez",
+    "Paola Navarro Flores", "Brenda Vega González", "Jessica Cárdenas Pérez", "Teresa Campos Sánchez", "Lucía Luna Rodríguez",
+    "Fernanda Cruz Martínez", "María Fernanda Hernández López", "Ana Karen García Martínez", "María José González Pérez",
+    "Ana Sofía Ramírez Torres", "María Elena Flores Sánchez", "Rosa María Rodríguez Cruz", "Ana Laura Díaz Morales",
+    "María del Carmen Romero Aguilar", "Ana Patricia Mendoza Reyes", "Laura Beatriz Ortega Gómez", "María Guadalupe Chávez Navarro",
+    "Ana Lucía Castillo Ríos", "Claudia Fernanda Vega Hernández", "María Alejandra Herrera Ruiz", "Ana Victoria Salazar Ortiz",
+    "María Isabel Jiménez Ramírez", "Ana Paola Campos López", "María Teresa Cruz González", "Ana Belén Cárdenas Pérez",
+    "María Eugenia Navarro Torres", "Ana Gabriela Rojas Martínez", "María Soledad Luna Sánchez", "Ana Cecilia Aguilar Romero",
+    "María Elena Ramos Flores", "Ana Cristina Morales Vega"
+].map(nombre => {
+    // Generador interno para asegurar datos únicos por nombre
+    const get8Num = () => Math.floor(10000000 + Math.random() * 90000000).toString();
+    const unis = [
+        "UNAM - FACULTAD DE MEDICINA", "IPN - ESCUELA SUPERIOR DE MEDICINA", "UAM - UNIDAD XOCHIMILCO", "UNIVERSIDAD DE GUADALAJARA",
+        "BUAP - FACULTAD DE MEDICINA", "UANL - FACULTAD DE MEDICINA", "UAEMEX - FACULTAD DE MEDICINA", "UNIVERSIDAD VERACRUZANA",
+        "UNIVERSIDAD AUTÓNOMA DE QUERÉTARO", "UNIVERSIDAD AUTÓNOMA DE SAN LUIS POTOSÍ", "UNIVERSIDAD DE SONORA", "UNIVERSIDAD DE GUANAJUATO",
+        "AUTÓNOMA DE CHIHUAHUA", "AUTÓNOMA DE YUCATÁN", "AUTÓNOMA DE BAJA CALIFORNIA", "ESCUELA MÉDICO MILITAR", "UNIVERSIDAD ANÁHUAC",
+        "TECNOLÓGICO DE MONTERREY (ITESM)", "UNIVERSIDAD LA SALLE", "UNIVERSIDAD PANAMERICANA", "AUTÓNOMA DE TAMAULIPAS", 
+        "AUTÓNOMA DE AGUASCALIENTES", "UNIVERSIDAD DE COLIMA", "AUTÓNOMA DE NAYARIT", "AUTÓNOMA DE COAHUILA", "AUTÓNOMA DE TLAXCALA",
+        "AUTÓNOMA DEL ESTADO DE HIDALGO", "AUTÓNOMA DE SINALOA", "AUTÓNOMA DE CHIAPAS", "JUÁREZ AUTÓNOMA DE TABASCO", 
+        "AUTÓNOMA BENITO JUÁREZ DE OAXACA", "AUTÓNOMA DE CAMPECHE", "AUTÓNOMA DEL ESTADO DE MORELOS", "AUTÓNOMA DE GUERRERO",
+        "AUTÓNOMA DE ZACATECAS", "AUTÓNOMA DE DURANGO", "UNIVERSIDAD XOCHICALCO", "UNIVERSIDAD DEL NORESTE", "UNIVERSIDAD DE MONTEMORELOS",
+        "UNIVERSIDAD DEL VALLE DE MÉXICO", "UNITEC - CIENCIAS DE LA SALUD", "UNIVERSIDAD WESTHILL", "UNIVERSIDAD JUSTO SIERRA",
+        "UNIVERSIDAD TOMINAGA NAKAMOTO", "CENTRO UNIVERSITARIO DE INTEGRACIÓN HUMANÍSTICA", "UNIVERSIDAD DE IXTLAHUACA CUI",
+        "AUTÓNOMA DE CIUDAD JUÁREZ", "UNIVERSIDAD DE MONTERREY (UDEM)", "AUTÓNOMA DE GUADALAJARA (UAG)", "UPAEP - PUEBLA"
+    ]; // (Se repiten o alternan para completar los 100)
+    
+    return {
+        nombre: nombre.toUpperCase(),
+        cedula: get8Num(),
+        matricula: get8Num(),
+        uni: unis[Math.floor(Math.random() * unis.length)]
+    };
+});
 
 
-
-                                           // ==========================================
-        // COMPONENTE PRINCIPAL (MainApp) - CORREGIDO
+                                                  // ==========================================
+        // COMPONENTE PRINCIPAL (MainApp) - CONECTADO
         // ==========================================
         const MainApp = () => {
             const [view, setView] = useState('login'); 
             const [isMenuOpen, setIsMenuOpen] = useState(false);
             const [isCheckingAuth, setIsCheckingAuth] = useState(true);
             const [userData, setUserData] = useState({ saldo: 0 }); 
+            const [printData, setPrintData] = useState(null); // <--- Estado para datos de impresión
 
             useEffect(() => { 
                 if(window.lucide) window.lucide.createIcons(); 
@@ -2218,27 +2512,23 @@
                 const unsubscribe = auth.onAuthStateChanged((user) => {
                     if (user && user.emailVerified) {
                         setView('store');
-                        
-                        // --- CORRECCIÓN AQUÍ ---
-                        // Eliminamos la instrucción que forzaba el saldo a 0 si había un error de lectura
                         db.collection('usuarios').doc(user.uid).onSnapshot(doc => {
-                            if (doc.exists) {
-                                setUserData(doc.data());
-                            } else {
-                                // Si el documento no existe (raro), solo actualizamos el estado local
-                                // PERO NO escribimos en la base de datos para no borrar saldo por error.
-                                setUserData({ email: user.email, saldo: 0 });
-                            }
+                            if (doc.exists) setUserData(doc.data());
+                            else setUserData({ email: user.email, saldo: 0 });
                         });
-
                     } else {
                         setView('login');
                     }
                     setIsCheckingAuth(false);
                 });
-                
                 return () => unsubscribe();
             }, []);
+
+            // Función para manejar la solicitud de impresión desde el historial
+            const handlePrintRecipe = (data) => {
+                setPrintData(data);
+                setView('print_recipe');
+            };
 
             const renderView = () => {
                 switch(view) {
@@ -2248,9 +2538,10 @@
                     case 'covid': return <CovidEditor onBack={() => setView('store')} />;
                     case 'recharge': return <RechargeFlow onBack={() => setView('store')} />;
                     case 'admin': return <AdminPanel onBack={() => setView('store')} />;
-                    case 'history': return <PurchaseHistory onBack={() => setView('store')} />;
+                    case 'history': return <PurchaseHistory onBack={() => setView('store')} onPrintRecipe={handlePrintRecipe} />;
                     case 'profile': return <UserProfile onBack={() => setView('store')} />;
-
+                    // NUEVA VISTA
+                    case 'print_recipe': return <RecipePrinter data={printData} onBack={() => setView('history')} />;
                     default: return <LoginScreen onLogin={() => setView('store')} />;
                 }
             };
@@ -2265,7 +2556,7 @@
 
             return (
                 <div className="antialiased text-slate-900">
-                    {view !== 'login' && view !== 'covid' && view !== 'editor' && (
+                    {view !== 'login' && view !== 'covid' && view !== 'editor' && view !== 'print_recipe' && (
                         <SidebarMenu 
                             isOpen={isMenuOpen} 
                             onClose={() => setIsMenuOpen(false)} 
@@ -2278,7 +2569,6 @@
                 </div>
             );
         };
-
 
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
