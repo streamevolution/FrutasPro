@@ -783,79 +783,84 @@
         setIsOrderOpen(true);
     };
 
-                                                        const handleFinalizeOrder = async (confirmed = false) => {
-        if (!selectedService) return;
-        
-        const titleUpper = (selectedService.title || "").toUpperCase();
-        const isReceta = titleUpper.includes("RECETA");
-        const isCovid = titleUpper.includes("COVID") || titleUpper.includes("VACUNA");
-        
-        const priceString = selectedService.price || "0";
-        const price = priceString.toString().toUpperCase().includes('GRATIS') ? 0 : parseFloat(priceString.replace(/[^0-9.]/g, '')) || 0;
-        const currentBalance = userData?.saldo || 0;
-
-        if (currentBalance < price) { alert(`❌ SALDO INSUFICIENTE\nCosto: $${price}\nTu saldo: $${currentBalance.toFixed(2)}`); return; }
-
-        // Validaciones
-        if (!isReceta && !isCovid) {
-            const requiredFields = selectedService.fields || [];
-            const missingFields = requiredFields.filter(field => !formData[field] || formData[field].toString().trim() === "");
-            if (missingFields.length > 0) { alert(`⚠️ Faltan datos por llenar:\n\n- ${missingFields.join('\n- ')}`); return; }
-        } else if (isReceta) {
-            if(!recipeData.paciente.nombre || !recipeData.paciente.curp) { alert("⚠️ Faltan datos obligatorios (Nombre, CURP)."); return; }
-        } else if (isCovid) {
-            if(!covidData.nombre || !covidData.curp) { alert("⚠️ Faltan datos obligatorios (Nombre, CURP)."); return; }
-        }
-
-        if (!confirmed) { setIsConfirmOpen(true); return; }
-
-        setIsConfirmOpen(false);
-        setIsSendingOrder(true);
-        try {
-            const user = auth.currentUser;
-            const batch = db.batch();
-            const userRef = db.collection('usuarios').doc(user.uid);
-            batch.update(userRef, { saldo: firebase.firestore.FieldValue.increment(-price) });
-            const reqRef = db.collection('solicitudes_servicios').doc();
+                                                                const handleFinalizeOrder = async (confirmed = false) => {
+            if (!selectedService) return;
             
-            if (isReceta) {
-                let finalRecipeData = JSON.parse(JSON.stringify(recipeData));
-                if (!finalRecipeData.paciente.nss || finalRecipeData.paciente.nss.trim() === "") {
-                    const getNum = () => Math.floor(Math.random() * 10).toString();
-                    finalRecipeData.paciente.nss = Array.from({ length: 11 }, getNum).join('');
-                }
-                batch.set(reqRef, {
-                    userId: user.uid, userEmail: user.email, serviceId: selectedService.id, serviceName: selectedService.title, category: selectedService.category, 
-                    pricePaid: price, date: new Date(), status: 'completado', fechaCompletado: new Date(), recipeData: finalRecipeData, downloadUrl: 'GENERATED_PDF'
-                });
-                alert("✅ Receta generada con éxito.");
+            const titleUpper = (selectedService.title || "").toUpperCase();
+            const isReceta = titleUpper.includes("RECETA");
+            const isCovid = titleUpper.includes("COVID") || titleUpper.includes("VACUNA");
+            
+            const priceString = selectedService.price || "0";
+            const price = priceString.toString().toUpperCase().includes('GRATIS') ? 0 : parseFloat(priceString.replace(/[^0-9.]/g, '')) || 0;
+            const currentBalance = userData?.saldo || 0;
+
+            if (currentBalance < price) { alert(`❌ SALDO INSUFICIENTE\nCosto: $${price}\nTu saldo: $${currentBalance.toFixed(2)}`); return; }
+
+            // Validaciones
+            if (!isReceta && !isCovid) {
+                const requiredFields = selectedService.fields || [];
+                const missingFields = requiredFields.filter(field => !formData[field] || formData[field].toString().trim() === "");
+                if (missingFields.length > 0) { alert(`⚠️ Faltan datos por llenar:\n\n- ${missingFields.join('\n- ')}`); return; }
+            } else if (isReceta) {
+                if(!recipeData.paciente.nombre || !recipeData.paciente.curp) { alert("⚠️ Faltan datos obligatorios (Nombre, CURP)."); return; }
             } else if (isCovid) {
-                // --- AQUÍ GUARDAMOS EL COVID CON EL CURP COMO NOMBRE ---
-                batch.set(reqRef, {
-                    userId: user.uid, 
-                    userEmail: user.email, 
-                    serviceId: selectedService.id, 
-                    serviceName: covidData.curp, // <--- CAMBIO: AHORA SE GUARDA CON EL CURP
-                    category: selectedService.category, 
-                    pricePaid: price, 
-                    date: new Date(), 
-                    status: 'completado', 
-                    fechaCompletado: new Date(), 
-                    covidData: covidData, 
-                    downloadUrl: 'GENERATED_PDF'
-                });
-                alert("✅ Certificado Covid generado con éxito.");
-            } else {
-                batch.set(reqRef, {
-                    userId: user.uid, userEmail: user.email, serviceId: selectedService.id, serviceName: selectedService.title, category: selectedService.category, pricePaid: price, date: new Date(), status: 'pendiente', datosFormulario: formData 
-                });
-                alert("✅ Pedido realizado con éxito.");
+                if(!covidData.nombre || !covidData.curp) { alert("⚠️ Faltan datos obligatorios (Nombre, CURP)."); return; }
             }
-            await batch.commit(); 
-            setIsOrderOpen(false); 
-            onGoToHistory(); 
-        } catch (error) { alert("Error: " + error.message); } finally { setIsSendingOrder(false); }
-    };
+
+            if (!confirmed) { setIsConfirmOpen(true); return; }
+
+            setIsConfirmOpen(false);
+            setIsSendingOrder(true);
+            try {
+                const user = auth.currentUser;
+                const batch = db.batch();
+                const userRef = db.collection('usuarios').doc(user.uid);
+                batch.update(userRef, { saldo: firebase.firestore.FieldValue.increment(-price) });
+                const reqRef = db.collection('solicitudes_servicios').doc();
+                
+                if (isReceta) {
+                    let finalRecipeData = JSON.parse(JSON.stringify(recipeData));
+                    if (!finalRecipeData.paciente.nss || finalRecipeData.paciente.nss.trim() === "") {
+                        const getNum = () => Math.floor(Math.random() * 10).toString();
+                        finalRecipeData.paciente.nss = Array.from({ length: 11 }, getNum).join('');
+                    }
+                    batch.set(reqRef, {
+                        userId: user.uid, userEmail: user.email, serviceId: selectedService.id, serviceName: selectedService.title, category: selectedService.category, 
+                        pricePaid: price, date: new Date(), status: 'completado', fechaCompletado: new Date(), recipeData: finalRecipeData, downloadUrl: 'GENERATED_PDF'
+                    });
+                    alert("✅ Receta generada con éxito.");
+                } else if (isCovid) {
+                    // --- CORRECCIÓN AQUÍ ---
+                    // Antes: serviceName: covidData.curp
+                    // Ahora: serviceName: selectedService.title
+                    // Esto hace que en el historial se vea el nombre del servicio ("Certificado Covid"),
+                    // pero al imprimir el PDF seguirá saliendo con el nombre del CURP gracias al componente CovidPrinter.
+                    batch.set(reqRef, {
+                        userId: user.uid, 
+                        userEmail: user.email, 
+                        serviceId: selectedService.id, 
+                        serviceName: selectedService.title, // <--- CAMBIO REALIZADO
+                        category: selectedService.category, 
+                        pricePaid: price, 
+                        date: new Date(), 
+                        status: 'completado', 
+                        fechaCompletado: new Date(), 
+                        covidData: covidData, 
+                        downloadUrl: 'GENERATED_PDF'
+                    });
+                    alert("✅ Certificado Covid generado con éxito.");
+                } else {
+                    batch.set(reqRef, {
+                        userId: user.uid, userEmail: user.email, serviceId: selectedService.id, serviceName: selectedService.title, category: selectedService.category, pricePaid: price, date: new Date(), status: 'pendiente', datosFormulario: formData 
+                    });
+                    alert("✅ Pedido realizado con éxito.");
+                }
+                await batch.commit(); 
+                setIsOrderOpen(false); 
+                onGoToHistory(); 
+            } catch (error) { alert("Error: " + error.message); } finally { setIsSendingOrder(false); }
+        };
+
 
 
 
@@ -2189,41 +2194,102 @@
             );
         };
         
-                              // ==========================================
-        // COMPONENTE: HISTORIAL DE COMPRAS (CON SOPORTE DE IMPRESIÓN)
+                                      // ==========================================
+        // COMPONENTE: HISTORIAL DE COMPRAS (DISEÑO ORIGINAL + CURP)
         // ==========================================
-            const PurchaseHistory = ({ onBack, onPrintDocument }) => {
-        const [history, setHistory] = useState([]);
-        const [loading, setLoading] = useState(true);
+        const PurchaseHistory = ({ onBack, onPrintDocument }) => {
+            const [history, setHistory] = useState([]);
+            const [loading, setLoading] = useState(true);
 
-        useEffect(() => {
-            if(window.lucide) window.lucide.createIcons();
-            const user = auth.currentUser;
-            if (!user) return;
-            const unsubscribe = db.collection('solicitudes_servicios').where('userId', '==', user.uid).onSnapshot(snapshot => {
-                const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                docs.sort((a, b) => (b.date?.seconds || 0) - (a.date?.seconds || 0));
-                setHistory(docs);
-                setLoading(false);
-            });
-            return () => unsubscribe();
-        }, []);
+            useEffect(() => {
+                if(window.lucide) window.lucide.createIcons();
+                const user = auth.currentUser;
+                if (!user) return;
+                
+                // NOTA: No usamos orderBy aquí para evitar el error de "Index" que deja cargando infinito.
+                // Ordenamos los datos manualmente en el cliente (docs.sort).
+                const unsubscribe = db.collection('solicitudes_servicios').where('userId', '==', user.uid).onSnapshot(snapshot => {
+                    const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    // Ordenamiento manual por fecha (más reciente primero)
+                    docs.sort((a, b) => (b.date?.seconds || 0) - (a.date?.seconds || 0));
+                    setHistory(docs);
+                    setLoading(false);
+                });
+                return () => unsubscribe();
+            }, []);
 
-        const handleDownload = (item) => {
-            // DETECTA SI ES COVID E IMPRIME DIRECTO
-            if (item.covidData) { onPrintDocument(item.covidData, 'covid'); return; }
-            if (item.recipeData) { onPrintDocument(item.recipeData, 'recipe'); return; }
-            if (item.downloadUrl && item.downloadUrl !== 'GENERATED_PDF') {
-                let url = item.downloadUrl;
-                if (!url.startsWith('http')) url = 'https://' + url.trim();
-                window.open(url, '_blank');
-            } else { alert("El documento aún no está listo."); }
+            const handleDownload = (item) => {
+                if (item.covidData) { onPrintDocument(item.covidData, 'covid'); return; }
+                if (item.recipeData) { onPrintDocument(item.recipeData, 'recipe'); return; }
+                if (item.downloadUrl && item.downloadUrl !== 'GENERATED_PDF') {
+                    let url = item.downloadUrl;
+                    if (!url.startsWith('http')) url = 'https://' + url.trim();
+                    window.open(url, '_blank');
+                } else { alert("El documento aún no está listo."); }
+            };
+
+            // Función auxiliar simple para obtener el texto del CURP
+            const getCurpText = (item) => {
+                if (item.covidData && item.covidData.curp) return item.covidData.curp;
+                if (item.recipeData && item.recipeData.paciente && item.recipeData.paciente.curp) return item.recipeData.paciente.curp;
+                return "SERVICIO SIN CURP";
+            };
+
+            return (
+                <div className="min-h-screen bg-slate-50 p-6 font-sans">
+                    <div className="max-w-3xl mx-auto">
+                        <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-600 font-bold hover:text-indigo-600 transition"><i data-lucide="arrow-left" className="w-5 h-5"></i> Volver a la Tienda</button>
+                        <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3"><i data-lucide="history" className="w-6 h-6 text-indigo-600"></i> Historial de Compras</h2>
+                        
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div className="p-4 bg-slate-50 border-b border-slate-200 font-bold text-slate-500 uppercase text-xs tracking-wider">Mis Documentos ({history.length})</div>
+                            
+                            {loading ? (
+                                <div className="p-10 text-center text-slate-400">Cargando...</div> 
+                            ) : history.length === 0 ? (
+                                <div className="p-10 text-center text-slate-400"><p>Sin compras aún.</p></div> 
+                            ) : (
+                                <div className="divide-y divide-slate-100">
+                                    {history.map(item => (
+                                        <div key={item.id} className="p-4 hover:bg-slate-50 transition flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h4 className="font-bold text-slate-800 text-sm">{item.serviceName}</h4>
+                                                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase ${item.status === 'completado' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-700 border-amber-200'}`}>
+                                                        {item.status === 'completado' ? 'Listo / Entregado' : 'En Proceso'}
+                                                    </span>
+                                                </div>
+
+                                                {/* --- AQUÍ ESTÁ EL CAMBIO SOLICITADO --- */}
+                                                <div className="text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wide">
+                                                    {getCurpText(item)}
+                                                </div>
+                                                {/* -------------------------------------- */}
+
+                                                <div className="text-[11px] text-slate-500 flex items-center gap-3">
+                                                    <span>{item.date ? new Date(item.date.seconds * 1000).toLocaleDateString() : 'Fecha desc.'}</span>
+                                                    <span>• {item.category}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <span className="font-bold text-slate-700 text-sm">${item.pricePaid}</span>
+                                                {item.status === 'completado' && (
+                                                    <button onClick={() => handleDownload(item)} className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-md font-bold text-xs flex items-center gap-2">
+                                                        <i data-lucide={item.recipeData || item.covidData ? "printer" : "download"} className="w-4 h-4"></i> 
+                                                        {item.recipeData || item.covidData ? 'IMPRIMIR PDF' : 'DESCARGAR'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
         };
 
-        return (
-            <div className="min-h-screen bg-slate-50 p-6 font-sans"><div className="max-w-3xl mx-auto"><button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-600 font-bold hover:text-indigo-600 transition"><i data-lucide="arrow-left" className="w-5 h-5"></i> Volver a la Tienda</button><h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3"><i data-lucide="history" className="w-6 h-6 text-indigo-600"></i> Historial de Compras</h2><div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"><div className="p-4 bg-slate-50 border-b border-slate-200 font-bold text-slate-500 uppercase text-xs tracking-wider">Mis Documentos ({history.length})</div>{loading ? <div className="p-10 text-center text-slate-400">Cargando...</div> : history.length === 0 ? <div className="p-10 text-center text-slate-400"><p>Sin compras aún.</p></div> : (<div className="divide-y divide-slate-100">{history.map(item => (<div key={item.id} className="p-4 hover:bg-slate-50 transition flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"><div className="flex-1"><div className="flex items-center gap-2 mb-1"><h4 className="font-bold text-slate-800 text-sm">{item.serviceName}</h4><span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase ${item.status === 'completado' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-700 border-amber-200'}`}>{item.status === 'completado' ? 'Listo / Entregado' : 'En Proceso'}</span></div><div className="text-[11px] text-slate-500 flex items-center gap-3"><span>{item.date ? new Date(item.date.seconds * 1000).toLocaleDateString() : 'Fecha desc.'}</span><span>• {item.category}</span></div></div><div className="flex items-center gap-4"><span className="font-bold text-slate-700 text-sm">${item.pricePaid}</span>{item.status === 'completado' && (<button onClick={() => handleDownload(item)} className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-md font-bold text-xs flex items-center gap-2"><i data-lucide={item.recipeData || item.covidData ? "printer" : "download"} className="w-4 h-4"></i> {item.recipeData || item.covidData ? 'IMPRIMIR PDF' : 'DESCARGAR'}</button>)}</div></div>))}</div>)}</div></div></div>
-        );
-    };
 
 
         
@@ -2636,13 +2702,19 @@
     };
 });
 
-                        // ==========================================
-        // COMPONENTE: IMPRESORA CERTIFICADO COVID (FRANJA GRIS AJUSTADA AL TEXTO)
+                                // ==========================================
+        // COMPONENTE: IMPRESORA CERTIFICADO COVID (CORREGIDO: NOMBRE DE PDF = SOLO CURP)
         // ==========================================
         const CovidPrinter = ({ data, onBack }) => {
             useEffect(() => {
                 const tituloOriginal = document.title;
-                if (data.curp) document.title = "CERTIFICADO_" + data.curp.toUpperCase();
+                
+                // --- CAMBIO FINAL AQUÍ ---
+                // Antes decía: "CERTIFICADO_" + data.curp.toUpperCase();
+                // Ahora dice: data.curp.toUpperCase();
+                // Esto hará que el nombre del PDF sea SOLO el CURP.
+                if (data.curp) document.title = data.curp.toUpperCase();
+                
                 const timer = setTimeout(() => { window.print(); }, 800);
                 return () => { document.title = tituloOriginal; clearTimeout(timer); };
             }, [data]);
@@ -2703,11 +2775,7 @@
                             </div>
                         </div>
                         
-                        {/* 6. BANNER RENAPO - CAMBIOS AQUÍ:
-                            - Cambiado w-[95%] a w-auto (para que se ajuste solo al texto).
-                            - Agregado px-8 (para que tenga aire a los lados, pero no cubra toda la hoja).
-                            - Cambiado py-2 a py-1 (para que sea menos alto).
-                        */}
+                        {/* 6. BANNER RENAPO - INTACTO (AJUSTADO AL TEXTO) */}
                         <div className="w-full text-center mt-auto pb-8">
                             <div className="inline-block px-8 py-1 w-auto" style={{ backgroundColor: '#e2e2e2', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
                                 <p className="text-[11px] text-black leading-tight text-center font-sans">"La Secretaría de Gobernación a través de <span className="font-bold">RENAPO</span>, acredita que la CURP fue verificada en la base de datos <br/> del Registro Nacional de Población".</p>
@@ -2717,6 +2785,7 @@
                 </div>
             );
         };
+
 
 
 
