@@ -904,11 +904,31 @@
                                     {groupedServices[category].map((service) => (
                                         <div key={service.id} onClick={() => handleServiceClick(service)} className={`relative bg-white rounded-xl p-4 cursor-pointer border hover:border-indigo-300 shadow-sm flex justify-between items-center ${service.active===false?'opacity-70 bg-slate-100':''}`}>
                                             <div className={`absolute left-0 h-full w-1.5 rounded-l-xl ${service.active===false?'bg-slate-400':(service.color==='blue'?'bg-blue-500':'bg-indigo-500')}`}></div>
-                                            <div className="pl-3">
-                                                <h3 className="font-bold text-slate-800 text-sm uppercase">{service.title} {service.active===false&&'(OCULTO)'}</h3>
-                                                <p className="text-[10px] text-slate-400 font-semibold uppercase">{service.category}</p>
+                                            <div className="pl-3 flex-1">
+                                                <div className="flex items-center gap-2 mb-0.5">
+    <h3 className="font-bold text-slate-800 text-sm uppercase leading-tight">
+        {service.title} {service.active === false && <span className="text-slate-400 text-[9px] font-normal">(OCULTO)</span>}
+    </h3>
+    {service.isNew && (
+        <span className="bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-md animate-pulse shadow-[0_0_8px_rgba(79,70,229,0.5)] flex-shrink-0">
+            ¡NUEVO!
+        </span>
+    )}
+</div>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{service.category}</p>
+                                                    {service.time && (
+                                                        <span className="text-[9px] bg-indigo-50 text-indigo-500 px-1.5 py-0.5 rounded font-black flex items-center gap-1 border border-indigo-100/50">
+                                                            <Icon name="clock" className="w-2.5 h-2.5"/> {service.time.toUpperCase()}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div className="text-right"><span className="text-xs font-bold bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg border border-emerald-100">{service.price}</span></div>
+                                            <div className="text-right ml-2 flex-shrink-0">
+                                                <span className="text-xs font-black bg-emerald-50 text-emerald-600 px-2 py-1.5 rounded-xl border border-emerald-100 shadow-sm block">
+                                                    {service.price}
+                                                </span>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -1071,14 +1091,52 @@
                                     </div>
                                 )}
 
-                                {/* TOTAL Y BOTÓN */}
-                                <div className="mt-8 mb-8 p-4 bg-white rounded-2xl border border-slate-200 shadow-md">
-                                    <div className="flex justify-between items-end mb-4 px-1"><span className="text-sm font-bold text-slate-400">Total a Pagar</span><span className="text-2xl font-black text-slate-800">{selectedService.price}</span></div>
-                                    <button onClick={handleFinalizeOrder} disabled={isSendingOrder} className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-lg shadow-xl hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-70 flex justify-center items-center gap-2">
-                                        {isSendingOrder ? 'Procesando...' : (selectedService.title.includes("RECETA") ? 'GENERAR Y GUARDAR PDF' : 'REALIZAR PEDIDO')}
-                                    </button>
-                                </div>
-                                <div className="h-10"></div> 
+                                {/* SECCIÓN DE PAGO Y HORARIOS (ESTILO CAPTURA) */}
+<div className="mt-8 mb-6 p-5 bg-white rounded-2xl border border-slate-100 shadow-lg">
+    <div className="flex justify-between items-end mb-5 px-1">
+        <span className="text-sm font-bold text-slate-400 uppercase tracking-tight">Total a Pagar</span>
+        <span className="text-2xl font-black text-slate-900">${selectedService.price}</span>
+    </div>
+    <button 
+        onClick={handleFinalizeOrder} 
+        disabled={isSendingOrder} 
+        className="w-full bg-[#0a0f1d] text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-70 flex justify-center items-center gap-3"
+    >
+        {isSendingOrder ? 'Procesando...' : (selectedService.title.includes("RECETA") ? 'GENERAR PDF' : 'Realizar Pedido')}
+        {!isSendingOrder && <Icon name="arrow-right" className="w-5 h-5"/>}
+    </button>
+</div>
+
+<div className="space-y-4 mb-12">
+    {/* Banner Verde: Disponibilidad */}
+    <div className="bg-[#e8fbf3] border border-[#bbf7d0] rounded-3xl p-8 flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white rounded-full p-3 mb-4 shadow-sm border border-slate-50">
+            <Icon name="clock" className="w-10 h-10 text-[#15803d]"/>
+        </div>
+        <p className="text-[#15803d] font-black text-xl leading-tight uppercase tracking-tight">
+            Disponible y activo de <br/> 08:00 AM a 08:00 PM
+        </p>
+    </div>
+
+    {/* Banner Amarillo: Advertencia */}
+    <div className="bg-[#fefce8] border border-[#fef08a] rounded-3xl p-6 flex flex-col items-center text-center shadow-sm">
+        <Icon name="alert-triangle" className="w-10 h-10 text-[#a16207] mb-3"/>
+        <p className="text-[#a16207] font-bold text-[15px] leading-snug px-2">
+            Si adquieres el servicio fuera de ese horario se entrega al día siguiente en horarios establecidos
+        </p>
+    </div>
+
+    {/* Botón Azul: Ver Muestra */}
+    <button 
+        onClick={() => alert("Mostrando vista previa del servicio...")}
+        className="w-full bg-[#4338ca] text-white py-5 rounded-3xl font-black text-base tracking-[0.15em] flex justify-center items-center gap-4 shadow-xl uppercase active:scale-[0.97] transition-transform"
+    >
+        <Icon name="eye" className="w-7 h-7"/>
+        Clic para ver muestra
+    </button>
+</div>
+<div className="h-10"></div>
+
                             </div>
                         </div>
                     )}
