@@ -1091,7 +1091,7 @@
                                     </div>
                                 )}
 
-                                {/* SECCIÓN DE PAGO Y HORARIOS (ESTILO CAPTURA) */}
+                                {/* SECCIÓN DE PAGO Y HORARIOS (ESTILO CAPTURA) - DINÁMICO */}
 <div className="mt-8 mb-6 p-5 bg-white rounded-2xl border border-slate-100 shadow-lg">
     <div className="flex justify-between items-end mb-5 px-1">
         <span className="text-sm font-bold text-slate-400 uppercase tracking-tight">Total a Pagar</span>
@@ -1108,27 +1108,34 @@
 </div>
 
 <div className="space-y-4 mb-12">
-    {/* Banner Verde: Disponibilidad */}
+    {/* Banner Verde: Disponibilidad (Dinámico) */}
     <div className="bg-[#e8fbf3] border border-[#bbf7d0] rounded-3xl p-8 flex flex-col items-center text-center shadow-sm">
         <div className="bg-white rounded-full p-3 mb-4 shadow-sm border border-slate-50">
             <Icon name="clock" className="w-10 h-10 text-[#15803d]"/>
         </div>
-        <p className="text-[#15803d] font-black text-xl leading-tight uppercase tracking-tight">
-            Disponible y activo de <br/> 08:00 AM a 08:00 PM
+        <p className="text-[#15803d] font-black text-xl leading-tight uppercase tracking-tight whitespace-pre-line">
+            {selectedService.availabilityText || "Disponible y activo de \n 08:00 AM a 08:00 PM"}
         </p>
     </div>
 
-    {/* Banner Amarillo: Advertencia */}
+    {/* Banner Amarillo: Advertencia (Dinámico) */}
     <div className="bg-[#fefce8] border border-[#fef08a] rounded-3xl p-6 flex flex-col items-center text-center shadow-sm">
         <Icon name="alert-triangle" className="w-10 h-10 text-[#a16207] mb-3"/>
         <p className="text-[#a16207] font-bold text-[15px] leading-snug px-2">
-            Si adquieres el servicio fuera de ese horario se entrega al día siguiente en horarios establecidos
+            {selectedService.warningText || "Si adquieres el servicio fuera de ese horario se entrega al día siguiente en horarios establecidos"}
         </p>
     </div>
 
-    {/* Botón Azul: Ver Muestra */}
+    {/* Botón Azul: Ver Muestra (Dinámico) */}
     <button 
-        onClick={() => alert("Mostrando vista previa del servicio...")}
+        onClick={() => {
+            if (selectedService.sampleUrl && selectedService.sampleUrl.trim() !== "") {
+                const url = selectedService.sampleUrl.startsWith('http') ? selectedService.sampleUrl : 'https://' + selectedService.sampleUrl;
+                window.open(url, '_blank');
+            } else {
+                alert("Este servicio no tiene una muestra adjunta.");
+            }
+        }}
         className="w-full bg-[#4338ca] text-white py-5 rounded-3xl font-black text-base tracking-[0.15em] flex justify-center items-center gap-4 shadow-xl uppercase active:scale-[0.97] transition-transform"
     >
         <Icon name="eye" className="w-7 h-7"/>
@@ -1508,8 +1515,8 @@
         };
 
         
-                                                                                                // ==========================================
-        // COMPONENTE: PANEL DE ADMINISTRACIÓN (V22 - CAMPOS RECETA IMSS AGREGADOS)
+                                                                                                        // ==========================================
+        // COMPONENTE: PANEL DE ADMINISTRACIÓN (V23 - ACTUALIZADO CON EDITOR DE HORARIOS/MUESTRAS)
         // ==========================================
         const AdminPanel = ({ onBack }) => {
             const [section, setSection] = useState('menu');
@@ -1543,7 +1550,17 @@
             const [newAnuncio, setNewAnuncio] = useState("");
             const [editingAnuncioId, setEditingAnuncioId] = useState(null);
 
-            // --- LISTA DE CAMPOS DISPONIBLES (ACTUALIZADA) ---
+            // --- NUEVOS ESTADOS PARA CONFIGURACIÓN DE SERVICIOS (HORARIOS/MUESTRAS) ---
+            const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+            const [editingConfigId, setEditingConfigId] = useState(null);
+            const [configForm, setConfigForm] = useState({
+                title: '',
+                availabilityText: '',
+                warningText: '',
+                sampleUrl: ''
+            });
+
+            // --- LISTA DE CAMPOS DISPONIBLES ---
             const availableFields = [
                 "Nombre Completo", "Curp", "NSS", "Agregado Medico", "Delegación", "UMP", "Consultorio", "Turno", "Fecha (Texto Completo)",
                 "Clave Presupuestal (Cve Ptal)", "Nombre del Doctor(a)", "Especialidad / Tipo", "Cédula Profesional", "Matrícula", "Universidad",
@@ -1570,9 +1587,9 @@
             useEffect(() => {
                 const timer = setTimeout(() => {
                     if(window.lucide) window.lucide.createIcons();
-                }, 50);
+                }, 100);
                 return () => clearTimeout(timer);
-            }, [section, requests, stockList, orders, usersList, anuncios, isModalOpen]);
+            }, [section, requests, stockList, orders, usersList, anuncios, isModalOpen, isConfigModalOpen]);
 
             // 2. CARGA DE DATOS
             useEffect(() => {
@@ -1628,6 +1645,37 @@
                 if (currentFields.includes(field)) { setNewService({ ...newService, fields: currentFields.filter(f => f !== field) }); } 
                 else { setNewService({ ...newService, fields: [...currentFields, field] }); }
             };
+
+            // LOGICA CONFIGURACIÓN SERVICIOS (NUEVA)
+            const openConfigModal = (service) => {
+                setEditingConfigId(service.id);
+                setConfigForm({
+                    title: service.title,
+                    availabilityText: service.availabilityText || "Disponible y activo de \n 08:00 AM a 08:00 PM",
+                    warningText: service.warningText || "Si adquieres el servicio fuera de ese horario se entrega al día siguiente en horarios establecidos",
+                    sampleUrl: service.sampleUrl || ""
+                });
+                setIsConfigModalOpen(true);
+            };
+
+            const handleSaveConfig = async (e) => {
+                e.preventDefault();
+                setIsSaving(true);
+                try {
+                    await db.collection('servicios').doc(editingConfigId).update({
+                        availabilityText: configForm.availabilityText,
+                        warningText: configForm.warningText,
+                        sampleUrl: configForm.sampleUrl
+                    });
+                    alert("✅ Textos y muestra actualizados correctamente.");
+                    setIsConfigModalOpen(false);
+                } catch(error) {
+                    alert("Error: " + error.message);
+                } finally {
+                    setIsSaving(false);
+                }
+            };
+
 
             // LOGICA USUARIOS
             const handleAddBalance = async (u) => { const m = prompt(`Sumar saldo a ${u.nombre}:`); if(!m) return; try { await db.collection('usuarios').doc(u.id).update({saldo: firebase.firestore.FieldValue.increment(parseFloat(m))}); alert("✅ Listo"); } catch(e){alert(e.message);} };
@@ -1701,6 +1749,16 @@
                         <button onClick={()=>setSection('stock')} className="bg-white p-6 rounded-2xl shadow hover:shadow-xl transition group relative overflow-hidden"><div className="flex justify-between items-start mb-4"><div className="p-3 bg-emerald-50 rounded-xl text-emerald-600"><Icon name="package" className="w-8 h-8"/></div><span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full">{stockList.length}</span></div><h3 className="text-xl font-bold text-slate-800">Stock</h3><p className="text-slate-500 text-sm">Inventario</p></button>
                         <button onClick={()=>setSection('usuarios')} className="bg-white p-6 rounded-2xl shadow hover:shadow-xl transition group relative overflow-hidden"><div className="flex justify-between items-start mb-4"><div className="p-3 bg-blue-50 rounded-xl text-blue-600"><Icon name="users" className="w-8 h-8"/></div><span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full">{usersList.length}</span></div><h3 className="text-xl font-bold text-slate-800">Usuarios</h3><p className="text-slate-500 text-sm">Gestión</p></button>
                         
+                        {/* NUEVO BOTÓN: CONFIGURACIÓN SERVICIOS */}
+                        <button onClick={()=>setSection('config_servicios')} className="bg-white p-6 rounded-2xl shadow hover:shadow-xl transition group relative overflow-hidden ring-2 ring-transparent hover:ring-indigo-200">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="p-3 bg-purple-50 rounded-xl text-purple-600"><Icon name="sliders" className="w-8 h-8"/></div>
+                                <span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full">{stockList.length}</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-800 leading-tight">Horarios, Precios y muestra</h3>
+                            <p className="text-slate-500 text-sm mt-1">Editar textos</p>
+                        </button>
+
                         <button onClick={()=>setSection('anuncios')} className="bg-slate-900 p-6 rounded-2xl shadow hover:shadow-xl transition group relative overflow-hidden border border-slate-700">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="p-3 bg-cyan-900/50 rounded-xl text-cyan-400 border border-cyan-800"><Icon name="megaphone" className="w-8 h-8"/></div>
@@ -1759,6 +1817,117 @@
                 <div className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100"><span className="text-xs font-bold text-slate-600">¿Etiqueta "NUEVO"?</span><label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" className="sr-only peer" checked={newService.isNew} onChange={e => setNewService({...newService, isNew: e.target.checked})} /><div className="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div></label></div>
                 <div className="border-t border-slate-100 pt-3"><p className="text-xs font-bold text-slate-500 mb-2 uppercase">Datos Requeridos:</p><div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto bg-slate-50 p-2 rounded border border-slate-200">{availableFields.map(label => (<label key={label} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-slate-100 p-1 rounded"><input type="checkbox" checked={(newService.fields || []).includes(label)} onChange={() => toggleField(label)} className="rounded text-indigo-600 focus:ring-indigo-500"/><span className="truncate">{label}</span></label>))}</div></div>
                 <button className="w-full bg-slate-900 text-white py-3 rounded font-bold">GUARDAR</button></form></div></div>)}</div>
+            );
+
+            // --- VISTA CONFIGURACIÓN DE SERVICIOS (NUEVA) ---
+            if (section === 'config_servicios') return (
+                <div className="min-h-screen bg-slate-100 p-6 font-sans relative">
+                    <div className="max-w-4xl mx-auto">
+                        <button onClick={()=>setSection('menu')} className="mb-6 flex gap-2 font-bold text-slate-600 hover:text-indigo-600 transition"><Icon name="arrow-left" className="w-5 h-5"/> Volver al Menú</button>
+                        
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="p-3 bg-purple-100 rounded-xl text-purple-600"><Icon name="sliders" className="w-8 h-8"/></div>
+                            <div>
+                                <h2 className="text-2xl font-bold text-slate-800">Horarios, Precios y Muestra</h2>
+                                <p className="text-slate-500 text-sm">Personaliza los textos de disponibilidad y enlaces de muestra.</p>
+                            </div>
+                        </div>
+
+                        {/* LISTA DE SERVICIOS PARA EDITAR */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {stockList.map(s => (
+                                <div key={s.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col justify-between group relative overflow-hidden">
+                                    <div className={`absolute top-0 left-0 w-1.5 h-full ${s.active===false ? 'bg-slate-300' : 'bg-purple-500'}`}></div>
+                                    
+                                    <div className="pl-3 mb-4">
+                                        <div className="flex justify-between items-start">
+                                            <h4 className="font-black text-slate-800 text-base uppercase leading-tight">{s.title}</h4>
+                                            {s.active===false && <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold">OCULTO</span>}
+                                        </div>
+                                        <p className="text-xs text-purple-600 font-bold uppercase mt-1">{s.category}</p>
+                                    </div>
+                                    
+                                    <div className="pl-3 mt-auto pt-4 border-t border-slate-100">
+                                        <button 
+                                            onClick={() => openConfigModal(s)}
+                                            className="w-full bg-slate-50 text-slate-600 hover:bg-purple-600 hover:text-white py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all border border-slate-200 hover:border-purple-600"
+                                        >
+                                            <Icon name="pencil" className="w-4 h-4"/> EDITAR TEXTOS Y LINK
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* MODAL DE EDICIÓN CONFIGURACIÓN */}
+                    {isConfigModalOpen && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 animate-[fadeIn_0.2s_ease-out]">
+                            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+                                <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                                    <div>
+                                        <h3 className="font-bold text-slate-800 text-lg">Editar Configuración</h3>
+                                        <p className="text-[10px] font-bold text-purple-600 uppercase tracking-widest">{configForm.title}</p>
+                                    </div>
+                                    <button onClick={()=>setIsConfigModalOpen(false)} className="text-slate-400 hover:text-slate-600"><Icon name="x" className="w-6 h-6"/></button>
+                                </div>
+                                
+                                <form onSubmit={handleSaveConfig} className="p-6 overflow-y-auto space-y-5">
+                                    {/* CAMPO 1: TEXTO DISPONIBILIDAD */}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="bg-emerald-100 text-emerald-600 p-1.5 rounded-lg"><Icon name="clock" className="w-4 h-4"/></span>
+                                            <label className="text-xs font-bold text-slate-600 uppercase">Texto Disponibilidad (Banner Verde)</label>
+                                        </div>
+                                        <textarea 
+                                            className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition resize-none h-20 font-medium"
+                                            value={configForm.availabilityText}
+                                            onChange={e => setConfigForm({...configForm, availabilityText: e.target.value})}
+                                            placeholder="Ej: Disponible y activo de 08:00 AM a 08:00 PM"
+                                        ></textarea>
+                                    </div>
+
+                                    {/* CAMPO 2: TEXTO ADVERTENCIA */}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="bg-amber-100 text-amber-600 p-1.5 rounded-lg"><Icon name="alert-triangle" className="w-4 h-4"/></span>
+                                            <label className="text-xs font-bold text-slate-600 uppercase">Texto Advertencia (Banner Amarillo)</label>
+                                        </div>
+                                        <textarea 
+                                            className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none transition resize-none h-24 font-medium"
+                                            value={configForm.warningText}
+                                            onChange={e => setConfigForm({...configForm, warningText: e.target.value})}
+                                            placeholder="Ej: Si adquieres el servicio fuera de ese horario se entrega al día siguiente..."
+                                        ></textarea>
+                                    </div>
+
+                                    {/* CAMPO 3: URL MUESTRA */}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg"><Icon name="image" className="w-4 h-4"/></span>
+                                            <label className="text-xs font-bold text-slate-600 uppercase">Enlace de Muestra (Imagen/PDF)</label>
+                                        </div>
+                                        <input 
+                                            type="text"
+                                            className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition font-medium text-slate-700"
+                                            value={configForm.sampleUrl}
+                                            onChange={e => setConfigForm({...configForm, sampleUrl: e.target.value})}
+                                            placeholder="Pegar enlace aquí (http://...)"
+                                        />
+                                        <p className="text-[10px] text-slate-400 font-bold ml-1">Dejar vacío para mostrar alerta de "No disponible".</p>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                                        <button type="button" onClick={()=>setIsConfigModalOpen(false)} className="px-5 py-3 text-xs font-bold text-slate-500 hover:text-slate-800 transition">CANCELAR</button>
+                                        <button type="submit" disabled={isSaving} className="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-800 transition shadow-lg flex items-center gap-2 disabled:opacity-50">
+                                            {isSaving ? 'GUARDANDO...' : <><Icon name="save" className="w-4 h-4"/> GUARDAR CAMBIOS</>}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
             );
 
             if (section === 'usuarios') return (
