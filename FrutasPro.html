@@ -737,23 +737,25 @@
         
         // --- LÓGICA COVID (NUEVA) ---
         if (title.includes("COVID") || title.includes("VACUNA")) { 
-            if (isAdmin) {
-                onSelectCovid(); // Admin va al editor
-            } else {
-                // Usuario abre formulario
-                setCovidData({
-                    curp: '', nombre: '',
-                    dosis1: { fecha: '2021-06-15', marca: 'PFIZER', lote: 'EW0123' },
-                    dosis2: { fecha: '2021-07-15', marca: 'PFIZER', lote: 'FA4567' },
-                    selloDigital: '278feab6-2b4f-4fe4-b9b7-3e8dcff84934',
-                    fechaEmision: new Date().toISOString().slice(0, 19).replace('T', ' ')
-                });
-                setSelectedService(service);
-                setFormData({});
-                setIsOrderOpen(true);
-            }
-            return; 
-        }
+    if (isAdmin) {
+        onSelectCovid(); 
+    } else {
+        // Inicializamos con datos técnicos ocultos predefinidos
+        setCovidData({
+            curp: '', 
+            nombre: '',
+            dosis1: { fecha: '2021-05-12', marca: 'ASTRAZENECA', lote: 'I-592740' },
+            dosis2: { fecha: '2021-08-04', marca: 'ASTRAZENECA', lote: 'I-694376' },
+            selloDigital: '317feab6-5b4f-4fe4-a9b7-8e8dcff84934-C8812',
+            fechaEmision: new Date().toISOString().slice(0, 19).replace('T', ' ')
+        });
+        setSelectedService(service);
+        setFormData({});
+        setIsOrderOpen(true);
+    }
+    return; 
+}
+
 
         // --- LÓGICA RECETA IMSS ---
         if (title.includes("RECETA")) {
@@ -1008,38 +1010,25 @@
             <div className="bg-slate-200 p-4 rounded-xl border border-slate-300"><div className="flex justify-between items-center mb-4 border-b border-slate-300 pb-2"><div className="font-black text-xs text-slate-600 uppercase tracking-widest">Medicamentos</div><button onClick={addMed} className="bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-lg">+ AGREGAR</button></div>{recipeData.medicamentos.map((m) => (<div key={m.id} className="mb-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm"><div className="flex justify-between mb-1"><span className="text-[10px] font-bold text-slate-400">MEDICAMENTO</span><button onClick={() => delMed(m.id)} className="text-rose-500"><Icon name="trash-2" className="w-3 h-3"/></button></div><input className="w-full border-b border-slate-200 p-1 text-xs font-bold mb-2 uppercase outline-none focus:border-indigo-500" placeholder="CLAVE + NOMBRE" value={m.text} onChange={e => handleRecipeMed(m.id, 'text', e.target.value)} /><textarea className="w-full bg-slate-50 border border-slate-200 p-2 text-xs rounded uppercase resize-none h-14 outline-none focus:border-indigo-500" placeholder="INDICACIONES" value={m.ind} onChange={e => handleRecipeMed(m.id, 'ind', e.target.value)}></textarea></div>))}<div className="mt-4"><label className="block text-[10px] font-black text-slate-500 uppercase mb-1">Indicaciones Generales</label><textarea className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-bold h-20 uppercase outline-none focus:border-indigo-500" value={recipeData.meta.indicaciones} onChange={e => handleRecipeChange('meta', 'indicaciones', e.target.value)}></textarea></div></div>
         </div>
     ) : (selectedService.title || "").toUpperCase().includes("COVID") || (selectedService.title || "").toUpperCase().includes("VACUNA") ? (
-        // --- FORMULARIO COVID NUEVO ---
-        <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                <div className="font-black text-xs text-blue-600 uppercase tracking-widest mb-4 border-b border-blue-50 pb-2">Datos del Ciudadano</div>
-                <div className="space-y-4">
-                    <RInput label="CURP" val={covidData.curp} onChange={v => handleCovidChange('curp', v)} placeholder="CURP" />
-                    <RInput label="Nombre Completo" val={covidData.nombre} onChange={v => handleCovidChange('nombre', v)} placeholder="NOMBRE COMPLETO" />
-                </div>
+    // --- FORMULARIO COVID SIMPLIFICADO (CAMPOS OCULTOS AUTOMÁTICOS) ---
+    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="font-black text-xs text-blue-600 uppercase tracking-widest mb-4 border-b border-blue-50 pb-2 flex items-center gap-2">
+                <i data-lucide="user"></i> Datos del Ciudadano
             </div>
-            <div className="bg-blue-50 p-5 rounded-xl border border-blue-100 shadow-sm">
-                <div className="font-black text-xs text-blue-800 uppercase tracking-widest mb-4 border-b border-blue-200/50 pb-2">Primera Dosis</div>
-                <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3"><RInput label="Fecha Aplicación" val={covidData.dosis1.fecha} onChange={v => handleCovidDose('dosis1', 'fecha', v)} placeholder="AAAA-MM-DD" /><RInput label="Lote" val={covidData.dosis1.lote} onChange={v => handleCovidDose('dosis1', 'lote', v)} placeholder="LOTE" /></div>
-                    <RInput label="Marca Vacuna" val={covidData.dosis1.marca} onChange={v => handleCovidDose('dosis1', 'marca', v)} placeholder="MARCA (EJ. PFIZER)" />
-                </div>
+            <div className="space-y-4">
+                <RInput label="CURP" val={covidData.curp} onChange={v => handleCovidChange('curp', v)} placeholder="INGRESA TU CURP" />
+                <RInput label="Nombre Completo" val={covidData.nombre} onChange={v => handleCovidChange('nombre', v)} placeholder="NOMBRE COMO APARECE EN TU INE" />
             </div>
-            <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-100 shadow-sm">
-                <div className="font-black text-xs text-indigo-800 uppercase tracking-widest mb-4 border-b border-indigo-200/50 pb-2">Segunda Dosis</div>
-                <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3"><RInput label="Fecha Aplicación" val={covidData.dosis2.fecha} onChange={v => handleCovidDose('dosis2', 'fecha', v)} placeholder="AAAA-MM-DD" /><RInput label="Lote" val={covidData.dosis2.lote} onChange={v => handleCovidDose('dosis2', 'lote', v)} placeholder="LOTE" /></div>
-                    <RInput label="Marca Vacuna" val={covidData.dosis2.marca} onChange={v => handleCovidDose('dosis2', 'marca', v)} placeholder="MARCA (EJ. PFIZER)" />
-                </div>
-            </div>
-            <div className="bg-slate-100 p-5 rounded-xl border border-slate-200">
-                    <div className="font-black text-xs text-slate-500 uppercase tracking-widest mb-4">Datos del Certificado</div>
-                    <div className="space-y-3">
-                    <RInput label="Fecha Emisión" val={covidData.fechaEmision} onChange={v => handleCovidChange('fechaEmision', v)} placeholder="AAAA-MM-DD HH:MM:SS" />
-                    <div><label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Sello Digital (Hash)</label><textarea className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-bold h-20 outline-none focus:border-indigo-500 font-mono break-all uppercase" value={covidData.selloDigital} onChange={e => handleCovidChange('selloDigital', e.target.value)} placeholder="HASH DEL SELLO..."></textarea></div>
-                    </div>
+            <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                <p className="text-[10px] text-blue-600 font-bold leading-tight">
+                    * Los datos de dosis, lotes y sellos digitales se generarán automáticamente con estándares oficiales para este certificado.
+                </p>
             </div>
         </div>
-    ) : (
+    </div>
+) : (
+
         // FORMULARIO GENÉRICO
         <div className="space-y-4">
             {selectedService.fields && selectedService.fields.length > 0 ? (selectedService.fields.map((field, idx) => (<div key={idx}><label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">{field}</label><input type="text" className="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 font-medium text-slate-700" placeholder={`Ingresa ${field}...`} value={formData[field] || ''} onChange={(e) => setFormData(p => ({...p, [field]: e.target.value}))} /></div>))) : (<div className="text-center p-6 bg-white rounded-xl border border-slate-200 text-slate-400 text-sm">No se requieren datos adicionales.</div>)}
