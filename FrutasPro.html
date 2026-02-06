@@ -641,8 +641,8 @@
                 </div>
             );
 
-                                                                                        // ==========================================
-        // COMPONENTE: TIENDA VIRTUAL (ACTUALIZADO RECETA IMSS DIRECTA)
+                                                                                                        // ==========================================
+        // COMPONENTE: TIENDA VIRTUAL (DATOS PACIENTE VACÍOS + MÉDICO OCULTO)
         // ==========================================
         const StoreFront = ({ onSelectService, onOpenMenu, onSelectCovid, userData, onGoToHistory }) => {
             const [searchTerm, setSearchTerm] = useState("");
@@ -658,34 +658,76 @@
             const [isSendingOrder, setIsSendingOrder] = useState(false);
             const [isConfirmOpen, setIsConfirmOpen] = React.useState(false);
 
-            // --- ESTADO ESPECIAL RECETA IMSS ---
+            // --- BANDERAS ---
+            const [isFarmacia, setIsFarmacia] = useState(false);
+            const [isImss, setIsImss] = useState(false);
+            const [isCovid, setIsCovid] = useState(false);
+
+            // --- DATA GENERATORS (DOCTORES) ---
+            const DOCTORES_DATA = React.useMemo(() => {
+                const nombresHombres = [
+                    "JUAN CARLOS PÉREZ GÓMEZ", "LUIS ANTONIO GARCÍA MARTÍNEZ", "MIGUEL ÁNGEL RODRÍGUEZ LÓPEZ", "JOSÉ LUIS HERNÁNDEZ GONZÁLEZ", "CARLOS EDUARDO MARTÍNEZ SÁNCHEZ",
+                    "JORGE ALBERTO SÁNCHEZ PÉREZ", "JESÚS MANUEL RAMÍREZ CRUZ", "FRANCISCO JAVIER FLORES GÓMEZ", "RAÚL ALEJANDRO TORRES VÁZQUEZ", "ROBERTO CARLOS RUIZ DÍAZ",
+                    "DANIEL ALONSO MENDOZA GUTIÉRREZ", "EDUARDO JAVIER CASTRO ORTEGA", "SERGIO IVÁN VARGAS ROMERO", "ALEJANDRO DAVID MORALES JIMÉNEZ", "FERNANDO JOSÉ ORTIZ RUIZ",
+                    "RICARDO ANDRÉS SILVA NAVARRO", "HÉCTOR MANUEL RAMOS CASTILLO", "GABRIEL OMAR MEDINA SALAZAR", "MARTÍN ELÍAS ROJAS AGUILAR", "PEDRO ANTONIO VEGA CÁRDENAS",
+                    "MANUEL ALEJANDRO CAMPOS LUNA", "JAVIER EDUARDO CRUZ SALGADO", "ALBERTO JOSÉ REYES MARÍN", "DIEGO ARMANDO SOTO DOMÍNGUEZ", "ADRIÁN ARTURO PACHECO RIVERA",
+                    "MARIO ALBERTO GUERRERO SERRANO", "JULIO CÉSAR VALENZUELA MEZA", "PABLO EMILIO CORTÉS IBARRA", "ÓSCAR IVÁN ESPINOZA ROSALES", "ANDRÉS FELIPE OROZCO BELTRÁN",
+                    "RUBÉN DARÍO MONTES QUIROZ", "VÍCTOR HUGO CUEVAS GALLEGOS", "CÉSAR AUGUSTO PADILLA ZAMORA", "IVÁN LEONARDO SALAS VILLALOBOS", "HUGO ERNESTO RÍOS BARRERA",
+                    "EDGAR ULISES MACÍAS ESCOBAR", "ARTURO ELÍAS ZÚÑIGA CORREA", "ALFREDO RAFAEL TOVAR VILLEGAS", "ENRIQUE ALONSO GALLARDO LARA", "FELIPE DE JESÚS NAVA PERALTA",
+                    "GUSTAVO ADOLFO DELGADO CERVANTES", "IGNACIO MANUEL BERNAL OCHOA", "JOAQUÍN ANDRÉS SOLÍS ARROYO", "LEONARDO FABIÁN ACUÑA FIGUEROA", "MAURICIO ALEJANDRO CANO VALDEZ",
+                    "NORBERTO ELÍAS TREJO MALDONADO", "ORLANDO JAVIER URBINA CORONA", "PATRICIO DANIEL VERA BUSTOS", "RODRIGO EMANUEL ZAVALA PINEDA", "SAÚL ERNESTO ALCARAZ MONTOYA"
+                ];
+                const nombresMujeres = [
+                    "MARÍA FERNANDA LÓPEZ RUIZ", "ANA SOFÍA HERNÁNDEZ DÍAZ", "CARLA DANIELA GARCÍA PÉREZ", "ADRIANA MARÍA MARTÍNEZ SÁNCHEZ", "BEATRIZ ELENA GONZÁLEZ RODRÍGUEZ",
+                    "CARMEN LUCÍA PÉREZ GÓMEZ", "DIANA CAROLINA RAMÍREZ CRUZ", "ELIZABETH VICTORIA FLORES TORRES", "FÁTIMA GUADALUPE TORRES VÁZQUEZ", "GABRIELA ALEJANDRA RUIZ MENDOZA",
+                    "HILDA MARIANA CASTRO ORTEGA", "ISABEL CRISTINA VARGAS ROMERO", "JESSICA PAOLA MORALES JIMÉNEZ", "KARLA VANESSA ORTIZ SILVA", "LAURA PATRICIA RAMOS CASTILLO",
+                    "MÓNICA LIZBETH MEDINA SALAZAR", "NATALIA SOFÍA ROJAS AGUILAR", "OLIVIA MARGARITA VEGA CÁRDENAS", "PAOLA ANDREA CAMPOS LUNA", "QUETZALLI YASMIN CRUZ SALGADO",
+                    "REBECA ABIGAIL REYES MARÍN", "SANDRA LUZ SOTO DOMÍNGUEZ", "TERESA DE JESÚS PACHECO RIVERA", "URSULA MARIANA GUERRERO SERRANO", "VERÓNICA CECILIA VALENZUELA MEZA",
+                    "WENDY NAYELI CORTÉS IBARRA", "XIMENA ALESSANDRA ESPINOZA ROSALES", "YOLANDA BEATRIZ OROZCO BELTRÁN", "ZULEMA KARINA MONTES QUIROZ", "ALMA DELIA CUEVAS GALLEGOS",
+                    "BLANCA ESTELA PADILLA ZAMORA", "CLAUDIA IVETTE SALAS VILLALOBOS", "DANIELA MICHELLE RÍOS BARRERA", "ELENA SOFÍA MACÍAS ESCOBAR", "FABIOLA JANET ZÚÑIGA CORREA",
+                    "GLORIA ESTEFANÍA TOVAR VILLEGAS", "HAYDEE MARISOL GALLARDO LARA", "IRENE GUADALUPE NAVA PERALTA", "JULIA MERCEDES DELGADO CERVANTES", "KAREN LIZETH BERNAL OCHOA",
+                    "LETICIA MARIBEL SOLÍS ARROYO", "MARGARITA ROSA ACUÑA FIGUEROA", "NANCY GABRIELA CANO VALDEZ", "OFELIA ISABEL TREJO MALDONADO", "PATRICIA ELENA URBINA CORONA",
+                    "ROCÍO ALEJANDRA VERA BUSTOS", "SILVIA FERNANDA ZAVALA PINEDA", "TANIA IVONNE ALCARAZ MONTOYA", "VALERIA JUDITH MEJÍA CORDERO", "YESSICA PAOLA LARA ZAMUDIO"
+                ];
+                const universidades = [
+                    { uni: "UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO", dir: "AV. UNIVERSIDAD 3000, COPILCO EL ALTO\nCOYOACÁN, 04510 CIUDAD DE MÉXICO, CDMX" },
+                    { uni: "INSTITUTO POLITÉCNICO NACIONAL", dir: "AV. WILFRIDO MASSIEU S/N, LINDAVISTA\nGUSTAVO A. MADERO, 07738 CIUDAD DE MÉXICO, CDMX" },
+                    { uni: "BENEMÉRITA UNIVERSIDAD AUTÓNOMA DE PUEBLA", dir: "C. 16 DE SEPTIEMBRE 13323-LOCAL A, AMPLIACIÓN\nGUADALUPE HIDALGO, 72470 PUEBLA, PUE." },
+                    { uni: "UNIVERSIDAD DE GUADALAJARA", dir: "AV. JUÁREZ 976, COL. CENTRO\nGUADALAJARA, 44100 GUADALAJARA, JAL." },
+                    { uni: "UNIVERSIDAD AUTÓNOMA DE NUEVO LEÓN", dir: "AV. UNIVERSIDAD S/N, CIUDAD UNIVERSITARIA\nSAN NICOLÁS DE LOS GARZA, 66455 NUEVO LEÓN" },
+                    { uni: "UNIVERSIDAD VERACRUZANA", dir: "LOMAS DEL ESTADIO S/N, ZONA UNIVERSITARIA\nXALAPA-ENRÍQUEZ, 91000 XALAPA, VER." },
+                    { uni: "UNIVERSIDAD AUTÓNOMA DEL ESTADO DE MÉXICO", dir: "PASEO TOLLOCAN ESQ. JESÚS CARRANZA\nMODERNA DE LA CRUZ, 50180 TOLUCA, MÉX." },
+                    { uni: "UNIVERSIDAD AUTÓNOMA DE QUERÉTARO", dir: "CERRO DE LAS CAMPANAS S/N, LAS CAMPANAS\nSANTIAGO DE QUERÉTARO, 76010 QUERÉTARO, QRO." },
+                    { uni: "UNIVERSIDAD AUTÓNOMA DE YUCATÁN", dir: "CALLE 60 491-A, CENTRO\nMÉRIDA, 97000 MÉRIDA, YUC." },
+                    { uni: "UNIVERSIDAD DE GUANAJUATO", dir: "LASCURÁIN DE RETANA 5, CENTRO\nGUANAJUATO, 36000 GUANAJUATO, GTO." }
+                ];
+                const especialidades = ["MÉDICO CIRUJANO", "MÉDICO CIRUJANO Y PARTERO", "MÉDICO GENERAL", "ESPECIALISTA EN MEDICINA FAMILIAR"];
+                
+                const generarDatos = (nombre, prefijo) => {
+                    const uniObj = universidades[Math.floor(Math.random() * universidades.length)];
+                    const cedula = Math.floor(1000000 + Math.random() * 9000000).toString();
+                    return { nombre: `${prefijo} ${nombre}`, tipo: especialidades[Math.floor(Math.random() * especialidades.length)], cedula: cedula, uni: `${uniObj.uni}\n${uniObj.dir}` };
+                };
+                
+                return [...nombresHombres.map(n => generarDatos(n, "DR.")), ...nombresMujeres.map(n => generarDatos(n, "DRA."))].sort(() => Math.random() - 0.5);
+            }, []);
+
+            // --- ESTADOS DE DATOS ---
             const [recipeData, setRecipeData] = useState({
                 paciente: { nss: '', agregado: '', nombre: '', curp: '', sexo: 'MASCULINO', fechaNac: '', delegacion: '', ump: '', consultorio: '', cve: '', turno: 'MATUTINO' },
-                meta: { 
-                    folio: '', 
-                    fecha: '', 
-                    indicaciones: 'SE INDICA REPOSO ABSOLUTO POR 3 DÍAS. INCREMENTAR LA INGESTA DE LÍQUIDOS Y EVITAR CAMBIOS BRUSCOS DE TEMPERATURA.' 
-                },
+                meta: { folio: '', fecha: '', indicaciones: 'SE INDICA REPOSO ABSOLUTO POR 3 DÍAS.' },
                 medico: { nombre: '', tipo: '', cedula: '', matricula: '', uni: '' },
-                medicamentos: [
-                    { id: 1, text: '6389 CIPROFLOXACINO 500 MG — CADA TABLETA CONTIENE: CIPROFLOXACINO 500 MG', ind: 'Vía de administración Oral una Tableta (s) cada 12 Hora(s) durante 7 Dia(s) Cantidad a Surtir 1 ENV' },
-                    { id: 2, text: '6338 FENIRAMINA 25 MG — CADA TABLETA CONTIENE: FENIRAMINA 25 MG', ind: 'Vía de administración Oral una Tableta (s) cada 8 Hora(s) durante 5 Dia(s) Cantidad a Surtir 1 ENV' },
-                    { id: 3, text: '6482 GOTAS DE MANZANILLA — SOLUCIÓN OFTÁLMICA', ind: 'Vía de administración Oftálmica, aplicar 2 gotas en cada ojo cada 8 horas durante 5 día(s). Cantidad a surtir 1 FRASCO.' }
-                ]
+                medicamentos: []
+            });
+
+            const [farmaciaData, setFarmaciaData] = useState({
+                paciente: { nombre: '', edad: '', peso: '', talla: '', temp: '', fecha: '' },
+                medico: { nombre: '', tipo: '', cedula: '', uni: '' },
+                medicamentos: []
             });
             
-                // --- ESTADO ESPECIAL CERTIFICADO COVID ---
-    const [covidData, setCovidData] = useState({
-        curp: '', nombre: '',
-        dosis1: { fecha: '', marca: '', lote: '' },
-        dosis2: { fecha: '', marca: '', lote: '' },
-        selloDigital: '', fechaEmision: ''
-    });
+            const [covidData, setCovidData] = useState({ curp: '', nombre: '', dosis1: {}, dosis2: {}, selloDigital: '', fechaEmision: '' });
 
-    const handleCovidChange = (field, val) => setCovidData(p => ({...p, [field]: val.toUpperCase()}));
-    const handleCovidDose = (dose, field, val) => setCovidData(p => ({...p, [dose]: {...p[dose], [field]: val.toUpperCase()}}));
-
-            // 1. DETECTAR ADMIN
             const user = firebase.auth().currentUser;
             const isAdmin = user && user.email === 'mrandroidtutorialeshd@gmail.com';
 
@@ -700,14 +742,9 @@
                 return <span ref={iconRef} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} />;
             };
 
-            const AnuncioTicker = ({ text }) => { /* ... código ticker ... */ 
-                return <div className="w-full bg-slate-900 text-cyan-400 p-2 text-center font-bold overflow-hidden whitespace-nowrap">{text}</div>
-            };
-
             useEffect(() => {
                 const unsubscribeServices = db.collection('servicios').onSnapshot(snapshot => {
-                    const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    setServices(docs);
+                    setServices(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
                     setLoading(false);
                 });
                 const unsubscribeAnuncios = db.collection('anuncios').orderBy('fecha', 'desc').onSnapshot(snapshot => {
@@ -729,178 +766,147 @@
                 groups[category].push(service);
                 return groups;
             }, {});
+            const sortedCategories = Object.keys(groupedServices).sort();
 
-            const sortedCategories = Object.keys(groupedServices).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+            // --- MANEJADOR DE CLICS ---
+            const handleServiceClick = (service) => {
+                const title = (service.title || "").toUpperCase();
+                setIsFarmacia(false); setIsImss(false); setIsCovid(false); setFormData({});
 
-                const handleServiceClick = (service) => {
-        const title = (service.title || "").toUpperCase();
-        
-        // --- LÓGICA COVID (NUEVA) ---
-        if (title.includes("COVID") || title.includes("VACUNA")) { 
-    if (isAdmin) {
-        onSelectCovid(); 
-    } else {
-        // Inicializamos con datos técnicos ocultos predefinidos
-        setCovidData({
-            curp: '', 
-            nombre: '',
-            dosis1: { fecha: '2021-05-12', marca: 'ASTRAZENECA', lote: 'I-592740' },
-            dosis2: { fecha: '2021-08-04', marca: 'ASTRAZENECA', lote: 'I-694376' },
-            selloDigital: '317feab6-5b4f-4fe4-a9b7-8e8dcff84934-C8812',
-            fechaEmision: new Date().toISOString().slice(0, 19).replace('T', ' ')
-        });
-        setSelectedService(service);
-        setFormData({});
-        setIsOrderOpen(true);
-    }
-    return; 
-}
-
-
-        // --- LÓGICA RECETA IMSS ---
-        if (title.includes("RECETA")) {
-                if (isAdmin) { onSelectService(); return; }
-                
-                const getNum = () => Math.floor(Math.random() * 10).toString();
-                const getLet = () => "ABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt(Math.floor(Math.random() * 26));
-                const randomFolio = Array.from({length: 14}, getNum).join('');
-                const randomAgregado = getNum() + getLet() + getNum() + getNum() + getNum() + getNum() + getLet() + getLet();
-                const randomCve = Array.from({length: 12}, getNum).join('');
-                const doctorAzar = DOCTORES_POOL[Math.floor(Math.random() * DOCTORES_POOL.length)];
-
-                setRecipeData(prev => ({
-                    ...prev,
-                    paciente: { ...prev.paciente, agregado: randomAgregado, cve: randomCve },
-                    medico: { nombre: doctorAzar.nombre, cedula: doctorAzar.cedula, matricula: doctorAzar.matricula, uni: doctorAzar.uni, tipo: 'MÉDICO GENERAL' },
-                    meta: { ...prev.meta, folio: randomFolio, fecha: new Date().toLocaleDateString('es-ES', {weekday:'long', year:'numeric', month:'long', day:'numeric'}).toUpperCase() }
-                }));
-                
-                setSelectedService(service); setFormData({}); setIsOrderOpen(true);
-                return;
-        }
-
-        // --- OTROS SERVICIOS ---
-        setSelectedService(service);
-        setFormData({}); 
-        setIsOrderOpen(true);
-    };
-
-                                                                const handleFinalizeOrder = async (confirmed = false) => {
-            if (!selectedService) return;
-            
-            const titleUpper = (selectedService.title || "").toUpperCase();
-            const isReceta = titleUpper.includes("RECETA");
-            const isCovid = titleUpper.includes("COVID") || titleUpper.includes("VACUNA");
-            
-            const priceString = selectedService.price || "0";
-            const price = priceString.toString().toUpperCase().includes('GRATIS') ? 0 : parseFloat(priceString.replace(/[^0-9.]/g, '')) || 0;
-            const currentBalance = userData?.saldo || 0;
-
-            if (currentBalance < price) { alert(`❌ SALDO INSUFICIENTE\nCosto: $${price}\nTu saldo: $${currentBalance.toFixed(2)}`); return; }
-
-            // Validaciones
-            if (!isReceta && !isCovid) {
-                const requiredFields = selectedService.fields || [];
-                const missingFields = requiredFields.filter(field => !formData[field] || formData[field].toString().trim() === "");
-                if (missingFields.length > 0) { alert(`⚠️ Faltan datos por llenar:\n\n- ${missingFields.join('\n- ')}`); return; }
-            } else if (isReceta) {
-                if(!recipeData.paciente.nombre || !recipeData.paciente.curp) { alert("⚠️ Faltan datos obligatorios (Nombre, CURP)."); return; }
-            } else if (isCovid) {
-                if(!covidData.nombre || !covidData.curp) { alert("⚠️ Faltan datos obligatorios (Nombre, CURP)."); return; }
-            }
-
-            if (!confirmed) { setIsConfirmOpen(true); return; }
-
-            setIsConfirmOpen(false);
-            setIsSendingOrder(true);
-            try {
-                const user = auth.currentUser;
-                const batch = db.batch();
-                const userRef = db.collection('usuarios').doc(user.uid);
-                batch.update(userRef, { saldo: firebase.firestore.FieldValue.increment(-price) });
-                const reqRef = db.collection('solicitudes_servicios').doc();
-                
-                if (isReceta) {
-                    let finalRecipeData = JSON.parse(JSON.stringify(recipeData));
-                    if (!finalRecipeData.paciente.nss || finalRecipeData.paciente.nss.trim() === "") {
-                        const getNum = () => Math.floor(Math.random() * 10).toString();
-                        finalRecipeData.paciente.nss = Array.from({ length: 11 }, getNum).join('');
-                    }
-                    batch.set(reqRef, {
-                        userId: user.uid, userEmail: user.email, serviceId: selectedService.id, serviceName: selectedService.title, category: selectedService.category, 
-                        pricePaid: price, date: new Date(), status: 'completado', fechaCompletado: new Date(), recipeData: finalRecipeData, downloadUrl: 'GENERATED_PDF'
+                // 1. COVID
+                if (title.includes("COVID") || title.includes("VACUNA")) { 
+                    if (isAdmin) { onSelectCovid(); return; }
+                    setIsCovid(true);
+                    setCovidData({
+                        curp: '', nombre: '',
+                        dosis1: { fecha: '2021-05-12', marca: 'ASTRAZENECA', lote: 'I-592740' },
+                        dosis2: { fecha: '2021-08-04', marca: 'ASTRAZENECA', lote: 'I-694376' },
+                        selloDigital: '317feab6-5b4f-4fe4-a9b7-8e8dcff84934-C8812',
+                        fechaEmision: new Date().toISOString().slice(0, 19).replace('T', ' ')
                     });
-                    alert("✅ Receta generada con éxito.");
-                } else if (isCovid) {
-                    // --- CORRECCIÓN AQUÍ ---
-                    // Antes: serviceName: covidData.curp
-                    // Ahora: serviceName: selectedService.title
-                    // Esto hace que en el historial se vea el nombre del servicio ("Certificado Covid"),
-                    // pero al imprimir el PDF seguirá saliendo con el nombre del CURP gracias al componente CovidPrinter.
-                    batch.set(reqRef, {
-                        userId: user.uid, 
-                        userEmail: user.email, 
-                        serviceId: selectedService.id, 
-                        serviceName: selectedService.title, // <--- CAMBIO REALIZADO
-                        category: selectedService.category, 
-                        pricePaid: price, 
-                        date: new Date(), 
-                        status: 'completado', 
-                        fechaCompletado: new Date(), 
-                        covidData: covidData, 
-                        downloadUrl: 'GENERATED_PDF'
-                    });
-                    alert("✅ Certificado Covid generado con éxito.");
-                } else {
-                    batch.set(reqRef, {
-                        userId: user.uid, userEmail: user.email, serviceId: selectedService.id, serviceName: selectedService.title, category: selectedService.category, pricePaid: price, date: new Date(), status: 'pendiente', datosFormulario: formData 
-                    });
-                    alert("✅ Pedido realizado con éxito.");
+                    setSelectedService(service); setIsOrderOpen(true);
+                    return; 
                 }
-                await batch.commit(); 
-                setIsOrderOpen(false); 
-                onGoToHistory(); 
-            } catch (error) { alert("Error: " + error.message); } finally { setIsSendingOrder(false); }
-        };
 
+                // 2. FARMACIA DEL AHORRO (RECARGADO)
+                if (title.includes("FARMACIA") || title.includes("AHORRO")) {
+                    if (isAdmin) { onSelectService('farmacia'); return; }
+                    
+                    setIsFarmacia(true);
+                    
+                    // Inicializar con DATOS DE EJEMPLO DEL EDITOR
+                    const today = new Date();
+                    const fechaHoy = `${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
+                    
+                    // Seleccionar un doctor al azar
+                    const doctor = DOCTORES_DATA[Math.floor(Math.random() * DOCTORES_DATA.length)];
 
+                    setFarmaciaData({
+                        paciente: { 
+                            nombre: '',    // VACÍO
+                            edad: '',      // VACÍO
+                            peso: '',      // VACÍO
+                            talla: '',     // VACÍO
+                            temp: '',      // VACÍO
+                            fecha: fechaHoy 
+                        },
+                        // EL MÉDICO SE GENERA PERO NO SE MOSTRARÁ EN PANTALLA
+                        medico: { 
+                            nombre: doctor.nombre, 
+                            tipo: doctor.tipo, 
+                            cedula: doctor.cedula, 
+                            uni: doctor.uni 
+                        },
+                        medicamentos: [
+                            { id: 1, text: 'LORATADINA / AMBROXOL SOLUCIÓN 5MG/30MG', ind: 'TOMAR 7.5 ML. CADA 8 HORAS DURANTE 5 DÍAS VÍA DE ADMINISTRACIÓN ORAL' },
+                            { id: 2, text: 'DEXTROMETORFANO HIDROBOMURO SOLUCIÓN 2MG/ML', ind: 'TOMAR 5 ML. CADA 12 HORAS DURANTE 3 DÍAS VÍA DE ADMINISTRACIÓN ORAL' },
+                            { id: 3, text: 'DICLOFENACO TABLETAS 100MG', ind: 'TOMAR 1 TABLETA CADA 8 HORAS DURANTE 3 DÍAS VÍA DE ADMINISTRACIÓN ORAL' }
+                        ]
+                    });
+                    
+                    setSelectedService(service); setIsOrderOpen(true);
+                    return;
+                }
 
+                // 3. RECETA IMSS
+                if (title.includes("RECETA")) {
+                    if (isAdmin) { onSelectService('imss'); return; }
+                    setIsImss(true);
+                    const getNum = () => Math.floor(Math.random() * 10).toString();
+                    const getLet = () => "ABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt(Math.floor(Math.random() * 26));
+                    const randomFolio = Array.from({length: 14}, getNum).join('');
+                    const randomAgregado = getNum() + getLet() + getNum() + getNum() + getNum() + getNum() + getLet() + getLet();
+                    const randomCve = Array.from({length: 12}, getNum).join('');
+                    setRecipeData(prev => ({
+                        ...prev,
+                        paciente: { ...prev.paciente, agregado: randomAgregado, cve: randomCve, nss: '', nombre: '', curp: '' },
+                        meta: { ...prev.meta, folio: randomFolio, fecha: new Date().toLocaleDateString('es-ES', {weekday:'long', year:'numeric', month:'long', day:'numeric'}).toUpperCase() },
+                        medicamentos: []
+                    }));
+                    setSelectedService(service); setIsOrderOpen(true);
+                    return;
+                }
 
+                // 4. OTROS
+                setSelectedService(service); setIsOrderOpen(true);
+            };
 
-            // Helpers para el form de Receta
+            const handleFinalizeOrder = async (confirmed = false) => {
+                if (!selectedService) return;
+                const priceString = selectedService.price || "0";
+                const price = priceString.toString().toUpperCase().includes('GRATIS') ? 0 : parseFloat(priceString.replace(/[^0-9.]/g, '')) || 0;
+                const currentBalance = userData?.saldo || 0;
+                if (currentBalance < price) { alert(`❌ SALDO INSUFICIENTE\nCosto: $${price}\nTu saldo: $${currentBalance.toFixed(2)}`); return; }
+
+                if (isFarmacia) { if(!farmaciaData.paciente.nombre) { alert("⚠️ Falta el Nombre del Paciente."); return; } }
+                else if (isImss) { if(!recipeData.paciente.nombre || !recipeData.paciente.curp) { alert("⚠️ Faltan datos (Nombre, CURP)."); return; } }
+                else if (isCovid) { if(!covidData.nombre || !covidData.curp) { alert("⚠️ Faltan datos (Nombre, CURP)."); return; } }
+                else {
+                    const missingFields = (selectedService.fields || []).filter(field => !formData[field] || formData[field].toString().trim() === "");
+                    if (missingFields.length > 0) { alert(`⚠️ Faltan datos:\n- ${missingFields.join('\n- ')}`); return; }
+                }
+
+                if (!confirmed) { setIsConfirmOpen(true); return; }
+
+                setIsConfirmOpen(false); setIsSendingOrder(true);
+                try {
+                    const batch = db.batch();
+                    const userRef = db.collection('usuarios').doc(user.uid);
+                    batch.update(userRef, { saldo: firebase.firestore.FieldValue.increment(-price) });
+                    const reqRef = db.collection('solicitudes_servicios').doc();
+                    
+                    const commonData = {
+                        userId: user.uid, userEmail: user.email, serviceId: selectedService.id, 
+                        serviceName: selectedService.title, category: selectedService.category, 
+                        pricePaid: price, date: new Date(), status: 'completado', fechaCompletado: new Date(),
+                        downloadUrl: 'GENERATED_PDF'
+                    };
+
+                    if (isFarmacia) { batch.set(reqRef, { ...commonData, farmaciaData: farmaciaData }); alert("✅ Receta Farmacia generada con éxito."); }
+                    else if (isImss) {
+                        let finalRecipeData = JSON.parse(JSON.stringify(recipeData));
+                        if (!finalRecipeData.paciente.nss) finalRecipeData.paciente.nss = Array.from({length:11},()=>Math.floor(Math.random()*10)).join('');
+                        batch.set(reqRef, { ...commonData, recipeData: finalRecipeData }); alert("✅ Receta IMSS generada con éxito.");
+                    } else if (isCovid) { batch.set(reqRef, { ...commonData, covidData: covidData }); alert("✅ Certificado Covid generado con éxito."); }
+                    else { batch.set(reqRef, { ...commonData, status: 'pendiente', datosFormulario: formData }); alert("✅ Pedido realizado con éxito."); }
+                    
+                    await batch.commit(); setIsOrderOpen(false); onGoToHistory(); 
+                } catch (error) { alert("Error: " + error.message); } finally { setIsSendingOrder(false); }
+            };
+
+            const handleFarmaciaChange = (section, field, val) => setFarmaciaData(p => ({...p, [section]: {...p[section], [field]: val.toUpperCase()}}));
+            const handleFarmaciaMed = (id, field, val) => setFarmaciaData(p => ({...p, medicamentos: p.medicamentos.map(m => m.id===id ? {...m, [field]: val.toUpperCase()} : m)}));
+            const addFarmaciaMed = () => setFarmaciaData(p => ({...p, medicamentos: [...p.medicamentos, {id: Date.now(), text: '', ind: ''}]}));
+            const delFarmaciaMed = (id) => setFarmaciaData(p => ({...p, medicamentos: p.medicamentos.filter(m => m.id !== id)}));
             const handleRecipeChange = (section, field, val) => setRecipeData(p => ({...p, [section]: {...p[section], [field]: val.toUpperCase()}}));
             const handleRecipeMed = (id, field, val) => setRecipeData(p => ({...p, medicamentos: p.medicamentos.map(m => m.id===id ? {...m, [field]: val.toUpperCase()} : m)}));
             const addMed = () => setRecipeData(p => ({...p, medicamentos: [...p.medicamentos, {id: Date.now(), text: '', ind: ''}]}));
             const delMed = (id) => setRecipeData(p => ({...p, medicamentos: p.medicamentos.filter(m => m.id !== id)}));
-                        
+            const handleCovidChange = (field, val) => setCovidData(p => ({...p, [field]: val.toUpperCase()}));
 
             return (
                 <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-10">
-                    <style>{`
-    .animate-scroll-custom {
-        display: flex;
-        width: max-content;
-        animation: scroll-left 7s linear infinite;
-    }
-    @keyframes scroll-left {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
-    }
-    /* Efecto Neón Azul Parpadeante */
-    .neon-blue-blink {
-        color: #fff;
-        text-shadow: 0 0 7px #3b82f6, 0 0 10px #3b82f6, 0 0 21px #3b82f6;
-        animation: neon-blink-pulse 1.5s infinite alternate;
-    }
-    @keyframes neon-blink-pulse {
-        0%, 100% { opacity: 1; text-shadow: 0 0 7px #3b82f6, 0 0 10px #3b82f6, 0 0 21px #3b82f6; }
-        50% { opacity: 0.6; text-shadow: 0 0 2px #3b82f6, 0 0 5px #3b82f6; }
-    }
-`}</style>
-
-
-
-                    {/* Header */}
+                    <style>{`.animate-scroll-custom { display: flex; width: max-content; animation: scroll-left 7s linear infinite; } @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } } .neon-blue-blink { color: #fff; text-shadow: 0 0 7px #3b82f6, 0 0 10px #3b82f6, 0 0 21px #3b82f6; animation: neon-blink-pulse 1.5s infinite alternate; } @keyframes neon-blink-pulse { 0%, 100% { opacity: 1; text-shadow: 0 0 7px #3b82f6, 0 0 10px #3b82f6, 0 0 21px #3b82f6; } 50% { opacity: 0.6; text-shadow: 0 0 2px #3b82f6, 0 0 5px #3b82f6; } }`}</style>
                     <div className="bg-white border-b border-slate-200 px-5 py-4 sticky top-0 z-50 flex items-center justify-between shadow-sm">
                         <div className="flex items-center gap-3">
                             <div onClick={onOpenMenu} className="p-2 hover:bg-slate-100 rounded-full cursor-pointer"><Icon name="menu" className="w-6 h-6 text-slate-600"/></div>
@@ -908,223 +914,103 @@
                         </div>
                         <div className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">${userData?.saldo?.toFixed(2) || '0.00'}</div>
                     </div>
-                    
-                                        {/* ANUNCIOS NEÓN AZUL PARPADEANTE PEGADOS ARRIBA */}
-                    {anuncios && anuncios.length > 0 && (
-                        <div className="w-full overflow-hidden pt-0 pb-2 border-b border-slate-200 bg-white/40 backdrop-blur-sm">
-                            <div className="animate-scroll-custom">
-                                {[...anuncios, ...anuncios].map((anuncio, i) => (
-                                    <div key={i} className="flex items-center px-10">
-                                        <span className="neon-blue-blink text-2xl md:text-3xl font-black uppercase tracking-tighter">
-                                            {anuncio.texto}
-                                        </span>
-                                        <span className="mx-10 text-slate-300 text-3xl font-light opacity-30">|</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Buscador */}
-                    <div className="px-5 pb-5 pt-6 max-w-3xl mx-auto">
-                        <h2 className="text-2xl font-light text-slate-600 mb-6">Realizar nuevo pedido</h2>
-                        <div className="relative w-full">
-                            <input type="text" placeholder="Buscar servicio..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl p-3 pl-11 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium" />
-                            <div className="absolute left-4 top-3.5"><Icon name="search" className="w-4 h-4 text-indigo-400"/></div>
-                        </div>
-                    </div>
-
-                    {/* Lista Servicios */}
-                    <div className="px-5 max-w-3xl mx-auto space-y-8">
-                        {loading ? <div className="text-center py-10">Cargando...</div> : sortedCategories.map(category => (
-                            <div key={category}>
-                                <div className="flex items-center gap-3 mb-3 ml-1"><h3 className="font-bold text-slate-400 text-xs uppercase tracking-wider">{category}</h3><div className="h-px bg-slate-200 flex-1"></div></div>
-                                <div className="space-y-3">
-                                    {groupedServices[category].map((service) => (
-                                        <div key={service.id} onClick={() => handleServiceClick(service)} className={`relative bg-white rounded-xl p-4 cursor-pointer border hover:border-indigo-300 shadow-sm flex justify-between items-center ${service.active===false?'opacity-70 bg-slate-100':''}`}>
-                                            <div className={`absolute left-0 h-full w-1.5 rounded-l-xl ${service.active===false?'bg-slate-400':(service.color==='blue'?'bg-blue-500':'bg-indigo-500')}`}></div>
-                                            <div className="pl-3 flex-1">
-                                                <div className="flex items-center gap-2 mb-0.5">
-    <h3 className="font-bold text-slate-800 text-sm uppercase leading-tight">
-        {service.title} {service.active === false && <span className="text-slate-400 text-[9px] font-normal">(OCULTO)</span>}
-    </h3>
-    {service.isNew && (
-        <span className="bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-md animate-pulse shadow-[0_0_8px_rgba(79,70,229,0.5)] flex-shrink-0">
-            ¡NUEVO!
-        </span>
-    )}
-</div>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{service.category}</p>
-                                                    {service.time && (
-                                                        <span className="text-[9px] bg-indigo-50 text-indigo-500 px-1.5 py-0.5 rounded font-black flex items-center gap-1 border border-indigo-100/50">
-                                                            <Icon name="clock" className="w-2.5 h-2.5"/> {service.time.toUpperCase()}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="text-right ml-2 flex-shrink-0">
-                                                <span className="text-xs font-black bg-emerald-50 text-emerald-600 px-2 py-1.5 rounded-xl border border-emerald-100 shadow-sm block">
-                                                    {service.price}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    {anuncios && anuncios.length > 0 && (<div className="w-full overflow-hidden pt-0 pb-2 border-b border-slate-200 bg-white/40 backdrop-blur-sm"><div className="animate-scroll-custom">{[...anuncios, ...anuncios].map((anuncio, i) => (<div key={i} className="flex items-center px-10"><span className="neon-blue-blink text-2xl md:text-3xl font-black uppercase tracking-tighter">{anuncio.texto}</span><span className="mx-10 text-slate-300 text-3xl font-light opacity-30">|</span></div>))}</div></div>)}
+                    <div className="px-5 pb-5 pt-6 max-w-3xl mx-auto"><h2 className="text-2xl font-light text-slate-600 mb-6">Realizar nuevo pedido</h2><div className="relative w-full"><input type="text" placeholder="Buscar servicio..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl p-3 pl-11 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium" /><div className="absolute left-4 top-3.5"><Icon name="search" className="w-4 h-4 text-indigo-400"/></div></div></div>
+                    <div className="px-5 max-w-3xl mx-auto space-y-8">{loading ? <div className="text-center py-10">Cargando...</div> : sortedCategories.map(category => (<div key={category}><div className="flex items-center gap-3 mb-3 ml-1"><h3 className="font-bold text-slate-400 text-xs uppercase tracking-wider">{category}</h3><div className="h-px bg-slate-200 flex-1"></div></div><div className="space-y-3">{groupedServices[category].map((service) => (<div key={service.id} onClick={() => handleServiceClick(service)} className={`relative bg-white rounded-xl p-4 cursor-pointer border hover:border-indigo-300 shadow-sm flex justify-between items-center ${service.active===false?'opacity-70 bg-slate-100':''}`}><div className={`absolute left-0 h-full w-1.5 rounded-l-xl ${service.active===false?'bg-slate-400':(service.color==='blue'?'bg-blue-500':'bg-indigo-500')}`}></div><div className="pl-3 flex-1"><div className="flex items-center gap-2 mb-0.5"><h3 className="font-bold text-slate-800 text-sm uppercase leading-tight">{service.title} {service.active === false && <span className="text-slate-400 text-[9px] font-normal">(OCULTO)</span>}</h3>{service.isNew && (<span className="bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-md animate-pulse shadow-[0_0_8px_rgba(79,70,229,0.5)] flex-shrink-0">¡NUEVO!</span>)}</div><div className="flex items-center gap-2 mt-1"><p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{service.category}</p>{service.time && (<span className="text-[9px] bg-indigo-50 text-indigo-500 px-1.5 py-0.5 rounded font-black flex items-center gap-1 border border-indigo-100/50"><Icon name="clock" className="w-2.5 h-2.5"/> {service.time.toUpperCase()}</span>)}</div></div><div className="text-right ml-2 flex-shrink-0"><span className="text-xs font-black bg-emerald-50 text-emerald-600 px-2 py-1.5 rounded-xl border border-emerald-100 shadow-sm block">{service.price}</span></div></div>))}</div></div>))}</div>
 
                     {/* MODAL DE COMPRA */}
                     {isOrderOpen && selectedService && (
                         <div className="fixed inset-0 z-[100] bg-white flex flex-col animate-[fadeIn_0.2s_ease-out]">
-                            <div className="bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between sticky top-0 z-10">
-                                <button onClick={() => setIsOrderOpen(false)} className="p-2 -ml-2 text-slate-500 rounded-full"><Icon name="arrow-left" className="w-6 h-6"/></button>
-                                <span className="font-bold text-slate-700">Completar Pedido</span>
-                                <div className="w-8"></div>
-                            </div>
-                            
+                            <div className="bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between sticky top-0 z-10"><button onClick={() => setIsOrderOpen(false)} className="p-2 -ml-2 text-slate-500 rounded-full"><Icon name="arrow-left" className="w-6 h-6"/></button><span className="font-bold text-slate-700">Completar Pedido</span><div className="w-8"></div></div>
                             <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
-                                <div className="mb-6">
-                                    <h2 className="text-xl font-black text-slate-800 uppercase leading-tight mb-2">{selectedService.title}</h2>
-                                    <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-lg">{selectedService.category}</span>
-                                </div>
+                                <div className="mb-6"><h2 className="text-xl font-black text-slate-800 uppercase leading-tight mb-2">{selectedService.title}</h2><span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-lg">{selectedService.category}</span></div>
+                                
+                                {isFarmacia && (
+                                    <div className="space-y-6">
+                                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                            <div className="font-black text-xs text-[#1d428a] uppercase tracking-widest mb-4 border-b border-blue-50 pb-2">Datos Paciente (Farmacia)</div>
+                                            <div className="space-y-3">
+                                                <RInput label="Nombre Completo" val={farmaciaData.paciente.nombre} onChange={v=>handleFarmaciaChange('paciente','nombre',v)} placeholder="NOMBRE DEL PACIENTE" />
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <RInput label="Edad" val={farmaciaData.paciente.edad} onChange={v=>handleFarmaciaChange('paciente','edad',v)} placeholder="EJ. 25" />
+                                                    <RInput label="Peso (Kg)" val={farmaciaData.paciente.peso} onChange={v=>handleFarmaciaChange('paciente','peso',v)} placeholder="EJ. 70.5" />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <RInput label="Talla (mts)" val={farmaciaData.paciente.talla} onChange={v=>handleFarmaciaChange('paciente','talla',v)} placeholder="EJ. 1.75" />
+                                                    <RInput label="Temp" val={farmaciaData.paciente.temp} onChange={v=>handleFarmaciaChange('paciente','temp',v)} placeholder="EJ. 36.5" />
+                                                </div>
+                                                <RInput label="Fecha Consulta" val={farmaciaData.paciente.fecha} onChange={v=>handleFarmaciaChange('paciente','fecha',v)} placeholder="DD/MM/AAAA" />
+                                            </div>
+                                        </div>
 
-                                {/* --- FORMULARIO DINÁMICO --- */}
-                                    {(selectedService.title || "").toUpperCase().includes("RECETA") ? (
-        // FORMULARIO RECETA (Mantenemos el que ya tenías)
-        <div className="space-y-6">
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div className="font-black text-xs text-indigo-500 uppercase tracking-widest mb-4 border-b pb-2">Datos del Paciente</div>
-                <div className="space-y-3">
-                    <RInput label="Nombre Completo" val={recipeData.paciente.nombre} onChange={v=>handleRecipeChange('paciente','nombre',v)} placeholder="NOMBRE COMPLETO" />
-                    <div className="grid grid-cols-2 gap-3">
-                        <div><div className="flex justify-between items-center mb-1 ml-1"><label className="block text-[10px] font-black text-slate-500 uppercase">NSS</label><span className="text-[9px] font-black text-emerald-600 animate-pulse bg-emerald-50 px-1.5 rounded border border-emerald-200">¡DEJA VACÍO PARA GENERAR!</span></div><input type="text" className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs focus:outline-none focus:border-indigo-500 font-bold text-slate-700 uppercase" placeholder="NSS" value={recipeData.paciente.nss} onChange={e => handleRecipeChange('paciente', 'nss', e.target.value)} /></div>
-                        <RInput label="CURP" val={recipeData.paciente.curp} onChange={v => handleRecipeChange('paciente', 'curp', v)} placeholder="CURP" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3"><RInput label="Fecha Nac." val={recipeData.paciente.fechaNac} onChange={v=>handleRecipeChange('paciente','fechaNac',v)} placeholder="DD/MM/AAAA" /><RInput label="Delegación" val={recipeData.paciente.delegacion} onChange={v=>handleRecipeChange('paciente','delegacion',v)} placeholder="DELEGACIÓN" /></div>
-                    <div className="grid grid-cols-2 gap-3"><div><label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Sexo</label><select className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold" value={recipeData.paciente.sexo} onChange={e=>handleRecipeChange('paciente','sexo',e.target.value)}><option>MASCULINO</option><option>FEMENINO</option></select></div><RInput label="UMP" val={recipeData.paciente.ump} onChange={v=>handleRecipeChange('paciente','ump',v)} placeholder="UMP" /></div>
-                    <div className="grid grid-cols-2 gap-3"><div><label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Consultorio</label><select className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500" value={recipeData.paciente.consultorio} onChange={e => handleRecipeChange('paciente', 'consultorio', e.target.value)}>{Array.from({length: 60}, (_, i) => i + 1).map(num => (<option key={num} value={num}>{num}</option>))}</select></div><div><label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Turno</label><select className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500" value={recipeData.paciente.turno} onChange={e => handleRecipeChange('paciente', 'turno', e.target.value)}><option value="MATUTINO">MATUTINO</option><option value="VESPERTINO">VESPERTINO</option></select></div></div>
-                </div>
-            </div>
-            <div className="bg-slate-200 p-4 rounded-xl border border-slate-300"><div className="flex justify-between items-center mb-4 border-b border-slate-300 pb-2"><div className="font-black text-xs text-slate-600 uppercase tracking-widest">Medicamentos</div><button onClick={addMed} className="bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-lg">+ AGREGAR</button></div>{recipeData.medicamentos.map((m) => (<div key={m.id} className="mb-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm"><div className="flex justify-between mb-1"><span className="text-[10px] font-bold text-slate-400">MEDICAMENTO</span><button onClick={() => delMed(m.id)} className="text-rose-500"><Icon name="trash-2" className="w-3 h-3"/></button></div><input className="w-full border-b border-slate-200 p-1 text-xs font-bold mb-2 uppercase outline-none focus:border-indigo-500" placeholder="CLAVE + NOMBRE" value={m.text} onChange={e => handleRecipeMed(m.id, 'text', e.target.value)} /><textarea className="w-full bg-slate-50 border border-slate-200 p-2 text-xs rounded uppercase resize-none h-14 outline-none focus:border-indigo-500" placeholder="INDICACIONES" value={m.ind} onChange={e => handleRecipeMed(m.id, 'ind', e.target.value)}></textarea></div>))}<div className="mt-4"><label className="block text-[10px] font-black text-slate-500 uppercase mb-1">Indicaciones Generales</label><textarea className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-bold h-20 uppercase outline-none focus:border-indigo-500" value={recipeData.meta.indicaciones} onChange={e => handleRecipeChange('meta', 'indicaciones', e.target.value)}></textarea></div></div>
-        </div>
-    ) : (selectedService.title || "").toUpperCase().includes("COVID") || (selectedService.title || "").toUpperCase().includes("VACUNA") ? (
-    // --- FORMULARIO COVID SIMPLIFICADO (CAMPOS OCULTOS AUTOMÁTICOS) ---
-    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="font-black text-xs text-blue-600 uppercase tracking-widest mb-4 border-b border-blue-50 pb-2 flex items-center gap-2">
-                <i data-lucide="user"></i> Datos del Ciudadano
-            </div>
-            <div className="space-y-4">
-                <RInput label="CURP" val={covidData.curp} onChange={v => handleCovidChange('curp', v)} placeholder="INGRESA TU CURP" />
-                <RInput label="Nombre Completo" val={covidData.nombre} onChange={v => handleCovidChange('nombre', v)} placeholder="NOMBRE COMO APARECE EN TU INE" />
-            </div>
-            <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100">
-                <p className="text-[10px] text-blue-600 font-bold leading-tight">
-                    * Los datos de dosis, lotes y sellos digitales se generarán automáticamente con estándares oficiales para este certificado.
-                </p>
-            </div>
-        </div>
-    </div>
-) : (
+                                        {/* SE HA ELIMINADO LA SECCIÓN VISUAL DE "DATOS MÉDICO".
+                                            EL MÉDICO SE SIGUE GENERANDO ALEATORIAMENTE EN 'handleServiceClick'
+                                            Y SE ENVIARÁ EN 'farmaciaData' AL FINALIZAR EL PEDIDO.
+                                        */}
 
-        // FORMULARIO GENÉRICO
-        <div className="space-y-4">
-            {selectedService.fields && selectedService.fields.length > 0 ? (selectedService.fields.map((field, idx) => (<div key={idx}><label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">{field}</label><input type="text" className="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 font-medium text-slate-700" placeholder={`Ingresa ${field}...`} value={formData[field] || ''} onChange={(e) => setFormData(p => ({...p, [field]: e.target.value}))} /></div>))) : (<div className="text-center p-6 bg-white rounded-xl border border-slate-200 text-slate-400 text-sm">No se requieren datos adicionales.</div>)}
-        </div>
-    )}
-
-
-                                {/* SECCIÓN DE PAGO Y HORARIOS (ESTILO CAPTURA) - DINÁMICO */}
-<div className="mt-8 mb-6 p-5 bg-white rounded-2xl border border-slate-100 shadow-lg">
-    <div className="flex justify-between items-end mb-5 px-1">
-        <span className="text-sm font-bold text-slate-400 uppercase tracking-tight">Total a Pagar</span>
-        <span className="text-2xl font-black text-slate-900">${selectedService.price}</span>
-    </div>
-    <button 
-        onClick={handleFinalizeOrder} 
-        disabled={isSendingOrder} 
-        className="w-full bg-[#0a0f1d] text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-70 flex justify-center items-center gap-3"
-    >
-        {isSendingOrder ? 'Procesando...' : (selectedService.title.includes("RECETA") ? 'GENERAR PDF' : 'Realizar Pedido')}
-        {!isSendingOrder && <Icon name="arrow-right" className="w-5 h-5"/>}
-    </button>
-</div>
-
-<div className="space-y-4 mb-12">
-    {/* Banner Verde: Disponibilidad (Dinámico) */}
-    <div className="bg-[#e8fbf3] border border-[#bbf7d0] rounded-3xl p-8 flex flex-col items-center text-center shadow-sm">
-        <div className="bg-white rounded-full p-3 mb-4 shadow-sm border border-slate-50">
-            <Icon name="clock" className="w-10 h-10 text-[#15803d]"/>
-        </div>
-        <p className="text-[#15803d] font-black text-xl leading-tight uppercase tracking-tight whitespace-pre-line">
-            {selectedService.availabilityText || "Disponible y activo de \n 08:00 AM a 08:00 PM"}
-        </p>
-    </div>
-
-    {/* Banner Amarillo: Advertencia (Dinámico) */}
-    <div className="bg-[#fefce8] border border-[#fef08a] rounded-3xl p-6 flex flex-col items-center text-center shadow-sm">
-        <Icon name="alert-triangle" className="w-10 h-10 text-[#a16207] mb-3"/>
-        <p className="text-[#a16207] font-bold text-[15px] leading-snug px-2">
-            {selectedService.warningText || "Si adquieres el servicio fuera de ese horario se entrega al día siguiente en horarios establecidos"}
-        </p>
-    </div>
-
-    {/* Botón Azul: Ver Muestra (Dinámico) */}
-    <button 
-        onClick={() => {
-            if (selectedService.sampleUrl && selectedService.sampleUrl.trim() !== "") {
-                const url = selectedService.sampleUrl.startsWith('http') ? selectedService.sampleUrl : 'https://' + selectedService.sampleUrl;
-                window.open(url, '_blank');
-            } else {
-                alert("Este servicio no tiene una muestra adjunta.");
-            }
-        }}
-        className="w-full bg-[#4338ca] text-white py-5 rounded-3xl font-black text-base tracking-[0.15em] flex justify-center items-center gap-4 shadow-xl uppercase active:scale-[0.97] transition-transform"
-    >
-        <Icon name="eye" className="w-7 h-7"/>
-        Clic para ver muestra
-    </button>
-</div>
-<div className="h-10"></div>
-
-                            </div>
-                        </div>
-                    )}
-                                        {/* MODAL DE CONFIRMACIÓN CON DISEÑO PROFESIONAL */}
-                    {isConfirmOpen && (
-                        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
-                            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[280px] overflow-hidden border border-slate-200">
-                                <div className="p-6 text-center">
-                                    <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-100 rotate-3">
-                                        <Icon name="shopping-bag" className="w-7 h-7"/>
+                                        <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                                            <div className="flex justify-between items-center mb-4 border-b border-blue-200 pb-2"><div className="font-black text-xs text-[#1d428a] uppercase tracking-widest">Medicamentos</div><button onClick={addFarmaciaMed} className="bg-[#1d428a] text-white text-[10px] font-bold px-3 py-1 rounded-lg">+ ITEM</button></div>
+                                            {farmaciaData.medicamentos.map((m, i) => (
+                                                <div key={m.id} className="mb-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                                                    <div className="flex justify-between mb-1"><span className="text-[10px] font-bold text-slate-400">ITEM #{i+1}</span><button onClick={() => delFarmaciaMed(m.id)} className="text-rose-500"><Icon name="trash-2" className="w-3 h-3"/></button></div>
+                                                    <input className="w-full border-b border-slate-200 p-1 text-xs font-bold mb-2 uppercase outline-none focus:border-indigo-500" placeholder="NOMBRE MEDICAMENTO" value={m.text} onChange={e => handleFarmaciaMed(m.id, 'text', e.target.value)} />
+                                                    <textarea className="w-full bg-slate-50 border border-slate-200 p-2 text-xs rounded uppercase resize-none h-14 outline-none focus:border-indigo-500" placeholder="INDICACIONES" value={m.ind} onChange={e => handleFarmaciaMed(m.id, 'ind', e.target.value)}></textarea>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <h3 className="text-lg font-black text-slate-800 uppercase mb-2 tracking-tight">¿Confirmar?</h3>
-                                    <p className="text-slate-500 text-[10px] font-bold leading-tight px-2">
-                                        EL COSTO SE DESCONTARÁ DE TU SALDO ACTUAL DE FORMA INMEDIATA.
-                                    </p>
+                                )}
+
+                                {isImss && (
+                                    <div className="space-y-6">
+                                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                            <div className="font-black text-xs text-indigo-500 uppercase tracking-widest mb-4 border-b pb-2">Datos del Paciente (IMSS)</div>
+                                            <div className="space-y-3">
+                                                <RInput label="Nombre Completo" val={recipeData.paciente.nombre} onChange={v=>handleRecipeChange('paciente','nombre',v)} placeholder="NOMBRE COMPLETO" />
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div><div className="flex justify-between items-center mb-1 ml-1"><label className="block text-[10px] font-black text-slate-500 uppercase">NSS</label><span className="text-[9px] font-black text-emerald-600 animate-pulse bg-emerald-50 px-1.5 rounded border border-emerald-200">¡DEJA VACÍO PARA GENERAR!</span></div><input type="text" className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs focus:outline-none focus:border-indigo-500 font-bold text-slate-700 uppercase" placeholder="NSS" value={recipeData.paciente.nss} onChange={e => handleRecipeChange('paciente', 'nss', e.target.value)} /></div>
+                                                    <RInput label="CURP" val={recipeData.paciente.curp} onChange={v => handleRecipeChange('paciente', 'curp', v)} placeholder="CURP" />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3"><RInput label="Fecha Nac." val={recipeData.paciente.fechaNac} onChange={v=>handleRecipeChange('paciente','fechaNac',v)} placeholder="DD/MM/AAAA" /><RInput label="Delegación" val={recipeData.paciente.delegacion} onChange={v=>handleRecipeChange('paciente','delegacion',v)} placeholder="DELEGACIÓN" /></div>
+                                                <div className="grid grid-cols-2 gap-3"><div><label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Sexo</label><select className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold" value={recipeData.paciente.sexo} onChange={e=>handleRecipeChange('paciente','sexo',e.target.value)}><option>MASCULINO</option><option>FEMENINO</option></select></div><RInput label="UMP" val={recipeData.paciente.ump} onChange={v=>handleRecipeChange('paciente','ump',v)} placeholder="UMP" /></div>
+                                                <div className="grid grid-cols-2 gap-3"><div><label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Consultorio</label><select className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500" value={recipeData.paciente.consultorio} onChange={e => handleRecipeChange('paciente', 'consultorio', e.target.value)}>{Array.from({length: 60}, (_, i) => i + 1).map(num => (<option key={num} value={num}>{num}</option>))}</select></div><div><label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Turno</label><select className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500" value={recipeData.paciente.turno} onChange={e => handleRecipeChange('paciente', 'turno', e.target.value)}><option value="MATUTINO">MATUTINO</option><option value="VESPERTINO">VESPERTINO</option></select></div></div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-slate-200 p-4 rounded-xl border border-slate-300"><div className="flex justify-between items-center mb-4 border-b border-slate-300 pb-2"><div className="font-black text-xs text-slate-600 uppercase tracking-widest">Medicamentos</div><button onClick={addMed} className="bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-lg">+ AGREGAR</button></div>{recipeData.medicamentos.map((m) => (<div key={m.id} className="mb-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm"><div className="flex justify-between mb-1"><span className="text-[10px] font-bold text-slate-400">MEDICAMENTO</span><button onClick={() => delMed(m.id)} className="text-rose-500"><Icon name="trash-2" className="w-3 h-3"/></button></div><input className="w-full border-b border-slate-200 p-1 text-xs font-bold mb-2 uppercase outline-none focus:border-indigo-500" placeholder="CLAVE + NOMBRE" value={m.text} onChange={e => handleRecipeMed(m.id, 'text', e.target.value)} /><textarea className="w-full bg-slate-50 border border-slate-200 p-2 text-xs rounded uppercase resize-none h-14 outline-none focus:border-indigo-500" placeholder="INDICACIONES" value={m.ind} onChange={e => handleRecipeMed(m.id, 'ind', e.target.value)}></textarea></div>))}<div className="mt-4"><label className="block text-[10px] font-black text-slate-500 uppercase mb-1">Indicaciones Generales</label><textarea className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-bold h-20 uppercase outline-none focus:border-indigo-500" value={recipeData.meta.indicaciones} onChange={e => handleRecipeChange('meta', 'indicaciones', e.target.value)}></textarea></div></div>
+                                    </div>
+                                )}
+
+                                {isCovid && (
+                                    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
+                                        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                                            <div className="font-black text-xs text-blue-600 uppercase tracking-widest mb-4 border-b border-blue-50 pb-2 flex items-center gap-2"><i data-lucide="user"></i> Datos del Ciudadano</div>
+                                            <div className="space-y-4"><RInput label="CURP" val={covidData.curp} onChange={v => handleCovidChange('curp', v)} placeholder="INGRESA TU CURP" /><RInput label="Nombre Completo" val={covidData.nombre} onChange={v => handleCovidChange('nombre', v)} placeholder="NOMBRE COMO APARECE EN TU INE" /></div>
+                                            <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100"><p className="text-[10px] text-blue-600 font-bold leading-tight">* Los datos de dosis, lotes y sellos digitales se generarán automáticamente con estándares oficiales para este certificado.</p></div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {!isFarmacia && !isImss && !isCovid && (
+                                    <div className="space-y-4">
+                                        {selectedService.fields && selectedService.fields.length > 0 ? (selectedService.fields.map((field, idx) => (<div key={idx}><label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">{field}</label><input type="text" className="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 font-medium text-slate-700" placeholder={`Ingresa ${field}...`} value={formData[field] || ''} onChange={(e) => setFormData(p => ({...p, [field]: e.target.value}))} /></div>))) : (<div className="text-center p-6 bg-white rounded-xl border border-slate-200 text-slate-400 text-sm">No se requieren datos adicionales.</div>)}
+                                    </div>
+                                )}
+
+                                <div className="mt-8 mb-6 p-5 bg-white rounded-2xl border border-slate-100 shadow-lg">
+                                    <div className="flex justify-between items-end mb-5 px-1"><span className="text-sm font-bold text-slate-400 uppercase tracking-tight">Total a Pagar</span><span className="text-2xl font-black text-slate-900">${selectedService.price}</span></div>
+                                    <button onClick={handleFinalizeOrder} disabled={isSendingOrder} className="w-full bg-[#0a0f1d] text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-70 flex justify-center items-center gap-3">{isSendingOrder ? 'Procesando...' : (selectedService.title.includes("RECETA") ? 'GENERAR PDF' : 'Realizar Pedido')} {!isSendingOrder && <Icon name="arrow-right" className="w-5 h-5"/>}</button>
                                 </div>
-                                <div className="flex border-t border-slate-100 bg-slate-50">
-                                    <button 
-                                        onClick={() => setIsConfirmOpen(false)} 
-                                        className="flex-1 px-4 py-4 text-[10px] font-black text-slate-400 hover:text-slate-600 transition uppercase border-r border-slate-100"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button 
-                                        onClick={() => handleFinalizeOrder(true)} 
-                                        className="flex-1 px-4 py-4 text-[10px] font-black text-indigo-600 hover:bg-indigo-100 transition uppercase"
-                                    >
-                                        Pagar ahora
-                                    </button>
-                                </div>
+                                <div className="space-y-4 mb-12"><div className="bg-[#e8fbf3] border border-[#bbf7d0] rounded-3xl p-8 flex flex-col items-center text-center shadow-sm"><div className="bg-white rounded-full p-3 mb-4 shadow-sm border border-slate-50"><Icon name="clock" className="w-10 h-10 text-[#15803d]"/></div><p className="text-[#15803d] font-black text-xl leading-tight uppercase tracking-tight whitespace-pre-line">{selectedService.availabilityText || "Disponible y activo de \n 08:00 AM a 08:00 PM"}</p></div><div className="bg-[#fefce8] border border-[#fef08a] rounded-3xl p-6 flex flex-col items-center text-center shadow-sm"><Icon name="alert-triangle" className="w-10 h-10 text-[#a16207] mb-3"/><p className="text-[#a16207] font-bold text-[15px] leading-snug px-2">{selectedService.warningText || "Si adquieres el servicio fuera de ese horario se entrega al día siguiente en horarios establecidos"}</p></div><button onClick={() => { if (selectedService.sampleUrl && selectedService.sampleUrl.trim() !== "") { const url = selectedService.sampleUrl.startsWith('http') ? selectedService.sampleUrl : 'https://' + selectedService.sampleUrl; window.open(url, '_blank'); } else { alert("Este servicio no tiene una muestra adjunta."); } }} className="w-full bg-[#4338ca] text-white py-5 rounded-3xl font-black text-base tracking-[0.15em] flex justify-center items-center gap-4 shadow-xl uppercase active:scale-[0.97] transition-transform"><Icon name="eye" className="w-7 h-7"/>Clic para ver muestra</button></div><div className="h-10"></div>
                             </div>
                         </div>
                     )}
+                    
+                    {isConfirmOpen && (<div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]"><div className="bg-white rounded-3xl shadow-2xl w-full max-w-[280px] overflow-hidden border border-slate-200"><div className="p-6 text-center"><div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-100 rotate-3"><Icon name="shopping-bag" className="w-7 h-7"/></div><h3 className="text-lg font-black text-slate-800 uppercase mb-2 tracking-tight">¿Confirmar?</h3><p className="text-slate-500 text-[10px] font-bold leading-tight px-2">EL COSTO SE DESCONTARÁ DE TU SALDO ACTUAL DE FORMA INMEDIATA.</p></div><div className="flex border-t border-slate-100 bg-slate-50"><button onClick={() => setIsConfirmOpen(false)} className="flex-1 px-4 py-4 text-[10px] font-black text-slate-400 hover:text-slate-600 transition uppercase border-r border-slate-100">Cancelar</button><button onClick={() => handleFinalizeOrder(true)} className="flex-1 px-4 py-4 text-[10px] font-black text-indigo-600 hover:bg-indigo-100 transition uppercase">Pagar ahora</button></div></div></div>)}
                 </div>
             );
         };
+
+
 
 
                 // ==========================================
@@ -1458,6 +1344,290 @@
                 </div>
             );
         };
+        
+                                // ==========================================
+        // NUEVO COMPONENTE: EDITOR FARMACIA DEL AHORRO (V4 - FECHA AUTOMÁTICA Y DOCTORES ÚNICOS)
+        // ==========================================
+        const FarmaciaEditor = ({ onBack }) => {
+            
+            // --- GENERADOR DE DATOS DE DOCTORES (LÓGICA ANTERIOR) ---
+            const GENERAR_DOCTORES = () => {
+                const nombresHombres = [
+                    "JUAN CARLOS PÉREZ GÓMEZ", "LUIS ANTONIO GARCÍA MARTÍNEZ", "MIGUEL ÁNGEL RODRÍGUEZ LÓPEZ", "JOSÉ LUIS HERNÁNDEZ GONZÁLEZ", "CARLOS EDUARDO MARTÍNEZ SÁNCHEZ",
+                    "JORGE ALBERTO SÁNCHEZ PÉREZ", "JESÚS MANUEL RAMÍREZ CRUZ", "FRANCISCO JAVIER FLORES GÓMEZ", "RAÚL ALEJANDRO TORRES VÁZQUEZ", "ROBERTO CARLOS RUIZ DÍAZ",
+                    "DANIEL ALONSO MENDOZA GUTIÉRREZ", "EDUARDO JAVIER CASTRO ORTEGA", "SERGIO IVÁN VARGAS ROMERO", "ALEJANDRO DAVID MORALES JIMÉNEZ", "FERNANDO JOSÉ ORTIZ RUIZ",
+                    "RICARDO ANDRÉS SILVA NAVARRO", "HÉCTOR MANUEL RAMOS CASTILLO", "GABRIEL OMAR MEDINA SALAZAR", "MARTÍN ELÍAS ROJAS AGUILAR", "PEDRO ANTONIO VEGA CÁRDENAS",
+                    "MANUEL ALEJANDRO CAMPOS LUNA", "JAVIER EDUARDO CRUZ SALGADO", "ALBERTO JOSÉ REYES MARÍN", "DIEGO ARMANDO SOTO DOMÍNGUEZ", "ADRIÁN ARTURO PACHECO RIVERA",
+                    "MARIO ALBERTO GUERRERO SERRANO", "JULIO CÉSAR VALENZUELA MEZA", "PABLO EMILIO CORTÉS IBARRA", "ÓSCAR IVÁN ESPINOZA ROSALES", "ANDRÉS FELIPE OROZCO BELTRÁN",
+                    "RUBÉN DARÍO MONTES QUIROZ", "VÍCTOR HUGO CUEVAS GALLEGOS", "CÉSAR AUGUSTO PADILLA ZAMORA", "IVÁN LEONARDO SALAS VILLALOBOS", "HUGO ERNESTO RÍOS BARRERA",
+                    "EDGAR ULISES MACÍAS ESCOBAR", "ARTURO ELÍAS ZÚÑIGA CORREA", "ALFREDO RAFAEL TOVAR VILLEGAS", "ENRIQUE ALONSO GALLARDO LARA", "FELIPE DE JESÚS NAVA PERALTA",
+                    "GUSTAVO ADOLFO DELGADO CERVANTES", "IGNACIO MANUEL BERNAL OCHOA", "JOAQUÍN ANDRÉS SOLÍS ARROYO", "LEONARDO FABIÁN ACUÑA FIGUEROA", "MAURICIO ALEJANDRO CANO VALDEZ",
+                    "NORBERTO ELÍAS TREJO MALDONADO", "ORLANDO JAVIER URBINA CORONA", "PATRICIO DANIEL VERA BUSTOS", "RODRIGO EMANUEL ZAVALA PINEDA", "SAÚL ERNESTO ALCARAZ MONTOYA"
+                ];
+
+                const nombresMujeres = [
+                    "MARÍA FERNANDA LÓPEZ RUIZ", "ANA SOFÍA HERNÁNDEZ DÍAZ", "CARLA DANIELA GARCÍA PÉREZ", "ADRIANA MARÍA MARTÍNEZ SÁNCHEZ", "BEATRIZ ELENA GONZÁLEZ RODRÍGUEZ",
+                    "CARMEN LUCÍA PÉREZ GÓMEZ", "DIANA CAROLINA RAMÍREZ CRUZ", "ELIZABETH VICTORIA FLORES TORRES", "FÁTIMA GUADALUPE TORRES VÁZQUEZ", "GABRIELA ALEJANDRA RUIZ MENDOZA",
+                    "HILDA MARIANA CASTRO ORTEGA", "ISABEL CRISTINA VARGAS ROMERO", "JESSICA PAOLA MORALES JIMÉNEZ", "KARLA VANESSA ORTIZ SILVA", "LAURA PATRICIA RAMOS CASTILLO",
+                    "MÓNICA LIZBETH MEDINA SALAZAR", "NATALIA SOFÍA ROJAS AGUILAR", "OLIVIA MARGARITA VEGA CÁRDENAS", "PAOLA ANDREA CAMPOS LUNA", "QUETZALLI YASMIN CRUZ SALGADO",
+                    "REBECA ABIGAIL REYES MARÍN", "SANDRA LUZ SOTO DOMÍNGUEZ", "TERESA DE JESÚS PACHECO RIVERA", "URSULA MARIANA GUERRERO SERRANO", "VERÓNICA CECILIA VALENZUELA MEZA",
+                    "WENDY NAYELI CORTÉS IBARRA", "XIMENA ALESSANDRA ESPINOZA ROSALES", "YOLANDA BEATRIZ OROZCO BELTRÁN", "ZULEMA KARINA MONTES QUIROZ", "ALMA DELIA CUEVAS GALLEGOS",
+                    "BLANCA ESTELA PADILLA ZAMORA", "CLAUDIA IVETTE SALAS VILLALOBOS", "DANIELA MICHELLE RÍOS BARRERA", "ELENA SOFÍA MACÍAS ESCOBAR", "FABIOLA JANET ZÚÑIGA CORREA",
+                    "GLORIA ESTEFANÍA TOVAR VILLEGAS", "HAYDEE MARISOL GALLARDO LARA", "IRENE GUADALUPE NAVA PERALTA", "JULIA MERCEDES DELGADO CERVANTES", "KAREN LIZETH BERNAL OCHOA",
+                    "LETICIA MARIBEL SOLÍS ARROYO", "MARGARITA ROSA ACUÑA FIGUEROA", "NANCY GABRIELA CANO VALDEZ", "OFELIA ISABEL TREJO MALDONADO", "PATRICIA ELENA URBINA CORONA",
+                    "ROCÍO ALEJANDRA VERA BUSTOS", "SILVIA FERNANDA ZAVALA PINEDA", "TANIA IVONNE ALCARAZ MONTOYA", "VALERIA JUDITH MEJÍA CORDERO", "YESSICA PAOLA LARA ZAMUDIO"
+                ];
+
+                const universidades = [
+                    { uni: "UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO", dir: "AV. UNIVERSIDAD 3000, COPILCO EL ALTO\nCOYOACÁN, 04510 CIUDAD DE MÉXICO, CDMX" },
+                    { uni: "INSTITUTO POLITÉCNICO NACIONAL", dir: "AV. WILFRIDO MASSIEU S/N, LINDAVISTA\nGUSTAVO A. MADERO, 07738 CIUDAD DE MÉXICO, CDMX" },
+                    { uni: "BENEMÉRITA UNIVERSIDAD AUTÓNOMA DE PUEBLA", dir: "C. 16 DE SEPTIEMBRE 13323-LOCAL A, AMPLIACIÓN\nGUADALUPE HIDALGO, 72470 PUEBLA, PUE." },
+                    { uni: "UNIVERSIDAD DE GUADALAJARA", dir: "AV. JUÁREZ 976, COL. CENTRO\nGUADALAJARA, 44100 GUADALAJARA, JAL." },
+                    { uni: "UNIVERSIDAD AUTÓNOMA DE NUEVO LEÓN", dir: "AV. UNIVERSIDAD S/N, CIUDAD UNIVERSITARIA\nSAN NICOLÁS DE LOS GARZA, 66455 NUEVO LEÓN" },
+                    { uni: "UNIVERSIDAD VERACRUZANA", dir: "LOMAS DEL ESTADIO S/N, ZONA UNIVERSITARIA\nXALAPA-ENRÍQUEZ, 91000 XALAPA, VER." },
+                    { uni: "UNIVERSIDAD AUTÓNOMA DEL ESTADO DE MÉXICO", dir: "PASEO TOLLOCAN ESQ. JESÚS CARRANZA\nMODERNA DE LA CRUZ, 50180 TOLUCA, MÉX." },
+                    { uni: "UNIVERSIDAD AUTÓNOMA DE QUERÉTARO", dir: "CERRO DE LAS CAMPANAS S/N, LAS CAMPANAS\nSANTIAGO DE QUERÉTARO, 76010 QUERÉTARO, QRO." },
+                    { uni: "UNIVERSIDAD AUTÓNOMA DE YUCATÁN", dir: "CALLE 60 491-A, CENTRO\nMÉRIDA, 97000 MÉRIDA, YUC." },
+                    { uni: "UNIVERSIDAD DE GUANAJUATO", dir: "LASCURÁIN DE RETANA 5, CENTRO\nGUANAJUATO, 36000 GUANAJUATO, GTO." }
+                ];
+
+                const especialidades = ["MÉDICO CIRUJANO", "MÉDICO CIRUJANO Y PARTERO", "MÉDICO GENERAL", "ESPECIALISTA EN MEDICINA FAMILIAR"];
+
+                const generarDatos = (nombre, prefijo) => {
+                    const uniObj = universidades[Math.floor(Math.random() * universidades.length)];
+                    const cedula = Math.floor(1000000 + Math.random() * 9000000).toString();
+                    return {
+                        nombre: `${prefijo} ${nombre}`,
+                        tipo: especialidades[Math.floor(Math.random() * especialidades.length)],
+                        cedula: cedula,
+                        uni: `${uniObj.uni}\n${uniObj.dir}`
+                    };
+                };
+
+                const doctores = [
+                    ...nombresHombres.map(n => generarDatos(n, "DR.")),
+                    ...nombresMujeres.map(n => generarDatos(n, "DRA."))
+                ];
+
+                return doctores.sort(() => Math.random() - 0.5);
+            };
+
+            const DOCTORES_DATA = React.useMemo(() => GENERAR_DOCTORES(), []);
+
+            // --- ESTADO INICIAL CON FECHA DE HOY ---
+            const [data, setData] = useState(() => {
+                // Calcular fecha de hoy al iniciar
+                const today = new Date();
+                const dd = String(today.getDate()).padStart(2, '0');
+                const mm = String(today.getMonth() + 1).padStart(2, '0'); // Enero es 0
+                const yyyy = today.getFullYear();
+                const fechaHoy = `${dd}/${mm}/${yyyy}`;
+
+                return {
+                    paciente: {
+                        nombre: 'KEMBERLY FERNANDA ORONA MUÑOZ',
+                        edad: '17', peso: '78.600', talla: '1.70', temp: '36.5',
+                        fecha: fechaHoy // <--- AQUÍ SE ASIGNA LA FECHA ACTUAL AUTOMÁTICAMENTE
+                    },
+                    medico: { 
+                        nombre: '', 
+                        tipo: '', 
+                        cedula: '', 
+                        uni: '' 
+                    },
+                    medicamentos: [
+                        { id: 1, text: 'LORATADINA / AMBROXOL SOLUCIÓN 5MG/30MG', ind: 'TOMAR 7.5 ML. CADA 8 HORAS DURANTE 5 DÍAS VÍA DE ADMINISTRACIÓN ORAL' },
+                        { id: 2, text: 'DEXTROMETORFANO HIDROBOMURO SOLUCIÓN 2MG/ML', ind: 'TOMAR 5 ML. CADA 12 HORAS DURANTE 3 DÍAS VÍA DE ADMINISTRACIÓN ORAL' },
+                        { id: 3, text: 'DICLOFENACO TABLETAS 100MG', ind: 'TOMAR 1 TABLETA CADA 8 HORAS DURANTE 3 DÍAS VÍA DE ADMINISTRACIÓN ORAL' }
+                    ]
+                };
+            });
+
+            // Función para seleccionar un doctor aleatorio
+            const seleccionarDoctorAleatorio = () => {
+                const doctor = DOCTORES_DATA[Math.floor(Math.random() * DOCTORES_DATA.length)];
+                setData(prev => ({
+                    ...prev,
+                    medico: {
+                        nombre: doctor.nombre,
+                        tipo: doctor.tipo,
+                        cedula: doctor.cedula,
+                        uni: doctor.uni
+                    }
+                }));
+            };
+
+            // Efecto para rellenar automáticamente el doctor al abrir
+            useEffect(() => {
+                seleccionarDoctorAleatorio();
+            }, []);
+
+            const handleChange = (section, field, val) => setData(p => ({...p, [section]: {...p[section], [field]: val.toUpperCase()}}));
+            const handleMed = (id, field, val) => setData(p => ({...p, medicamentos: p.medicamentos.map(m => m.id===id ? {...m, [field]: val.toUpperCase()} : m)}));
+            const addMed = () => setData(p => ({...p, medicamentos: [...p.medicamentos, {id: Date.now(), text: '', ind: ''}]}));
+            const delMed = (id) => setData(p => ({...p, medicamentos: p.medicamentos.filter(m => m.id !== id)}));
+
+            return (
+                <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100 font-sans">
+                    {/* --- PANEL DE EDICIÓN IZQUIERDO --- */}
+                    <div className="w-full lg:w-1/3 bg-white border-r border-slate-200 p-5 no-print h-screen overflow-y-auto z-20 shadow-xl">
+                        <div className="mb-4 flex items-center justify-between">
+                            <button onClick={onBack} className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-[#1d428a] transition"><i data-lucide="arrow-left" className="w-4 h-4"></i> Volver</button>
+                            <button onClick={() => window.print()} className="bg-[#1d428a] text-white px-4 py-2 rounded-full font-bold text-xs shadow hover:bg-blue-900 flex items-center gap-2"><i data-lucide="printer" className="w-3 h-3"></i> IMPRIMIR</button>
+                        </div>
+                        <div className="space-y-5">
+                            {/* PACIENTE */}
+                            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                                <div className="font-black text-xs text-[#1d428a] uppercase tracking-widest mb-3 border-b border-blue-200 pb-1">Datos Paciente</div>
+                                
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">NOMBRE COMPLETO</label>
+                                <input className="w-full border p-2 rounded text-xs font-bold uppercase mb-2" placeholder="NOMBRE COMPLETO DEL PACIENTE" value={data.paciente.nombre} onChange={e=>handleChange('paciente','nombre',e.target.value)} />
+                                
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div><label className="block text-[10px] font-bold text-slate-500 mb-1">EDAD</label><input className="w-full border p-2 rounded text-xs uppercase" placeholder="EJ. 25" value={data.paciente.edad} onChange={e=>handleChange('paciente','edad',e.target.value)} /></div>
+                                    <div><label className="block text-[10px] font-bold text-slate-500 mb-1">PESO (KG)</label><input className="w-full border p-2 rounded text-xs uppercase" placeholder="EJ. 70.5" value={data.paciente.peso} onChange={e=>handleChange('paciente','peso',e.target.value)} /></div>
+                                    <div><label className="block text-[10px] font-bold text-slate-500 mb-1">TALLA (MTS)</label><input className="w-full border p-2 rounded text-xs uppercase" placeholder="EJ. 1.75" value={data.paciente.talla} onChange={e=>handleChange('paciente','talla',e.target.value)} /></div>
+                                    <div><label className="block text-[10px] font-bold text-slate-500 mb-1">TEMP</label><input className="w-full border p-2 rounded text-xs uppercase" placeholder="EJ. 36.5" value={data.paciente.temp} onChange={e=>handleChange('paciente','temp',e.target.value)} /></div>
+                                </div>
+                                <div className="mt-2">
+                                    <label className="block text-[10px] font-bold text-[#1d428a] mb-1">FECHA DE CONSULTA</label>
+                                    <input className="w-full border p-2 rounded text-xs font-bold uppercase" placeholder="DD/MM/AAAA" value={data.paciente.fecha} onChange={e=>handleChange('paciente','fecha',e.target.value)} />
+                                </div>
+                            </div>
+                            {/* MEDICAMENTOS */}
+                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <div className="flex justify-between items-center mb-3"><div className="font-black text-xs text-slate-500 uppercase">Tratamiento</div><button onClick={addMed} className="bg-[#1d428a] text-white text-[10px] font-bold px-2 py-1 rounded">+ ITEM</button></div>
+                                {data.medicamentos.map((m, i) => (
+                                    <div key={m.id} className="mb-4 border-b pb-2">
+                                        <div className="flex justify-between mb-1"><span className="text-[9px] font-bold text-slate-400">ITEM #{i+1}</span><button onClick={()=>delMed(m.id)} className="text-red-500 text-[9px]">BORRAR</button></div>
+                                        
+                                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">NOMBRE DEL MEDICAMENTO</label>
+                                        <input className="w-full border mb-2 text-xs font-bold uppercase px-2 py-1 rounded" placeholder="NOMBRE Y GRAMAJE DEL MEDICAMENTO" value={m.text} onChange={e=>handleMed(m.id,'text',e.target.value)} />
+                                        
+                                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">INDICACIONES / DOSIS</label>
+                                        <textarea className="w-full bg-slate-50 border px-2 py-1 text-[10px] uppercase resize-none h-14 rounded" placeholder="INDICACIONES COMPLETAS DE TOMA" value={m.ind} onChange={e=>handleMed(m.id,'ind',e.target.value)}></textarea>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            {/* --- DATOS MÉDICO (CON GENERACIÓN COMPLETA) --- */}
+                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <div className="font-black text-xs text-[#1d428a] uppercase tracking-widest mb-3">Datos Médico</div>
+                                
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">NOMBRE DEL DOCTOR(A)</label>
+                                <div className="flex gap-1 mb-2">
+                                    <input 
+                                        className="w-full border p-2 rounded text-xs font-bold uppercase" 
+                                        placeholder="NOMBRE COMPLETO DEL MÉDICO" 
+                                        value={data.medico.nombre} 
+                                        onChange={e=>handleChange('medico','nombre',e.target.value)} 
+                                    />
+                                    <button 
+                                        onClick={seleccionarDoctorAleatorio} 
+                                        className="bg-slate-100 hover:bg-indigo-100 text-slate-500 hover:text-indigo-600 border border-slate-200 rounded-lg px-3 transition active:scale-95 flex items-center justify-center" 
+                                        title="Generar Doctor Aleatorio (Datos Completos)"
+                                    >
+                                        🔄
+                                    </button>
+                                </div>
+                                
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">ESPECIALIDAD / TIPO</label>
+                                <input className="w-full border p-2 rounded text-xs uppercase mb-2" placeholder="EJ. MÉDICO CIRUJANO" value={data.medico.tipo} onChange={e=>handleChange('medico','tipo',e.target.value)} />
+                                
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">CÉDULA PROFESIONAL</label>
+                                <input className="w-full border p-2 rounded text-xs uppercase mb-2" placeholder="NÚMERO DE CÉDULA" value={data.medico.cedula} onChange={e=>handleChange('medico','cedula',e.target.value)} />
+                                
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1">UNIVERSIDAD / DIRECCIÓN</label>
+                                <textarea className="w-full border p-2 rounded text-xs uppercase h-20" placeholder="NOMBRE DE UNIVERSIDAD Y DIRECCIÓN COMPLETA" value={data.medico.uni} onChange={e=>handleChange('medico','uni',e.target.value)}></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* --- VISTA PREVIA DERECHA --- */}
+                    <div className="w-full lg:w-2/3 bg-white flex justify-center items-start p-4 print-area overflow-auto">
+                        <div className="bg-white w-[21.59cm] min-h-[27.94cm] relative px-12 pb-60 pt-6 font-sans text-[#1d428a] overflow-hidden shadow-none flex flex-col">
+                            
+                            {/* MARCA DE AGUA */}
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[92%] h-auto z-0 pointer-events-none flex justify-center items-center">
+                                <img src="https://i.postimg.cc/6qjsDrMx/1770333114747.png" alt="Marca de Agua" className="w-full h-auto object-contain brightness-125 saturate-150 opacity-[0.15] mix-blend-multiply" />
+                            </div>
+
+                            {/* ENCABEZADO */}
+                            <div className="flex justify-between items-start mb-8 relative z-10">
+                                <div className="w-[30%] pt-0">
+                                    <img src="https://i.postimg.cc/wvY9VQGh/logo-Farmacia-del-ahorro.webp" alt="Logo Farmacia del Ahorro" className="w-full h-auto object-contain" />
+                                    <div className="w-full h-[2.5px] bg-[#a01d2d] mt-4"></div>
+                                </div>
+
+                                <div className="w-[70%] flex flex-col items-center justify-start pt-1 text-[#1d428a] pl-10">
+                                    <div className="text-[26px] font-black leading-[0.9] mb-1.5 text-center w-full uppercase tracking-tight">
+                                        {data.medico.nombre}
+                                    </div>
+                                    <div className="text-[18px] font-bold leading-none mb-1 text-center w-full uppercase">
+                                        {data.medico.tipo}
+                                    </div>
+                                    <div className="text-[18px] font-bold leading-none mb-1 text-center w-full uppercase">
+                                        CED. PROF. {data.medico.cedula}
+                                    </div>
+                                    <div className="text-[13px] font-bold leading-tight text-center w-full whitespace-pre-wrap uppercase tracking-tight">
+                                        {data.medico.uni}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* DATOS PACIENTE */}
+                            <div className="mb-8 relative z-10 text-[12px] uppercase mt-4">
+                                <div className="flex items-baseline mb-6">
+                                    <span className="text-[#1d428a] font-black mr-2 text-[13px]">NOMBRE DEL PACIENTE:</span>
+                                    <span className="text-[#444] font-medium text-[13px]">{data.paciente.nombre}</span>
+                                </div>
+                                <div className="flex justify-between items-center w-full">
+                                    <div className="flex gap-6">
+                                        <span className="flex items-baseline"><span className="text-[#1d428a] font-black mr-1">EDAD:</span><span className="text-[#444] font-medium">{data.paciente.edad}</span></span>
+                                        <span className="flex items-baseline"><span className="text-[#1d428a] font-black mr-1">PESO:</span><span className="text-[#444] font-medium">{data.paciente.peso} KG</span></span>
+                                        <span className="flex items-baseline"><span className="text-[#1d428a] font-black mr-1">TALLA:</span><span className="text-[#444] font-medium">{data.paciente.talla}</span></span>
+                                        <span className="flex items-baseline"><span className="text-[#1d428a] font-black mr-1">TEMPERATURA:</span><span className="text-[#444] font-medium">{data.paciente.temp}</span></span>
+                                    </div>
+                                    <div className="flex items-baseline">
+                                        <span className="text-[#1d428a] font-black mr-2">FECHA:</span><span className="text-[#444] font-medium">{data.paciente.fecha}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* TRATAMIENTO */}
+                            <div className="relative z-10 flex-grow px-2 mt-4">
+                                <div className="text-[#1d428a] font-black text-[13px] mb-6 uppercase">TRATAMIENTO:</div>
+                                <div className="space-y-6">
+                                    {data.medicamentos.map((m, i) => (
+                                        <div key={i} className="text-[12px] leading-relaxed">
+                                            <div className="font-bold text-black uppercase mb-1">{i+1}.- {m.text}</div>
+                                            <div className="text-black uppercase pl-0 font-medium">{m.ind}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* PIE DE PÁGINA */}
+                            <div className="mt-auto relative z-10 pt-4 w-full">
+                                <div className="w-full h-[3px] bg-[#a01d2d] mb-2"></div>
+                                <div className="text-[#1d428a] font-bold text-[12px] text-center uppercase mb-24 tracking-wide">
+                                    SÚRTASE CON ESTA RECETA EN CUALQUIER SUCURSAL DE FARMACIAS DEL AHORRO
+                                </div>
+                                <div className="flex justify-center relative">
+                                    <div className="w-64 text-center">
+                                        <div className="border-t-[2px] border-[#1d428a] pt-2">
+                                            <span className="text-[#1d428a] font-black text-[12px] uppercase tracking-wider">FIRMA</span>
+                                        </div>
+                                    </div>                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+
 
         
                                                                                                         // ==========================================
@@ -2207,15 +2377,20 @@
                 return () => unsubscribe();
             }, []);
 
-            const handleDownload = (item) => {
+                        const handleDownload = (item) => {
+                // AGREGADA LA DETECCIÓN PARA FARMACIA
+                if (item.farmaciaData) { onPrintDocument(item.farmaciaData, 'farmacia'); return; }
+                
                 if (item.covidData) { onPrintDocument(item.covidData, 'covid'); return; }
                 if (item.recipeData) { onPrintDocument(item.recipeData, 'recipe'); return; }
+                
                 if (item.downloadUrl && item.downloadUrl !== 'GENERATED_PDF') {
                     let url = item.downloadUrl;
                     if (!url.startsWith('http')) url = 'https://' + url.trim();
                     window.open(url, '_blank');
                 } else { alert("El documento aún no está listo."); }
             };
+
 
             // Función auxiliar simple para obtener el texto del CURP
             const getCurpText = (item) => {
@@ -2774,52 +2949,187 @@
                 </div>
             );
         };
-
-
-
-
-
-                                                  // ==========================================
-        // COMPONENTE PRINCIPAL (MainApp) - CONECTADO
-        // ==========================================
-            const MainApp = () => {
-        const [view, setView] = useState('login'); 
-        const [isMenuOpen, setIsMenuOpen] = useState(false);
-        const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-        const [userData, setUserData] = useState({ saldo: 0 }); 
-        const [printData, setPrintData] = useState(null);
         
-        useEffect(() => { 
-            if(window.lucide) window.lucide.createIcons(); 
-            const unsubscribe = auth.onAuthStateChanged((user) => { if (user && user.emailVerified) { setView('store'); db.collection('usuarios').doc(user.uid).onSnapshot(doc => { if (doc.exists) setUserData(doc.data()); else setUserData({ email: user.email, saldo: 0 }); }); } else { setView('login'); } setIsCheckingAuth(false); }); return () => unsubscribe();
-        }, []);
+                // ==========================================
+        // COMPONENTE: IMPRESORA FARMACIA DEL AHORRO (FIRMA AJUSTADA UN POCO ABAJO)
+        // ==========================================
+        const FarmaciaPrinter = ({ data, onBack }) => {
+            
+            useEffect(() => {
+                const tituloOriginal = document.title;
+                if (data.paciente?.nombre) {
+                    document.title = data.paciente.nombre.toUpperCase();
+                }
 
-        const handlePrintDocument = (data, type) => {
-            setPrintData(data);
-            if (type === 'covid') setView('print_covid');
-            else setView('print_recipe');
+                const timer = setTimeout(() => {
+                    window.print();
+                }, 800);
+
+                return () => {
+                    document.title = tituloOriginal;
+                    clearTimeout(timer);
+                };
+            }, [data]);
+
+            return (
+                <div className="min-h-screen bg-white flex flex-col items-center justify-start pt-5 font-sans">
+                    {/* --- BOTONES (NO IMPRIMIBLES) --- */}
+                    <div className="no-print mb-6 flex gap-4">
+                        <button onClick={onBack} className="bg-white text-slate-800 px-6 py-2 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center gap-2">
+                            <i data-lucide="arrow-left"></i> Volver al Historial
+                        </button>
+                        <button onClick={() => window.print()} className="bg-[#1d428a] text-white px-6 py-2 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center gap-2">
+                            <i data-lucide="printer"></i> Imprimir / Guardar PDF
+                        </button>
+                    </div>
+
+                    {/* --- ÁREA DE IMPRESIÓN --- */}
+                    <div className="print-area bg-white w-[21.59cm] min-h-[27.94cm] relative px-12 pb-60 pt-6 font-sans text-[#1d428a] overflow-hidden shadow-none flex flex-col">
+                            
+                        {/* MARCA DE AGUA */}
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[92%] h-auto z-0 pointer-events-none flex justify-center items-center">
+                            <img src="https://i.postimg.cc/6qjsDrMx/1770333114747.png" alt="Marca de Agua" className="w-full h-auto object-contain brightness-125 saturate-150 opacity-[0.15] mix-blend-multiply" />
+                        </div>
+
+                        {/* ENCABEZADO */}
+                        <div className="flex justify-between items-start mb-8 relative z-10">
+                            <div className="w-[30%] pt-0">
+                                <img src="https://i.postimg.cc/wvY9VQGh/logo-Farmacia-del-ahorro.webp" alt="Logo Farmacia del Ahorro" className="w-full h-auto object-contain" />
+                                <div className="w-full h-[2.5px] bg-[#a01d2d] mt-4"></div>
+                            </div>
+
+                            <div className="w-[70%] flex flex-col items-center justify-start pt-1 text-[#1d428a] pl-10">
+                                <div className="text-[26px] font-black leading-[0.9] mb-1.5 text-center w-full uppercase tracking-tight">
+                                    {data.medico.nombre}
+                                </div>
+                                <div className="text-[18px] font-bold leading-none mb-1 text-center w-full uppercase">
+                                    {data.medico.tipo}
+                                </div>
+                                <div className="text-[18px] font-bold leading-none mb-1 text-center w-full uppercase">
+                                    CED. PROF. {data.medico.cedula}
+                                </div>
+                                <div className="text-[13px] font-bold leading-tight text-center w-full whitespace-pre-wrap uppercase tracking-tight">
+                                    {data.medico.uni}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* DATOS PACIENTE */}
+                        <div className="mb-8 relative z-10 text-[12px] uppercase mt-4">
+                            <div className="flex items-baseline mb-6">
+                                <span className="text-[#1d428a] font-black mr-2 text-[13px]">NOMBRE DEL PACIENTE:</span>
+                                <span className="text-[#444] font-medium text-[13px]">{data.paciente.nombre}</span>
+                            </div>
+                            <div className="flex justify-between items-center w-full">
+                                <div className="flex gap-6">
+                                    <span className="flex items-baseline"><span className="text-[#1d428a] font-black mr-1">EDAD:</span><span className="text-[#444] font-medium">{data.paciente.edad}</span></span>
+                                    <span className="flex items-baseline"><span className="text-[#1d428a] font-black mr-1">PESO:</span><span className="text-[#444] font-medium">{data.paciente.peso} KG</span></span>
+                                    <span className="flex items-baseline"><span className="text-[#1d428a] font-black mr-1">TALLA:</span><span className="text-[#444] font-medium">{data.paciente.talla}</span></span>
+                                    <span className="flex items-baseline"><span className="text-[#1d428a] font-black mr-1">TEMPERATURA:</span><span className="text-[#444] font-medium">{data.paciente.temp}</span></span>
+                                </div>
+                                <div className="flex items-baseline mr-24">
+                                    <span className="text-[#1d428a] font-black mr-2">FECHA:</span><span className="text-[#444] font-medium">{data.paciente.fecha}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* TRATAMIENTO */}
+                        <div className="relative z-10 flex-grow px-2 mt-4">
+                            <div className="text-[#1d428a] font-black text-[13px] mb-6 uppercase">TRATAMIENTO:</div>
+                            <div className="space-y-6">
+                                {data.medicamentos.map((m, i) => (
+                                    <div key={i} className="text-[12px] leading-relaxed">
+                                        <div className="font-bold text-black uppercase mb-1">{i+1}.- {m.text}</div>
+                                        <div className="text-black uppercase pl-0 font-medium">{m.ind}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* --- BLOQUE 1: LÍNEA ROJA Y TEXTO (NO MOVER - 350px) --- */}
+                        <div className="absolute left-0 w-full z-10 px-12 bottom-[350px]">
+                            <div className="w-full h-[3px] bg-[#a01d2d] mb-1"></div>
+                            <div className="text-[#1d428a] font-bold text-[12px] text-center uppercase tracking-wide">
+                                SÚRTASE CON ESTA RECETA EN CUALQUIER SUCURSAL DE FARMACIAS DEL AHORRO
+                            </div>
+                        </div>
+
+                        {/* --- BLOQUE 2: FIRMA (BAJADA UN POCO A 230px) --- */}
+                        <div className="absolute left-0 w-full z-10 flex justify-center bottom-[230px]">
+                            <div className="w-64 text-center">
+                                <div className="border-t-[2px] border-[#1d428a] pt-1">
+                                    <span className="text-[#1d428a] font-black text-[12px] uppercase tracking-wider">FIRMA</span>
+                                </div>
+                            </div>                                    
+                        </div>
+                    </div>
+                </div>
+            );
         };
 
-        const renderView = () => {
-            switch(view) {
-                case 'login': return <LoginScreen onLogin={() => setView('store')} />;
-                case 'store': return <StoreFront userData={userData} onSelectService={() => setView('editor')} onSelectCovid={() => setView('covid')} onOpenMenu={() => setIsMenuOpen(true)} onGoToHistory={() => setView('history')} />;
-                case 'editor': return <RecetaEditor onBack={() => setView('store')} />;
-                case 'covid': return <CovidEditor onBack={() => setView('store')} />;
-                case 'recharge': return <RechargeFlow onBack={() => setView('store')} />;
-                case 'admin': return <AdminPanel onBack={() => setView('store')} />;
-                case 'history': return <PurchaseHistory onBack={() => setView('store')} onPrintDocument={handlePrintDocument} />;
-                case 'profile': return <UserProfile onBack={() => setView('store')} />;
-                
-                case 'print_recipe': return <RecipePrinter data={printData} onBack={() => setView('history')} />;
-                case 'print_covid': return <CovidPrinter data={printData} onBack={() => setView('history')} />;
-                default: return <LoginScreen onLogin={() => setView('store')} />;
-            }
-        };
 
-        if (isCheckingAuth) { return (<div className="min-h-screen bg-slate-900 flex items-center justify-center"><div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-500"></div></div>); }
-        return (<div className="antialiased text-slate-900">{view !== 'login' && view !== 'covid' && view !== 'editor' && view !== 'print_recipe' && view !== 'print_covid' && (<SidebarMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} onNavigate={(v) => { setIsMenuOpen(false); setView(v); }} userBalance={userData?.saldo || 0} userData={userData} />)}{renderView()}</div>);
-    };
+
+
+
+                                                         // ==========================================
+        // COMPONENTE PRINCIPAL (MainApp) - ACTUALIZADO
+        // ==========================================
+        const MainApp = () => {
+            const [view, setView] = useState('login'); 
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+            const [userData, setUserData] = useState({ saldo: 0 }); 
+            const [printData, setPrintData] = useState(null);
+            
+            useEffect(() => { 
+                if(window.lucide) window.lucide.createIcons(); 
+                const unsubscribe = auth.onAuthStateChanged((user) => { if (user && user.emailVerified) { setView('store'); db.collection('usuarios').doc(user.uid).onSnapshot(doc => { if (doc.exists) setUserData(doc.data()); else setUserData({ email: user.email, saldo: 0 }); }); } else { setView('login'); } setIsCheckingAuth(false); }); return () => unsubscribe();
+            }, []);
+
+                        const handlePrintDocument = (data, type) => {
+                setPrintData(data);
+                if (type === 'covid') setView('print_covid');
+                else if (type === 'farmacia') setView('print_farmacia'); // NUEVA RUTA
+                else setView('print_recipe');
+            };
+
+            const renderView = () => {
+                switch(view) {
+                    case 'login': return <LoginScreen onLogin={() => setView('store')} />;
+                    case 'store': return <StoreFront userData={userData} 
+                        onSelectService={(tipo) => {
+                            if (tipo === 'farmacia') {
+                                setView('editor_farmacia');
+                            } else {
+                                setView('editor');
+                            }
+                        }} 
+                        onSelectCovid={() => setView('covid')} 
+                        onOpenMenu={() => setIsMenuOpen(true)} 
+                        onGoToHistory={() => setView('history')} />;
+                    
+                    case 'editor': return <RecetaEditor onBack={() => setView('store')} />;
+                    case 'editor_farmacia': return <FarmaciaEditor onBack={() => setView('store')} />;
+                    case 'covid': return <CovidEditor onBack={() => setView('store')} />;
+                    case 'recharge': return <RechargeFlow onBack={() => setView('store')} />;
+                    case 'admin': return <AdminPanel onBack={() => setView('store')} />;
+                    case 'history': return <PurchaseHistory onBack={() => setView('store')} onPrintDocument={handlePrintDocument} />;
+                    case 'profile': return <UserProfile onBack={() => setView('store')} />;
+                    
+                    case 'print_recipe': return <RecipePrinter data={printData} onBack={() => setView('history')} />;
+                    case 'print_covid': return <CovidPrinter data={printData} onBack={() => setView('history')} />;
+                    
+                    // NUEVO CASO AGREGADO:
+                    case 'print_farmacia': return <FarmaciaPrinter data={printData} onBack={() => setView('history')} />;
+                    
+                    default: return <LoginScreen onLogin={() => setView('store')} />;
+                }
+            };
+
+
+            if (isCheckingAuth) { return (<div className="min-h-screen bg-slate-900 flex items-center justify-center"><div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-500"></div></div>); }
+            return (<div className="antialiased text-slate-900">{view !== 'login' && view !== 'covid' && view !== 'editor' && view !== 'editor_farmacia' && view !== 'print_recipe' && view !== 'print_covid' && (<SidebarMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} onNavigate={(v) => { setIsMenuOpen(false); setView(v); }} userBalance={userData?.saldo || 0} userData={userData} />)}{renderView()}</div>);
+        };
 
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
