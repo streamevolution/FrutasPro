@@ -3071,31 +3071,59 @@
 
 
 
-                                                         // ==========================================
-        // COMPONENTE PRINCIPAL (MainApp) - ACTUALIZADO
+                                                                 // ==========================================
+        // COMPONENTE PRINCIPAL (MAIN APP) - CON REDIRECCIÓN ADMIN
         // ==========================================
         const MainApp = () => {
-            const [view, setView] = useState('login'); 
+            const [view, setView] = useState('login');
             const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [userData, setUserData] = useState(null);
             const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-            const [userData, setUserData] = useState({ saldo: 0 }); 
             const [printData, setPrintData] = useState(null);
-            
-            useEffect(() => { 
-                if(window.lucide) window.lucide.createIcons(); 
-                const unsubscribe = auth.onAuthStateChanged((user) => { if (user && user.emailVerified) { setView('store'); db.collection('usuarios').doc(user.uid).onSnapshot(doc => { if (doc.exists) setUserData(doc.data()); else setUserData({ email: user.email, saldo: 0 }); }); } else { setView('login'); } setIsCheckingAuth(false); }); return () => unsubscribe();
+
+            // --- LÓGICA DE INICIO Y REDIRECCIÓN AUTOMÁTICA ---
+            useEffect(() => {
+                const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+                    if (user) {
+                        // 1. Obtener saldo y datos
+                        const doc = await db.collection('usuarios').doc(user.uid).get();
+                        if (doc.exists) {
+                            setUserData(doc.data());
+                        }
+
+                        // 2. REDIRECCIÓN ESPECÍFICA PARA EL ADMINISTRADOR
+                        if (user.email === 'mrandroidtutorialeshd@gmail.com') {
+                            setView('admin'); // <--- El admin va directo al panel
+                        } else {
+                            setView('store'); // <--- Los demás a la tienda
+                        }
+                    } else {
+                        setView('login');
+                    }
+                    setIsCheckingAuth(false);
+                });
+                return () => unsubscribe();
             }, []);
 
-                        const handlePrintDocument = (data, type) => {
+            const handlePrintDocument = (data, type) => {
                 setPrintData(data);
                 if (type === 'covid') setView('print_covid');
-                else if (type === 'farmacia') setView('print_farmacia'); // NUEVA RUTA
+                else if (type === 'farmacia') setView('print_farmacia');
                 else setView('print_recipe');
             };
 
             const renderView = () => {
                 switch(view) {
-                    case 'login': return <LoginScreen onLogin={() => setView('store')} />;
+                    case 'login': return <LoginScreen onLogin={() => {
+                        // Verificación al dar click en "Entrar" manualmente
+                        const u = firebase.auth().currentUser;
+                        if (u && u.email === 'mrandroidtutorialeshd@gmail.com') {
+                            setView('admin');
+                        } else {
+                            setView('store');
+                        }
+                    }} />;
+                    
                     case 'store': return <StoreFront userData={userData} 
                         onSelectService={(tipo) => {
                             if (tipo === 'farmacia') {
@@ -3118,17 +3146,31 @@
                     
                     case 'print_recipe': return <RecipePrinter data={printData} onBack={() => setView('history')} />;
                     case 'print_covid': return <CovidPrinter data={printData} onBack={() => setView('history')} />;
-                    
-                    // NUEVO CASO AGREGADO:
                     case 'print_farmacia': return <FarmaciaPrinter data={printData} onBack={() => setView('history')} />;
                     
                     default: return <LoginScreen onLogin={() => setView('store')} />;
                 }
             };
 
-
             if (isCheckingAuth) { return (<div className="min-h-screen bg-slate-900 flex items-center justify-center"><div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-500"></div></div>); }
-            return (<div className="antialiased text-slate-900">{view !== 'login' && view !== 'covid' && view !== 'editor' && view !== 'editor_farmacia' && view !== 'print_recipe' && view !== 'print_covid' && (<SidebarMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} onNavigate={(v) => { setIsMenuOpen(false); setView(v); }} userBalance={userData?.saldo || 0} userData={userData} />)}{renderView()}</div>);
+            
+            // Lista de vistas donde NO debe aparecer el menú lateral
+            const hideMenu = view === 'login' || view === 'covid' || view === 'editor' || view === 'editor_farmacia' || view === 'print_recipe' || view === 'print_covid' || view === 'print_farmacia';
+
+            return (
+                <div className="antialiased text-slate-900">
+                    {!hideMenu && (
+                        <SidebarMenu 
+                            isOpen={isMenuOpen} 
+                            onClose={() => setIsMenuOpen(false)} 
+                            onNavigate={(v) => { setIsMenuOpen(false); setView(v); }} 
+                            userBalance={userData?.saldo || 0} 
+                            userData={userData} 
+                        />
+                    )}
+                    {renderView()}
+                </div>
+            );
         };
 
 
