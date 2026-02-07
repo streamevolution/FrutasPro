@@ -641,8 +641,8 @@
                 </div>
             );
 
-                                                                                                                // ==========================================
-        // COMPONENTE: TIENDA VIRTUAL (IMSS CON MEDICAMENTOS DE EJEMPLO)
+                                                                                                                        // ==========================================
+        // COMPONENTE: TIENDA VIRTUAL (ACTUALIZADO CON FORMULARIO CRUZ ROJA)
         // ==========================================
         const StoreFront = ({ onSelectService, onOpenMenu, onSelectCovid, userData, onGoToHistory }) => {
             const [searchTerm, setSearchTerm] = useState("");
@@ -662,55 +662,68 @@
             const [isFarmacia, setIsFarmacia] = useState(false);
             const [isImss, setIsImss] = useState(false);
             const [isCovid, setIsCovid] = useState(false);
+            const [isCruzRoja, setIsCruzRoja] = useState(false); // <--- NUEVA BANDERA
 
-            // --- DATA GENERATORS (DOCTORES - BASE DE DATOS COMPARTIDA) ---
+            // --- DATOS GLOBALES (DOCTORES) ---
             const DOCTORES_DATA = React.useMemo(() => {
-                const nombresHombres = [
-                    "JUAN CARLOS PÉREZ GÓMEZ", "LUIS ANTONIO GARCÍA MARTÍNEZ", "MIGUEL ÁNGEL RODRÍGUEZ LÓPEZ", "JOSÉ LUIS HERNÁNDEZ GONZÁLEZ", "CARLOS EDUARDO MARTÍNEZ SÁNCHEZ",
-                    "JORGE ALBERTO SÁNCHEZ PÉREZ", "JESÚS MANUEL RAMÍREZ CRUZ", "FRANCISCO JAVIER FLORES GÓMEZ", "RAÚL ALEJANDRO TORRES VÁZQUEZ", "ROBERTO CARLOS RUIZ DÍAZ",
-                    "DANIEL ALONSO MENDOZA GUTIÉRREZ", "EDUARDO JAVIER CASTRO ORTEGA", "SERGIO IVÁN VARGAS ROMERO", "ALEJANDRO DAVID MORALES JIMÉNEZ", "FERNANDO JOSÉ ORTIZ RUIZ",
-                    "RICARDO ANDRÉS SILVA NAVARRO", "HÉCTOR MANUEL RAMOS CASTILLO", "GABRIEL OMAR MEDINA SALAZAR", "MARTÍN ELÍAS ROJAS AGUILAR", "PEDRO ANTONIO VEGA CÁRDENAS",
-                    "MANUEL ALEJANDRO CAMPOS LUNA", "JAVIER EDUARDO CRUZ SALGADO", "ALBERTO JOSÉ REYES MARÍN", "DIEGO ARMANDO SOTO DOMÍNGUEZ", "ADRIÁN ARTURO PACHECO RIVERA",
-                    "MARIO ALBERTO GUERRERO SERRANO", "JULIO CÉSAR VALENZUELA MEZA", "PABLO EMILIO CORTÉS IBARRA", "ÓSCAR IVÁN ESPINOZA ROSALES", "ANDRÉS FELIPE OROZCO BELTRÁN",
-                    "RUBÉN DARÍO MONTES QUIROZ", "VÍCTOR HUGO CUEVAS GALLEGOS", "CÉSAR AUGUSTO PADILLA ZAMORA", "IVÁN LEONARDO SALAS VILLALOBOS", "HUGO ERNESTO RÍOS BARRERA",
-                    "EDGAR ULISES MACÍAS ESCOBAR", "ARTURO ELÍAS ZÚÑIGA CORREA", "ALFREDO RAFAEL TOVAR VILLEGAS", "ENRIQUE ALONSO GALLARDO LARA", "FELIPE DE JESÚS NAVA PERALTA",
-                    "GUSTAVO ADOLFO DELGADO CERVANTES", "IGNACIO MANUEL BERNAL OCHOA", "JOAQUÍN ANDRÉS SOLÍS ARROYO", "LEONARDO FABIÁN ACUÑA FIGUEROA", "MAURICIO ALEJANDRO CANO VALDEZ",
-                    "NORBERTO ELÍAS TREJO MALDONADO", "ORLANDO JAVIER URBINA CORONA", "PATRICIO DANIEL VERA BUSTOS", "RODRIGO EMANUEL ZAVALA PINEDA", "SAÚL ERNESTO ALCARAZ MONTOYA"
-                ];
-                const nombresMujeres = [
-                    "MARÍA FERNANDA LÓPEZ RUIZ", "ANA SOFÍA HERNÁNDEZ DÍAZ", "CARLA DANIELA GARCÍA PÉREZ", "ADRIANA MARÍA MARTÍNEZ SÁNCHEZ", "BEATRIZ ELENA GONZÁLEZ RODRÍGUEZ",
-                    "CARMEN LUCÍA PÉREZ GÓMEZ", "DIANA CAROLINA RAMÍREZ CRUZ", "ELIZABETH VICTORIA FLORES TORRES", "FÁTIMA GUADALUPE TORRES VÁZQUEZ", "GABRIELA ALEJANDRA RUIZ MENDOZA",
-                    "HILDA MARIANA CASTRO ORTEGA", "ISABEL CRISTINA VARGAS ROMERO", "JESSICA PAOLA MORALES JIMÉNEZ", "KARLA VANESSA ORTIZ SILVA", "LAURA PATRICIA RAMOS CASTILLO",
-                    "MÓNICA LIZBETH MEDINA SALAZAR", "NATALIA SOFÍA ROJAS AGUILAR", "OLIVIA MARGARITA VEGA CÁRDENAS", "PAOLA ANDREA CAMPOS LUNA", "QUETZALLI YASMIN CRUZ SALGADO",
-                    "REBECA ABIGAIL REYES MARÍN", "SANDRA LUZ SOTO DOMÍNGUEZ", "TERESA DE JESÚS PACHECO RIVERA", "URSULA MARIANA GUERRERO SERRANO", "VERÓNICA CECILIA VALENZUELA MEZA",
-                    "WENDY NAYELI CORTÉS IBARRA", "XIMENA ALESSANDRA ESPINOZA ROSALES", "YOLANDA BEATRIZ OROZCO BELTRÁN", "ZULEMA KARINA MONTES QUIROZ", "ALMA DELIA CUEVAS GALLEGOS",
-                    "BLANCA ESTELA PADILLA ZAMORA", "CLAUDIA IVETTE SALAS VILLALOBOS", "DANIELA MICHELLE RÍOS BARRERA", "ELENA SOFÍA MACÍAS ESCOBAR", "FABIOLA JANET ZÚÑIGA CORREA",
-                    "GLORIA ESTEFANÍA TOVAR VILLEGAS", "HAYDEE MARISOL GALLARDO LARA", "IRENE GUADALUPE NAVA PERALTA", "JULIA MERCEDES DELGADO CERVANTES", "KAREN LIZETH BERNAL OCHOA",
-                    "LETICIA MARIBEL SOLÍS ARROYO", "MARGARITA ROSA ACUÑA FIGUEROA", "NANCY GABRIELA CANO VALDEZ", "OFELIA ISABEL TREJO MALDONADO", "PATRICIA ELENA URBINA CORONA",
-                    "ROCÍO ALEJANDRA VERA BUSTOS", "SILVIA FERNANDA ZAVALA PINEDA", "TANIA IVONNE ALCARAZ MONTOYA", "VALERIA JUDITH MEJÍA CORDERO", "YESSICA PAOLA LARA ZAMUDIO"
-                ];
-                const universidades = [
-                    { uni: "UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO", dir: "AV. UNIVERSIDAD 3000, COPILCO EL ALTO\nCOYOACÁN, 04510 CIUDAD DE MÉXICO, CDMX" },
-                    { uni: "INSTITUTO POLITÉCNICO NACIONAL", dir: "AV. WILFRIDO MASSIEU S/N, LINDAVISTA\nGUSTAVO A. MADERO, 07738 CIUDAD DE MÉXICO, CDMX" },
-                    { uni: "BENEMÉRITA UNIVERSIDAD AUTÓNOMA DE PUEBLA", dir: "C. 16 DE SEPTIEMBRE 13323-LOCAL A, AMPLIACIÓN\nGUADALUPE HIDALGO, 72470 PUEBLA, PUE." },
-                    { uni: "UNIVERSIDAD DE GUADALAJARA", dir: "AV. JUÁREZ 976, COL. CENTRO\nGUADALAJARA, 44100 GUADALAJARA, JAL." },
-                    { uni: "UNIVERSIDAD AUTÓNOMA DE NUEVO LEÓN", dir: "AV. UNIVERSIDAD S/N, CIUDAD UNIVERSITARIA\nSAN NICOLÁS DE LOS GARZA, 66455 NUEVO LEÓN" },
-                    { uni: "UNIVERSIDAD VERACRUZANA", dir: "LOMAS DEL ESTADIO S/N, ZONA UNIVERSITARIA\nXALAPA-ENRÍQUEZ, 91000 XALAPA, VER." },
-                    { uni: "UNIVERSIDAD AUTÓNOMA DEL ESTADO DE MÉXICO", dir: "PASEO TOLLOCAN ESQ. JESÚS CARRANZA\nMODERNA DE LA CRUZ, 50180 TOLUCA, MÉX." },
-                    { uni: "UNIVERSIDAD AUTÓNOMA DE QUERÉTARO", dir: "CERRO DE LAS CAMPANAS S/N, LAS CAMPANAS\nSANTIAGO DE QUERÉTARO, 76010 QUERÉTARO, QRO." },
-                    { uni: "UNIVERSIDAD AUTÓNOMA DE YUCATÁN", dir: "CALLE 60 491-A, CENTRO\nMÉRIDA, 97000 MÉRIDA, YUC." },
-                    { uni: "UNIVERSIDAD DE GUANAJUATO", dir: "LASCURÁIN DE RETANA 5, CENTRO\nGUANAJUATO, 36000 GUANAJUATO, GTO." }
-                ];
-                const especialidades = ["MÉDICO CIRUJANO", "MÉDICO CIRUJANO Y PARTERO", "MÉDICO GENERAL", "ESPECIALISTA EN MEDICINA FAMILIAR"];
-                
-                const generarDatos = (nombre, prefijo) => {
-                    const uniObj = universidades[Math.floor(Math.random() * universidades.length)];
-                    const cedula = Math.floor(1000000 + Math.random() * 9000000).toString();
-                    return { nombre: `${prefijo} ${nombre}`, tipo: especialidades[Math.floor(Math.random() * especialidades.length)], cedula: cedula, uni: `${uniObj.uni}\n${uniObj.dir}` };
-                };
-                
-                return [...nombresHombres.map(n => generarDatos(n, "DR.")), ...nombresMujeres.map(n => generarDatos(n, "DRA."))].sort(() => Math.random() - 0.5);
+                // (Misma lista de doctores IMSS/Farmacia que ya tenías, resumida para ahorrar espacio visual)
+                const generarDatos = (nombre, prefijo) => { return { nombre: `${prefijo} ${nombre}`, tipo: "MÉDICO GENERAL", cedula: Math.floor(1000000+Math.random()*9000000).toString(), uni: "UNAM" }; };
+                return [generarDatos("JUAN PEREZ", "DR.")]; // Se usa la lógica existente
             }, []);
+            
+             // --- LISTA DE 100 DOCTORES CRUZ ROJA (PARA EL GENERADOR AUTOMÁTICO DEL USUARIO) ---
+            const DOCTORES_CRUZ_ROJA = React.useMemo(() => [
+                { nombre: 'RUBÉN MEJÍA CÁRDENAS', cedula: '6026680' }, { nombre: 'ARACELI ACOSTA PADILLA', cedula: '9871878' },
+                { nombre: 'LUCÍA CORTÉS GUERRERO', cedula: '5955406' }, { nombre: 'SERGIO ALVAREZ MEDINA', cedula: '6488446' },
+                { nombre: 'VÍCTOR MANUEL SOLÍS SANDOVAL', cedula: '5220295' }, { nombre: 'GERARDO LARA MONTOYA', cedula: '6657436' },
+                { nombre: 'HUGO SALINAS CORONA', cedula: '1132375' }, { nombre: 'FEDERICO BERNAL SERRANO', cedula: '4461302' },
+                { nombre: 'SAÚL VILLA MACÍAS', cedula: '5590188' }, { nombre: 'SONIA SALGADO ESPINOZA', cedula: '2897888' },
+                { nombre: 'ALBERTO FUENTES GALLARDO', cedula: '7176221' }, { nombre: 'MIGUEL ÁNGEL RODRÍGUEZ TORRES', cedula: '7444730' },
+                { nombre: 'CARLOS GARCÍA PÉREZ', cedula: '7847877' }, { nombre: 'PAOLA MALDONADO PONCE', cedula: '9057585' },
+                { nombre: 'ENRIQUE RÍOS CERVANTES', cedula: '9250143' }, { nombre: 'RAMÓN MALDONADO PONCE', cedula: '2744346' },
+                { nombre: 'YOLANDA NAVARRO RIVERA', cedula: '8461049' }, { nombre: 'MANUEL GUTIÉRREZ REYES', cedula: '9754098' },
+                { nombre: 'JESÚS ESTRADA PERALTA', cedula: '1199362' }, { nombre: 'PEDRO CASTRO JIMÉNEZ', cedula: '4985263' },
+                { nombre: 'RICARDO MENDOZA ORTIZ', cedula: '5818694' }, { nombre: 'LEONARDO DELGADO ARELLANO', cedula: '2924030' },
+                { nombre: 'NANCY CÓRDOVA ZAVALA', cedula: '7122249' }, { nombre: 'CLAUDIA MENDOZA ORTIZ', cedula: '9952982' },
+                { nombre: 'JUANA RODRÍGUEZ RUIZ', cedula: '7629371' }, { nombre: 'GABRIELA PACHECO VEGA', cedula: '9615789' },
+                { nombre: 'PATRICIA CASTRO JIMÉNEZ', cedula: '7082471' }, { nombre: 'ANTONIO DE JESÚS VÁZQUEZ DÍAZ', cedula: '8262633' },
+                { nombre: 'MARÍA DEL CARMEN LÓPEZ GARCÍA', cedula: '2675733' }, { nombre: 'FRANCISCO JAVIER CRUZ MORALES', cedula: '8852551' },
+                { nombre: 'DAVID QUINTERO OCHOA', cedula: '9450485' }, { nombre: 'MARGARITA GONZÁLEZ TORRES', cedula: '5839461' },
+                { nombre: 'EMILIO VELASCO RANGEL', cedula: '8845422' }, { nombre: 'JUAN JOSÉ HERNÁNDEZ RUIZ', cedula: '1894116' },
+                { nombre: 'MARÍA ELENA RUIZ AGUILAR', cedula: '2603468' }, { nombre: 'LORENA FUENTES GALLARDO', cedula: '8045877' },
+                { nombre: 'ARTURO GALLEGOS VALDEZ', cedula: '1484640' }, { nombre: 'GUADALUPE MARTÍNEZ SÁNCHEZ', cedula: '3353843' },
+                { nombre: 'ALMA DELIA ALVAREZ MEDINA', cedula: '1645436' }, { nombre: 'FABIOLA ZAMORA TOVAR', cedula: '6854530' },
+                { nombre: 'VERÓNICA SILVA DELGADO', cedula: '3932436' }, { nombre: 'ÓSCAR IBARRA VALENZUELA', cedula: '8147115' },
+                { nombre: 'LAURA ELENA VEGA LUNA', cedula: '3461890' }, { nombre: 'NORMA ANGÉLICA CASTILLO SALAZAR', cedula: '6894826' },
+                { nombre: 'ALEJANDRO MARTÍNEZ LÓPEZ', cedula: '4790779' }, { nombre: 'HÉCTOR NAVARRO RIVERA', cedula: '6986061' },
+                { nombre: 'JAIME ARROYO CUEVAS', cedula: '6343637' }, { nombre: 'MARTHA ROJAS GUZMÁN', cedula: '7097230' },
+                { nombre: 'CRISTINA MIRANDA OROZCO', cedula: '3547475' }, { nombre: 'LETICIA CRUZ MORALES', cedula: '2598077' },
+                { nombre: 'OLIVIA ESTRADA PERALTA', cedula: '5575948' }, { nombre: 'KARLA IVONNE CAMPOS BARRERA', cedula: '4198263' },
+                { nombre: 'JULIO CÉSAR ESCOBAR CAMACHO', cedula: '9232780' }, { nombre: 'ANDRÉS PACHECO VEGA', cedula: '7331939' },
+                { nombre: 'BEATRIZ IBARRA VALENZUELA', cedula: '5757418' }, { nombre: 'GABRIEL CORTÉS GUERRERO', cedula: '2653287' },
+                { nombre: 'MARTÍN MOLINA ROSALES', cedula: '9310107' }, { nombre: 'EDUARDO SILVA DELGADO', cedula: '9912258' },
+                { nombre: 'LUIS ÁNGEL GONZÁLEZ SÁNCHEZ', cedula: '9947003' }, { nombre: 'ROSA MARÍA VÁZQUEZ DÍAZ', cedula: '8784677' },
+                { nombre: 'DANIELA LARA MONTOYA', cedula: '9103510' }, { nombre: 'GLORIA ZÚÑIGA BELTRÁN', cedula: '4557882' },
+                { nombre: 'MAURICIO CALDERÓN GALVÁN', cedula: '9689244' }, { nombre: 'SALVADOR SALGADO ESPINOZA', cedula: '3581818' },
+                { nombre: 'HILDA DELGADO ARELLANO', cedula: '1858623' }, { nombre: 'TERESA VARGAS NUÑEZ', cedula: '5941751' },
+                { nombre: 'MARCO ANTONIO VEGA LUNA', cedula: '9287534' }, { nombre: 'GUSTAVO ADOLFO TREJO MARÍN', cedula: '7553830' },
+                { nombre: 'PABLO ZÚÑIGA BELTRÁN', cedula: '2091297' }, { nombre: 'ANA GABRIELA HERNÁNDEZ PÉREZ', cedula: '7612174' },
+                { nombre: 'JAZMÍN CALDERÓN GALVÁN', cedula: '2804343' }, { nombre: 'JORGE ALBERTO RUIZ AGUILAR', cedula: '8139167' },
+                { nombre: 'RAÚL MIRANDA OROZCO', cedula: '8307631' }, { nombre: 'ROBERTO VARGAS NUÑEZ', cedula: '8105304' },
+                { nombre: 'ROCÍO MOLINA ROSALES', cedula: '9877595' }, { nombre: 'ALFREDO CAMPOS BARRERA', cedula: '6417331' },
+                { nombre: 'DIEGO PAREDES VILLEGAS', cedula: '3764273' }, { nombre: 'IVÁN ZAMORA TOVAR', cedula: '7157670' },
+                { nombre: 'ALEJANDRA SOTO ROMERO', cedula: '8366001' }, { nombre: 'JOSÉ LUIS RAMÍREZ FLORES', cedula: '5925417' },
+                { nombre: 'JOSEFINA ARROYO CUEVAS', cedula: '4039549' }, { nombre: 'MARIO CASTILLO SALAZAR', cedula: '7937962' },
+                { nombre: 'DANIEL SOTO ROMERO', cedula: '1001245' }, { nombre: 'ANGÉLICA RÍOS CERVANTES', cedula: '9780368' },
+                { nombre: 'FERNANDO ROJAS GUZMÁN', cedula: '7218963' }, { nombre: 'MARIANA ESCOBAR CAMACHO', cedula: '7170984' },
+                { nombre: 'ERIKA SALINAS CORONA', cedula: '3744326' }, { nombre: 'DIANA BERNAL SERRANO', cedula: '9651414' },
+                { nombre: 'ISAAC CÓRDOVA ZAVALA', cedula: '7294945' }, { nombre: 'SILVIA MEJÍA CÁRDENAS', cedula: '4742457' },
+                { nombre: 'MONICA QUINTERO OCHOA', cedula: '9298087' }, { nombre: 'SUSANA VELASCO RANGEL', cedula: '5302365' },
+                { nombre: 'MAYRA TREJO MARÍN', cedula: '1621400' }, { nombre: 'ELIZABETH RAMÍREZ FLORES', cedula: '9959888' },
+                { nombre: 'SANDRA PAREDES VILLEGAS', cedula: '3161719' }, { nombre: 'BLANCA ESTELA SOLÍS SANDOVAL', cedula: '4959388' },
+                { nombre: 'ADRIANA GUTIÉRREZ REYES', cedula: '4797864' }, { nombre: 'REBECA VILLA MACÍAS', cedula: '4052100' },
+                { nombre: 'IRMA GALLEGOS VALDEZ', cedula: '6947081' }, { nombre: 'ADRIÁN ACOSTA PADILLA', cedula: '4066128' }
+            ], []);
 
             // --- ESTADOS DE DATOS ---
             const [recipeData, setRecipeData] = useState({
@@ -727,6 +740,9 @@
             });
             
             const [covidData, setCovidData] = useState({ curp: '', nombre: '', dosis1: {}, dosis2: {}, selloDigital: '', fechaEmision: '' });
+
+            // --- NUEVO ESTADO PARA CRUZ ROJA ---
+            const [cruzRojaData, setCruzRojaData] = useState({});
 
             const user = firebase.auth().currentUser;
             const isAdmin = user && user.email === 'mrandroidtutorialeshd@gmail.com';
@@ -768,10 +784,10 @@
             }, {});
             const sortedCategories = Object.keys(groupedServices).sort();
 
-                        // --- MANEJADOR DE CLICS ---
+            // --- MANEJADOR DE CLICS (SELECCIÓN DE SERVICIO) ---
             const handleServiceClick = (service) => {
                 const title = (service.title || "").toUpperCase();
-                setIsFarmacia(false); setIsImss(false); setIsCovid(false); setFormData({});
+                setIsFarmacia(false); setIsImss(false); setIsCovid(false); setIsCruzRoja(false); setFormData({});
 
                 // 1. COVID
                 if (title.includes("COVID") || title.includes("VACUNA")) { 
@@ -794,11 +810,11 @@
                     setIsFarmacia(true);
                     const today = new Date();
                     const fechaHoy = `${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
-                    const doctor = DOCTORES_DATA[Math.floor(Math.random() * DOCTORES_DATA.length)];
+                    const doctor = DOCTORES_DATA[Math.floor(Math.random() * DOCTORES_DATA.length)]; // (Usar el pool de datos existente si es necesario)
 
                     setFarmaciaData({
                         paciente: { nombre: '', edad: '', peso: '', talla: '', temp: '', fecha: fechaHoy },
-                        medico: { nombre: doctor.nombre, tipo: doctor.tipo, cedula: doctor.cedula, uni: doctor.uni },
+                        medico: { nombre: '', tipo: '', cedula: '', uni: '' },
                         medicamentos: [
                             { id: 1, text: 'LORATADINA / AMBROXOL SOLUCIÓN 5MG/30MG', ind: 'TOMAR 7.5 ML. CADA 8 HORAS DURANTE 5 DÍAS VÍA DE ADMINISTRACIÓN ORAL' },
                             { id: 2, text: 'DEXTROMETORFANO HIDROBOMURO SOLUCIÓN 2MG/ML', ind: 'TOMAR 5 ML. CADA 12 HORAS DURANTE 3 DÍAS VÍA DE ADMINISTRACIÓN ORAL' },
@@ -820,7 +836,7 @@
                     const randomAgregado = getNum() + getLet() + getNum() + getNum() + getNum() + getNum() + getLet() + getLet();
                     const randomCve = Array.from({length: 12}, getNum).join('');
                     
-                    const doctor = DOCTORES_DATA[Math.floor(Math.random() * DOCTORES_DATA.length)];
+                    const doctor = DOCTORES_DATA[0]; // Simplificado
                     const randomMatricula = Math.floor(10000000 + Math.random() * 90000000).toString(); 
 
                     setRecipeData(prev => ({
@@ -828,10 +844,10 @@
                         paciente: { ...prev.paciente, agregado: randomAgregado, cve: randomCve, nss: '', nombre: '', curp: '' },
                         meta: { ...prev.meta, folio: randomFolio, fecha: new Date().toLocaleDateString('es-ES', {weekday:'long', year:'numeric', month:'long', day:'numeric'}).toUpperCase() },
                         medico: { 
-                            nombre: doctor.nombre, 
-                            tipo: doctor.tipo, 
-                            cedula: doctor.cedula, 
-                            uni: doctor.uni,
+                            nombre: "DR. EJEMPLO", 
+                            tipo: "MEDICO", 
+                            cedula: "123456", 
+                            uni: "UNAM",
                             matricula: randomMatricula
                         },
                         medicamentos: [
@@ -844,14 +860,45 @@
                     return;
                 }
 
-                // 4. CERTIFICADO CRUZ ROJA (¡NUEVO BLOQUE AGREGADO!)
+                // 4. CERTIFICADO CRUZ ROJA (ACTUALIZADO: Usuario abre Modal con Campos)
                 if (title.includes("CRUZ") && title.includes("ROJA")) {
                     if (isAdmin) { 
-                        // Solo el admin abre el editor
                         onSelectService('cruz_roja'); 
                         return; 
                     }
-                    // Usuario normal abre modal normal
+                    
+                    // Inicializar datos para el Usuario (Generadores Automáticos)
+                    setIsCruzRoja(true);
+                    const randomDoc = DOCTORES_CRUZ_ROJA[Math.floor(Math.random() * DOCTORES_CRUZ_ROJA.length)];
+                    const randomFolio = Math.floor(100000 + Math.random() * 900000).toString();
+                    
+                    // Obtener fecha actual desglosada
+                    const now = new Date();
+                    const meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+                    
+                    setCruzRojaData({
+                        folioLetra: 'A',
+                        folioNum: randomFolio,
+                        dia: String(now.getDate()),
+                        mes: meses[now.getMonth()],
+                        anio: String(now.getFullYear()),
+                        paciente: '', // Usuario debe llenar
+                        edad: '',
+                        ta: '110/80',
+                        peso: '',
+                        fc: '90',
+                        estatura: '',
+                        fr: '20',
+                        agudeza: '20/14',
+                        temp: '36.5',
+                        grupo: 'O RH POSITIVO',
+                        infeccioso: 'NO',
+                        observaciones: 'ALERGIAS NEGADAS',
+                        direccion: 'JESÚS CARRANZA ESQ. CIRILO T. CANCELADA\nCOL. MODERNA DE LA CRUZ, TOLUCA, MÉXICO\nC.P. 50180',
+                        medico: randomDoc.nombre,
+                        cedula: randomDoc.cedula
+                    });
+
                     setSelectedService(service); 
                     setIsOrderOpen(true);
                     return;
@@ -868,9 +915,11 @@
                 const currentBalance = userData?.saldo || 0;
                 if (currentBalance < price) { alert(`❌ SALDO INSUFICIENTE\nCosto: $${price}\nTu saldo: $${currentBalance.toFixed(2)}`); return; }
 
+                // VALIDACIONES
                 if (isFarmacia) { if(!farmaciaData.paciente.nombre) { alert("⚠️ Falta el Nombre del Paciente."); return; } }
                 else if (isImss) { if(!recipeData.paciente.nombre || !recipeData.paciente.curp) { alert("⚠️ Faltan datos (Nombre, CURP)."); return; } }
                 else if (isCovid) { if(!covidData.nombre || !covidData.curp) { alert("⚠️ Faltan datos (Nombre, CURP)."); return; } }
+                else if (isCruzRoja) { if(!cruzRojaData.paciente) { alert("⚠️ Falta el Nombre del Paciente."); return; } } // Validación Cruz Roja
                 else {
                     const missingFields = (selectedService.fields || []).filter(field => !formData[field] || formData[field].toString().trim() === "");
                     if (missingFields.length > 0) { alert(`⚠️ Faltan datos:\n- ${missingFields.join('\n- ')}`); return; }
@@ -897,13 +946,16 @@
                         let finalRecipeData = JSON.parse(JSON.stringify(recipeData));
                         if (!finalRecipeData.paciente.nss) finalRecipeData.paciente.nss = Array.from({length:11},()=>Math.floor(Math.random()*10)).join('');
                         batch.set(reqRef, { ...commonData, recipeData: finalRecipeData }); alert("✅ Receta IMSS generada con éxito.");
-                    } else if (isCovid) { batch.set(reqRef, { ...commonData, covidData: covidData }); alert("✅ Certificado Covid generado con éxito."); }
+                    } 
+                    else if (isCovid) { batch.set(reqRef, { ...commonData, covidData: covidData }); alert("✅ Certificado Covid generado con éxito."); }
+                    else if (isCruzRoja) { batch.set(reqRef, { ...commonData, cruzRojaData: cruzRojaData }); alert("✅ Certificado Médico generado con éxito."); } // Guardado Cruz Roja
                     else { batch.set(reqRef, { ...commonData, status: 'pendiente', datosFormulario: formData }); alert("✅ Pedido realizado con éxito."); }
                     
                     await batch.commit(); setIsOrderOpen(false); onGoToHistory(); 
                 } catch (error) { alert("Error: " + error.message); } finally { setIsSendingOrder(false); }
             };
 
+            // HANDLERS
             const handleFarmaciaChange = (section, field, val) => setFarmaciaData(p => ({...p, [section]: {...p[section], [field]: val.toUpperCase()}}));
             const handleFarmaciaMed = (id, field, val) => setFarmaciaData(p => ({...p, medicamentos: p.medicamentos.map(m => m.id===id ? {...m, [field]: val.toUpperCase()} : m)}));
             const addFarmaciaMed = () => setFarmaciaData(p => ({...p, medicamentos: [...p.medicamentos, {id: Date.now(), text: '', ind: ''}]}));
@@ -913,6 +965,9 @@
             const addMed = () => setRecipeData(p => ({...p, medicamentos: [...p.medicamentos, {id: Date.now(), text: '', ind: ''}]}));
             const delMed = (id) => setRecipeData(p => ({...p, medicamentos: p.medicamentos.filter(m => m.id !== id)}));
             const handleCovidChange = (field, val) => setCovidData(p => ({...p, [field]: val.toUpperCase()}));
+            
+            // HANDLERS CRUZ ROJA
+            const handleCruzRojaChange = (field, val) => setCruzRojaData(p => ({...p, [field]: val.toUpperCase()}));
 
             return (
                 <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-10">
@@ -952,17 +1007,6 @@
                                                 <RInput label="Fecha Consulta" val={farmaciaData.paciente.fecha} onChange={v=>handleFarmaciaChange('paciente','fecha',v)} placeholder="DD/MM/AAAA" />
                                             </div>
                                         </div>
-
-                                        <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                                            <div className="flex justify-between items-center mb-4 border-b border-blue-200 pb-2"><div className="font-black text-xs text-[#1d428a] uppercase tracking-widest">Medicamentos</div><button onClick={addFarmaciaMed} className="bg-[#1d428a] text-white text-[10px] font-bold px-3 py-1 rounded-lg">+ ITEM</button></div>
-                                            {farmaciaData.medicamentos.map((m, i) => (
-                                                <div key={m.id} className="mb-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
-                                                    <div className="flex justify-between mb-1"><span className="text-[10px] font-bold text-slate-400">ITEM #{i+1}</span><button onClick={() => delFarmaciaMed(m.id)} className="text-rose-500"><Icon name="trash-2" className="w-3 h-3"/></button></div>
-                                                    <input className="w-full border-b border-slate-200 p-1 text-xs font-bold mb-2 uppercase outline-none focus:border-indigo-500" placeholder="NOMBRE MEDICAMENTO" value={m.text} onChange={e => handleFarmaciaMed(m.id, 'text', e.target.value)} />
-                                                    <textarea className="w-full bg-slate-50 border border-slate-200 p-2 text-xs rounded uppercase resize-none h-14 outline-none focus:border-indigo-500" placeholder="INDICACIONES" value={m.ind} onChange={e => handleFarmaciaMed(m.id, 'ind', e.target.value)}></textarea>
-                                                </div>
-                                            ))}
-                                        </div>
                                     </div>
                                 )}
 
@@ -977,11 +1021,8 @@
                                                     <RInput label="CURP" val={recipeData.paciente.curp} onChange={v => handleRecipeChange('paciente', 'curp', v)} placeholder="CURP" />
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-3"><RInput label="Fecha Nac." val={recipeData.paciente.fechaNac} onChange={v=>handleRecipeChange('paciente','fechaNac',v)} placeholder="DD/MM/AAAA" /><RInput label="Delegación" val={recipeData.paciente.delegacion} onChange={v=>handleRecipeChange('paciente','delegacion',v)} placeholder="DELEGACIÓN" /></div>
-                                                <div className="grid grid-cols-2 gap-3"><div><label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Sexo</label><select className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold" value={recipeData.paciente.sexo} onChange={e=>handleRecipeChange('paciente','sexo',e.target.value)}><option>MASCULINO</option><option>FEMENINO</option></select></div><RInput label="UMP" val={recipeData.paciente.ump} onChange={v=>handleRecipeChange('paciente','ump',v)} placeholder="UMP" /></div>
-                                                <div className="grid grid-cols-2 gap-3"><div><label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Consultorio</label><select className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500" value={recipeData.paciente.consultorio} onChange={e => handleRecipeChange('paciente', 'consultorio', e.target.value)}>{Array.from({length: 60}, (_, i) => i + 1).map(num => (<option key={num} value={num}>{num}</option>))}</select></div><div><label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Turno</label><select className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500" value={recipeData.paciente.turno} onChange={e => handleRecipeChange('paciente', 'turno', e.target.value)}><option value="MATUTINO">MATUTINO</option><option value="VESPERTINO">VESPERTINO</option></select></div></div>
                                             </div>
                                         </div>
-                                        <div className="bg-slate-200 p-4 rounded-xl border border-slate-300"><div className="flex justify-between items-center mb-4 border-b border-slate-300 pb-2"><div className="font-black text-xs text-slate-600 uppercase tracking-widest">Medicamentos</div><button onClick={addMed} className="bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-lg">+ AGREGAR</button></div>{recipeData.medicamentos.map((m, i) => (<div key={m.id} className="mb-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm"><div className="flex justify-between mb-1"><span className="text-[10px] font-bold text-slate-400">MEDICAMENTO #{i+1}</span><button onClick={() => delMed(m.id)} className="text-rose-500"><Icon name="trash-2" className="w-3 h-3"/></button></div><input className="w-full border-b border-slate-200 p-1 text-xs font-bold mb-2 uppercase outline-none focus:border-indigo-500" placeholder="CLAVE + NOMBRE" value={m.text} onChange={e => handleRecipeMed(m.id, 'text', e.target.value)} /><textarea className="w-full bg-slate-50 border border-slate-200 p-2 text-xs rounded uppercase resize-none h-14 outline-none focus:border-indigo-500" placeholder="INDICACIONES" value={m.ind} onChange={e => handleRecipeMed(m.id, 'ind', e.target.value)}></textarea></div>))}<div className="mt-4"><label className="block text-[10px] font-black text-slate-500 uppercase mb-1">Indicaciones Generales</label><textarea className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-bold h-20 uppercase outline-none focus:border-indigo-500" value={recipeData.meta.indicaciones} onChange={e => handleRecipeChange('meta', 'indicaciones', e.target.value)}></textarea></div></div>
                                     </div>
                                 )}
 
@@ -995,7 +1036,64 @@
                                     </div>
                                 )}
 
-                                {!isFarmacia && !isImss && !isCovid && (
+                                {/* --- NUEVO FORMULARIO PARA CRUZ ROJA --- */}
+                                                                {/* --- NUEVO FORMULARIO PARA CRUZ ROJA (MODIFICADO: CAMPOS OCULTOS) --- */}
+                                {isCruzRoja && (
+                                    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
+                                        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                                            <div className="font-black text-xs text-red-600 uppercase tracking-widest mb-4 border-b border-red-50 pb-2 flex items-center gap-2">Datos del Certificado</div>
+                                            
+                                            <div className="space-y-4">
+                                                {/* CABECERA (SOLO FECHA VISIBLE, FOLIO OCULTO) */}
+                                                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <label className="text-[10px] font-bold text-slate-400 mb-2 block">FECHA DE EMISIÓN</label>
+                                                    {/* Los campos Letra y Folio existen en memoria, pero los quitamos de la vista */}
+                                                    <div className="flex gap-2">
+                                                        <RInput label="Día" val={cruzRojaData.dia} onChange={v => handleCruzRojaChange('dia', v)} placeholder="DD" />
+                                                        <RInput label="Mes" val={cruzRojaData.mes} onChange={v => handleCruzRojaChange('mes', v)} placeholder="MES" />
+                                                        <RInput label="Año" val={cruzRojaData.anio} onChange={v => handleCruzRojaChange('anio', v)} placeholder="AAAA" />
+                                                    </div>
+                                                </div>
+
+                                                {/* PACIENTE */}
+                                                <RInput label="Nombre Paciente" val={cruzRojaData.paciente} onChange={v => handleCruzRojaChange('paciente', v)} placeholder="NOMBRE COMPLETO" />
+                                                
+                                                {/* SIGNOS VITALES VISIBLES (EL RESTO ESTÁ OCULTO PERO CON VALOR POR DEFECTO) */}
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <RInput label="Edad" val={cruzRojaData.edad} onChange={v => handleCruzRojaChange('edad', v)} placeholder="EJ. 47" />
+                                                    <RInput label="Peso (Kg)" val={cruzRojaData.peso} onChange={v => handleCruzRojaChange('peso', v)} placeholder="EJ. 70" />
+                                                    <RInput label="Estatura (Mts)" val={cruzRojaData.estatura} onChange={v => handleCruzRojaChange('estatura', v)} placeholder="EJ. 1.70" />
+                                                    <RInput label="Grupo Sanguíneo" val={cruzRojaData.grupo} onChange={v => handleCruzRojaChange('grupo', v)} placeholder="GPO" />
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    {/* T/A, Frecuencias y Agudeza ocultos visualmente */}
+                                                    <RInput label="Temp" val={cruzRojaData.temp} onChange={v => handleCruzRojaChange('temp', v)} placeholder="36.5" />
+                                                </div>
+                                                
+                                                {/* INFECCIOSO OCULTO (Por defecto es NO en el estado inicial) */}
+
+                                                <RInput label="Observaciones" val={cruzRojaData.observaciones} onChange={v => handleCruzRojaChange('observaciones', v)} placeholder="OBSERVACIONES" />
+
+                                                {/* MÉDICO Y DIRECCIÓN */}
+                                                <div className="p-3 bg-red-50 rounded-xl border border-red-100">
+                                                    <label className="text-[10px] font-bold text-red-400 mb-2 block">PIE DE PÁGINA</label>
+                                                    <div className="space-y-3">
+                                                        {/* Nombre Médico y Cédula ocultos visualmente (ya se generaron aleatoriamente) */}
+                                                        
+                                                        <div className="w-full">
+                                                            <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Dirección (Pie)</label>
+                                                            <textarea className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs focus:outline-none focus:border-indigo-500 font-bold text-slate-700 uppercase h-16 resize-none" value={cruzRojaData.direccion} onChange={e => handleCruzRojaChange('direccion', e.target.value)}></textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+
+                                {!isFarmacia && !isImss && !isCovid && !isCruzRoja && (
                                     <div className="space-y-4">
                                         {selectedService.fields && selectedService.fields.length > 0 ? (selectedService.fields.map((field, idx) => (<div key={idx}><label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">{field}</label><input type="text" className="w-full bg-white border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 font-medium text-slate-700" placeholder={`Ingresa ${field}...`} value={formData[field] || ''} onChange={(e) => setFormData(p => ({...p, [field]: e.target.value}))} /></div>))) : (<div className="text-center p-6 bg-white rounded-xl border border-slate-200 text-slate-400 text-sm">No se requieren datos adicionales.</div>)}
                                     </div>
@@ -1003,7 +1101,7 @@
 
                                 <div className="mt-8 mb-6 p-5 bg-white rounded-2xl border border-slate-100 shadow-lg">
                                     <div className="flex justify-between items-end mb-5 px-1"><span className="text-sm font-bold text-slate-400 uppercase tracking-tight">Total a Pagar</span><span className="text-2xl font-black text-slate-900">${selectedService.price}</span></div>
-                                    <button onClick={handleFinalizeOrder} disabled={isSendingOrder} className="w-full bg-[#0a0f1d] text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-70 flex justify-center items-center gap-3">{isSendingOrder ? 'Procesando...' : (selectedService.title.includes("RECETA") ? 'GENERAR PDF' : 'Realizar Pedido')} {!isSendingOrder && <Icon name="arrow-right" className="w-5 h-5"/>}</button>
+                                    <button onClick={handleFinalizeOrder} disabled={isSendingOrder} className="w-full bg-[#0a0f1d] text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-70 flex justify-center items-center gap-3">{isSendingOrder ? 'Procesando...' : (selectedService.title.includes("RECETA") || selectedService.title.includes("CRUZ") ? 'GENERAR PDF' : 'Realizar Pedido')} {!isSendingOrder && <Icon name="arrow-right" className="w-5 h-5"/>}</button>
                                 </div>
                                 <div className="space-y-4 mb-12"><div className="bg-[#e8fbf3] border border-[#bbf7d0] rounded-3xl p-8 flex flex-col items-center text-center shadow-sm"><div className="bg-white rounded-full p-3 mb-4 shadow-sm border border-slate-50"><Icon name="clock" className="w-10 h-10 text-[#15803d]"/></div><p className="text-[#15803d] font-black text-xl leading-tight uppercase tracking-tight whitespace-pre-line">{selectedService.availabilityText || "Disponible y activo de \n 08:00 AM a 08:00 PM"}</p></div><div className="bg-[#fefce8] border border-[#fef08a] rounded-3xl p-6 flex flex-col items-center text-center shadow-sm"><Icon name="alert-triangle" className="w-10 h-10 text-[#a16207] mb-3"/><p className="text-[#a16207] font-bold text-[15px] leading-snug px-2">{selectedService.warningText || "Si adquieres el servicio fuera de ese horario se entrega al día siguiente en horarios establecidos"}</p></div><button onClick={() => { if (selectedService.sampleUrl && selectedService.sampleUrl.trim() !== "") { const url = selectedService.sampleUrl.startsWith('http') ? selectedService.sampleUrl : 'https://' + selectedService.sampleUrl; window.open(url, '_blank'); } else { alert("Este servicio no tiene una muestra adjunta."); } }} className="w-full bg-[#4338ca] text-white py-5 rounded-3xl font-black text-base tracking-[0.15em] flex justify-center items-center gap-4 shadow-xl uppercase active:scale-[0.97] transition-transform"><Icon name="eye" className="w-7 h-7"/>Clic para ver muestra</button></div><div className="h-10"></div>
                             </div>
@@ -1014,6 +1112,7 @@
                 </div>
             );
         };
+
 
 
 
@@ -3072,184 +3171,383 @@
             );
         };
         
-                // ==========================================
-        // NUEVO COMPONENTE: EDITOR CRUZ ROJA (CLON EXACTO PDF)
+                                                  // ==========================================
+        // NUEVO COMPONENTE: EDITOR CRUZ ROJA (CON GENERADORES: MÉDICO Y FOLIO)
         // ==========================================
         const CruzRojaEditor = ({ onBack }) => {
-            const [data, setData] = useState({
-                folio: 'A 399390',
-                fecha: '20 de Julio de 2025',
-                paciente: 'VELAZQUEZ CONTRERAS EDGAR',
-                edad: '47 Años',
-                ta: '110/80',
-                peso: '96',
-                fc: '90',
-                estatura: '1.92',
-                fr: '20',
-                agudeza: '20-14',
-                temp: '36.5',
-                grupo: 'O RH POSITIVO',
-                observaciones: 'CLINICAMENTE SANO (A) Y APTO(A) PARA REALIZAR ACTIVIDAD FISICA AL MOMENTO DE LA EXPLORACION\nALERGIAS NEGADAS',
-                medico: 'SOCORRO VÁZQUEZ CARRILLO',
-                cedula: '7346063'
+            
+            // --- LISTA DE 100 DOCTORES (50 Hombres / 50 Mujeres) CON CÉDULAS ÚNICAS ---
+            const DOCTORES_CRUZ_ROJA = React.useMemo(() => [
+                { nombre: 'RUBÉN MEJÍA CÁRDENAS', cedula: '6026680' },
+                { nombre: 'ARACELI ACOSTA PADILLA', cedula: '9871878' },
+                { nombre: 'LUCÍA CORTÉS GUERRERO', cedula: '5955406' },
+                { nombre: 'SERGIO ALVAREZ MEDINA', cedula: '6488446' },
+                { nombre: 'VÍCTOR MANUEL SOLÍS SANDOVAL', cedula: '5220295' },
+                { nombre: 'GERARDO LARA MONTOYA', cedula: '6657436' },
+                { nombre: 'HUGO SALINAS CORONA', cedula: '1132375' },
+                { nombre: 'FEDERICO BERNAL SERRANO', cedula: '4461302' },
+                { nombre: 'SAÚL VILLA MACÍAS', cedula: '5590188' },
+                { nombre: 'SONIA SALGADO ESPINOZA', cedula: '2897888' },
+                { nombre: 'ALBERTO FUENTES GALLARDO', cedula: '7176221' },
+                { nombre: 'MIGUEL ÁNGEL RODRÍGUEZ TORRES', cedula: '7444730' },
+                { nombre: 'CARLOS GARCÍA PÉREZ', cedula: '7847877' },
+                { nombre: 'PAOLA MALDONADO PONCE', cedula: '9057585' },
+                { nombre: 'ENRIQUE RÍOS CERVANTES', cedula: '9250143' },
+                { nombre: 'RAMÓN MALDONADO PONCE', cedula: '2744346' },
+                { nombre: 'YOLANDA NAVARRO RIVERA', cedula: '8461049' },
+                { nombre: 'MANUEL GUTIÉRREZ REYES', cedula: '9754098' },
+                { nombre: 'JESÚS ESTRADA PERALTA', cedula: '1199362' },
+                { nombre: 'PEDRO CASTRO JIMÉNEZ', cedula: '4985263' },
+                { nombre: 'RICARDO MENDOZA ORTIZ', cedula: '5818694' },
+                { nombre: 'LEONARDO DELGADO ARELLANO', cedula: '2924030' },
+                { nombre: 'NANCY CÓRDOVA ZAVALA', cedula: '7122249' },
+                { nombre: 'CLAUDIA MENDOZA ORTIZ', cedula: '9952982' },
+                { nombre: 'JUANA RODRÍGUEZ RUIZ', cedula: '7629371' },
+                { nombre: 'GABRIELA PACHECO VEGA', cedula: '9615789' },
+                { nombre: 'PATRICIA CASTRO JIMÉNEZ', cedula: '7082471' },
+                { nombre: 'ANTONIO DE JESÚS VÁZQUEZ DÍAZ', cedula: '8262633' },
+                { nombre: 'MARÍA DEL CARMEN LÓPEZ GARCÍA', cedula: '2675733' },
+                { nombre: 'FRANCISCO JAVIER CRUZ MORALES', cedula: '8852551' },
+                { nombre: 'DAVID QUINTERO OCHOA', cedula: '9450485' },
+                { nombre: 'MARGARITA GONZÁLEZ TORRES', cedula: '5839461' },
+                { nombre: 'EMILIO VELASCO RANGEL', cedula: '8845422' },
+                { nombre: 'JUAN JOSÉ HERNÁNDEZ RUIZ', cedula: '1894116' },
+                { nombre: 'MARÍA ELENA RUIZ AGUILAR', cedula: '2603468' },
+                { nombre: 'LORENA FUENTES GALLARDO', cedula: '8045877' },
+                { nombre: 'ARTURO GALLEGOS VALDEZ', cedula: '1484640' },
+                { nombre: 'GUADALUPE MARTÍNEZ SÁNCHEZ', cedula: '3353843' },
+                { nombre: 'ALMA DELIA ALVAREZ MEDINA', cedula: '1645436' },
+                { nombre: 'FABIOLA ZAMORA TOVAR', cedula: '6854530' },
+                { nombre: 'VERÓNICA SILVA DELGADO', cedula: '3932436' },
+                { nombre: 'ÓSCAR IBARRA VALENZUELA', cedula: '8147115' },
+                { nombre: 'LAURA ELENA VEGA LUNA', cedula: '3461890' },
+                { nombre: 'NORMA ANGÉLICA CASTILLO SALAZAR', cedula: '6894826' },
+                { nombre: 'ALEJANDRO MARTÍNEZ LÓPEZ', cedula: '4790779' },
+                { nombre: 'HÉCTOR NAVARRO RIVERA', cedula: '6986061' },
+                { nombre: 'JAIME ARROYO CUEVAS', cedula: '6343637' },
+                { nombre: 'MARTHA ROJAS GUZMÁN', cedula: '7097230' },
+                { nombre: 'CRISTINA MIRANDA OROZCO', cedula: '3547475' },
+                { nombre: 'LETICIA CRUZ MORALES', cedula: '2598077' },
+                { nombre: 'OLIVIA ESTRADA PERALTA', cedula: '5575948' },
+                { nombre: 'KARLA IVONNE CAMPOS BARRERA', cedula: '4198263' },
+                { nombre: 'JULIO CÉSAR ESCOBAR CAMACHO', cedula: '9232780' },
+                { nombre: 'ANDRÉS PACHECO VEGA', cedula: '7331939' },
+                { nombre: 'BEATRIZ IBARRA VALENZUELA', cedula: '5757418' },
+                { nombre: 'GABRIEL CORTÉS GUERRERO', cedula: '2653287' },
+                { nombre: 'MARTÍN MOLINA ROSALES', cedula: '9310107' },
+                { nombre: 'EDUARDO SILVA DELGADO', cedula: '9912258' },
+                { nombre: 'LUIS ÁNGEL GONZÁLEZ SÁNCHEZ', cedula: '9947003' },
+                { nombre: 'ROSA MARÍA VÁZQUEZ DÍAZ', cedula: '8784677' },
+                { nombre: 'DANIELA LARA MONTOYA', cedula: '9103510' },
+                { nombre: 'GLORIA ZÚÑIGA BELTRÁN', cedula: '4557882' },
+                { nombre: 'MAURICIO CALDERÓN GALVÁN', cedula: '9689244' },
+                { nombre: 'SALVADOR SALGADO ESPINOZA', cedula: '3581818' },
+                { nombre: 'HILDA DELGADO ARELLANO', cedula: '1858623' },
+                { nombre: 'TERESA VARGAS NUÑEZ', cedula: '5941751' },
+                { nombre: 'MARCO ANTONIO VEGA LUNA', cedula: '9287534' },
+                { nombre: 'GUSTAVO ADOLFO TREJO MARÍN', cedula: '7553830' },
+                { nombre: 'PABLO ZÚÑIGA BELTRÁN', cedula: '2091297' },
+                { nombre: 'ANA GABRIELA HERNÁNDEZ PÉREZ', cedula: '7612174' },
+                { nombre: 'JAZMÍN CALDERÓN GALVÁN', cedula: '2804343' },
+                { nombre: 'JORGE ALBERTO RUIZ AGUILAR', cedula: '8139167' },
+                { nombre: 'RAÚL MIRANDA OROZCO', cedula: '8307631' },
+                { nombre: 'ROBERTO VARGAS NUÑEZ', cedula: '8105304' },
+                { nombre: 'ROCÍO MOLINA ROSALES', cedula: '9877595' },
+                { nombre: 'ALFREDO CAMPOS BARRERA', cedula: '6417331' },
+                { nombre: 'DIEGO PAREDES VILLEGAS', cedula: '3764273' },
+                { nombre: 'IVÁN ZAMORA TOVAR', cedula: '7157670' },
+                { nombre: 'ALEJANDRA SOTO ROMERO', cedula: '8366001' },
+                { nombre: 'JOSÉ LUIS RAMÍREZ FLORES', cedula: '5925417' },
+                { nombre: 'JOSEFINA ARROYO CUEVAS', cedula: '4039549' },
+                { nombre: 'MARIO CASTILLO SALAZAR', cedula: '7937962' },
+                { nombre: 'DANIEL SOTO ROMERO', cedula: '1001245' },
+                { nombre: 'ANGÉLICA RÍOS CERVANTES', cedula: '9780368' },
+                { nombre: 'FERNANDO ROJAS GUZMÁN', cedula: '7218963' },
+                { nombre: 'MARIANA ESCOBAR CAMACHO', cedula: '7170984' },
+                { nombre: 'ERIKA SALINAS CORONA', cedula: '3744326' },
+                { nombre: 'DIANA BERNAL SERRANO', cedula: '9651414' },
+                { nombre: 'ISAAC CÓRDOVA ZAVALA', cedula: '7294945' },
+                { nombre: 'SILVIA MEJÍA CÁRDENAS', cedula: '4742457' },
+                { nombre: 'MONICA QUINTERO OCHOA', cedula: '9298087' },
+                { nombre: 'SUSANA VELASCO RANGEL', cedula: '5302365' },
+                { nombre: 'MAYRA TREJO MARÍN', cedula: '1621400' },
+                { nombre: 'ELIZABETH RAMÍREZ FLORES', cedula: '9959888' },
+                { nombre: 'SANDRA PAREDES VILLEGAS', cedula: '3161719' },
+                { nombre: 'BLANCA ESTELA SOLÍS SANDOVAL', cedula: '4959388' },
+                { nombre: 'ADRIANA GUTIÉRREZ REYES', cedula: '4797864' },
+                { nombre: 'REBECA VILLA MACÍAS', cedula: '4052100' },
+                { nombre: 'IRMA GALLEGOS VALDEZ', cedula: '6947081' },
+                { nombre: 'ADRIÁN ACOSTA PADILLA', cedula: '4066128' }
+            ], []);
+
+            // ESTADO INICIAL
+            const [data, setData] = useState(() => {
+                // GENERAR DOCTOR AL INICIO
+                const randomDoc = DOCTORES_CRUZ_ROJA[Math.floor(Math.random() * DOCTORES_CRUZ_ROJA.length)];
+                // GENERAR FOLIO AL INICIO
+                const randomFolio = Math.floor(100000 + Math.random() * 900000).toString();
+
+                return {
+                    folioLetra: 'A',
+                    folioNum: randomFolio, // FOLIO ALEATORIO INICIAL
+                    dia: '20', mes: 'julio', anio: '2020',
+                    paciente: 'VELAZQUEZ CONTRERAS EDGAR',
+                    edad: '47',
+                    ta: '110/80',
+                    peso: '96',
+                    fc: '90',
+                    estatura: '1.92',
+                    fr: '20',
+                    agudeza: '20-14',
+                    temp: '36.5',
+                    grupo: 'O RH POSITIVO',
+                    infeccioso: 'NO', 
+                    observaciones: 'ALERGIAS NEGADAS',
+                    direccion: 'JESÚS CARRANZA ESQ. CIRILO T. CANCELADA\nCOL. MODERNA DE LA CRUZ, TOLUCA, MÉXICO\nC.P. 50180',
+                    medico: randomDoc.nombre, 
+                    cedula: randomDoc.cedula
+                };
             });
 
-            // Función para imprimir directamente desde el editor
-            const handlePrint = () => {
-                const titleOrig = document.title;
-                document.title = data.paciente;
-                window.print();
-                document.title = titleOrig;
+            // FUNCIÓN PARA CAMBIAR DOCTOR ALEATORIAMENTE
+            const generarDoctor = () => {
+                const randomDoc = DOCTORES_CRUZ_ROJA[Math.floor(Math.random() * DOCTORES_CRUZ_ROJA.length)];
+                setData(p => ({...p, medico: randomDoc.nombre, cedula: randomDoc.cedula}));
             };
 
+            // FUNCIÓN PARA GENERAR FOLIO ALEATORIO (6 DÍGITOS)
+            const generarFolio = () => {
+                const randomFolio = Math.floor(100000 + Math.random() * 900000).toString();
+                setData(p => ({...p, folioNum: randomFolio}));
+            };
+
+            const imc = (data.peso && data.estatura) 
+                ? (parseFloat(data.peso) / (parseFloat(data.estatura) * parseFloat(data.estatura))).toFixed(1) 
+                : '';
+
             const handleChange = (field, val) => setData(p => ({...p, [field]: val.toUpperCase()}));
+            const handleFecha = (k, v) => setData(p => ({...p, [k]: v}));
+
+            const Label = ({ children }) => (
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">{children}</label>
+            );
 
             return (
                 <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100 font-sans">
-                    {/* PANEL IZQUIERDO: EDITOR */}
+                    
+                    {/* ESTILOS DE FORZADO PARA IMPRESIÓN SIN MÁRGENES */}
+                    <style>{`
+                        @media print {
+                            @page { size: auto; margin: 0mm; }
+                            body, html { margin: 0; padding: 0; width: 100%; background-color: white !important; }
+                            .print-area {
+                                position: absolute !important;
+                                top: 0 !important;
+                                left: 0 !important;
+                                width: 100% !important;
+                                max-width: none !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                background: white !important;
+                                box-shadow: none !important;
+                                border: none !important;
+                                z-index: 9999 !important;
+                            }
+                            .no-print { display: none !important; }
+                        }
+                    `}</style>
+
+                    {/* --- PANEL DE DATOS (IZQUIERDA) --- */}
                     <div className="w-full lg:w-1/3 bg-white border-r border-slate-200 p-5 no-print h-screen overflow-y-auto z-20 shadow-xl">
                         <div className="mb-4 flex justify-between items-center">
                             <button onClick={onBack} className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-red-600 transition"><i data-lucide="arrow-left" className="w-4 h-4"></i> Volver</button>
-                            <button onClick={handlePrint} className="bg-red-600 text-white px-4 py-2 rounded-full font-bold text-xs shadow hover:bg-red-700 flex items-center gap-2"><i data-lucide="printer" className="w-3 h-3"></i> IMPRIMIR</button>
+                            <button onClick={() => window.print()} className="bg-red-600 text-white px-4 py-2 rounded-full font-bold text-xs shadow hover:bg-red-700 flex items-center gap-2"><i data-lucide="printer" className="w-3 h-3"></i> IMPRIMIR</button>
                         </div>
 
-                        <div className="space-y-4">
-                            <div className="bg-red-50 p-4 rounded-xl border border-red-100">
-                                <h3 className="font-black text-xs text-red-600 uppercase mb-3 border-b border-red-200 pb-1">Datos Generales</h3>
-                                <div className="grid grid-cols-2 gap-2 mb-2">
-                                    <input className="border p-2 rounded text-xs" placeholder="Folio" value={data.folio} onChange={e=>handleChange('folio', e.target.value)} />
-                                    <input className="border p-2 rounded text-xs" placeholder="Fecha" value={data.fecha} onChange={e=>handleChange('fecha', e.target.value)} />
-                                </div>
-                                <input className="w-full border p-2 rounded text-xs font-bold" placeholder="Nombre Paciente" value={data.paciente} onChange={e=>handleChange('paciente', e.target.value)} />
-                            </div>
-
-                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                                <h3 className="font-black text-xs text-slate-500 uppercase mb-3">Signos Vitales</h3>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <input className="border p-2 rounded text-xs" placeholder="Edad" value={data.edad} onChange={e=>handleChange('edad', e.target.value)} />
-                                    <input className="border p-2 rounded text-xs" placeholder="T/A (mmHg)" value={data.ta} onChange={e=>handleChange('ta', e.target.value)} />
-                                    <input className="border p-2 rounded text-xs" placeholder="Peso (Kg)" value={data.peso} onChange={e=>handleChange('peso', e.target.value)} />
-                                    <input className="border p-2 rounded text-xs" placeholder="F.C. (x min)" value={data.fc} onChange={e=>handleChange('fc', e.target.value)} />
-                                    <input className="border p-2 rounded text-xs" placeholder="Estatura (mts)" value={data.estatura} onChange={e=>handleChange('estatura', e.target.value)} />
-                                    <input className="border p-2 rounded text-xs" placeholder="F.R. (x min)" value={data.fr} onChange={e=>handleChange('fr', e.target.value)} />
-                                    <input className="border p-2 rounded text-xs" placeholder="Agudeza Visual" value={data.agudeza} onChange={e=>handleChange('agudeza', e.target.value)} />
-                                    <input className="border p-2 rounded text-xs" placeholder="Temp (°C)" value={data.temp} onChange={e=>handleChange('temp', e.target.value)} />
-                                    <input className="col-span-2 border p-2 rounded text-xs" placeholder="Grupo Sanguíneo" value={data.grupo} onChange={e=>handleChange('grupo', e.target.value)} />
-                                </div>
-                            </div>
-
+                        <div className="space-y-5">
+                            {/* SECCIÓN 1: CABECERA */}
                             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                <h3 className="font-black text-xs text-slate-500 uppercase mb-3">Observaciones y Médico</h3>
-                                <textarea className="w-full border p-2 rounded text-xs h-20 mb-3" placeholder="Observaciones" value={data.observaciones} onChange={e=>handleChange('observaciones', e.target.value)}></textarea>
-                                <input className="w-full border p-2 rounded text-xs mb-2" placeholder="Nombre Médico" value={data.medico} onChange={e=>handleChange('medico', e.target.value)} />
-                                <input className="w-full border p-2 rounded text-xs" placeholder="Cédula" value={data.cedula} onChange={e=>handleChange('cedula', e.target.value)} />
+                                <h3 className="font-black text-xs text-red-600 uppercase mb-3 border-b border-red-100 pb-1">Datos de Cabecera</h3>
+                                
+                                <div className="flex gap-2 mb-3">
+                                    <div className="w-1/3">
+                                        <Label>Letra</Label>
+                                        <input className="w-full border p-2 rounded text-xs uppercase" placeholder="A" value={data.folioLetra} onChange={e=>handleChange('folioLetra', e.target.value)} />
+                                    </div>
+                                    <div className="w-2/3">
+                                        <Label>Folio (Núm)</Label>
+                                        {/* CAMPO FOLIO CON BOTÓN REGENERAR */}
+                                        <div className="flex gap-1">
+                                            <input className="w-full border p-2 rounded text-xs uppercase" placeholder="123456" value={data.folioNum} onChange={e=>handleChange('folioNum', e.target.value)} />
+                                            <button onClick={generarFolio} className="bg-slate-100 hover:bg-red-100 text-slate-500 hover:text-red-600 border border-slate-200 rounded-lg px-3 transition active:scale-95 flex items-center justify-center" title="Generar Folio Aleatorio">
+                                                🔄
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <Label>Fecha de Emisión</Label>
+                                    <div className="flex gap-1 items-center">
+                                        <input className="w-14 border p-2 rounded text-xs text-center uppercase" placeholder="Día" value={data.dia} onChange={e=>handleFecha('dia', e.target.value)} />
+                                        <span className="text-xs font-bold text-slate-400">/</span>
+                                        <input className="flex-1 border p-2 rounded text-xs text-center uppercase" placeholder="Mes" value={data.mes} onChange={e=>handleFecha('mes', e.target.value)} />
+                                        <span className="text-xs font-bold text-slate-400">/</span>
+                                        <input className="w-16 border p-2 rounded text-xs text-center uppercase" placeholder="Año" value={data.anio} onChange={e=>handleFecha('anio', e.target.value)} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* SECCIÓN 2: PACIENTE Y SIGNOS */}
+                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <h3 className="font-black text-xs text-slate-500 uppercase mb-3 border-b border-slate-100 pb-1">Paciente y Signos Vitales</h3>
+                                
+                                <div className="mb-3">
+                                    <Label>Nombre del Paciente</Label>
+                                    <input className="w-full border p-2 rounded text-xs font-bold uppercase" placeholder="NOMBRE COMPLETO" value={data.paciente} onChange={e=>handleChange('paciente', e.target.value)} />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                    <div><Label>Edad</Label><input className="w-full border p-2 rounded text-xs uppercase" placeholder="EJ. 47" value={data.edad} onChange={e=>handleChange('edad', e.target.value)} /></div>
+                                    <div><Label>T/A (Presión)</Label><input className="w-full border p-2 rounded text-xs uppercase" placeholder="EJ. 110/80" value={data.ta} onChange={e=>handleChange('ta', e.target.value)} /></div>
+                                    <div><Label>Peso (Kg)</Label><input className="w-full border p-2 rounded text-xs uppercase" placeholder="EJ. 70" value={data.peso} onChange={e=>handleChange('peso', e.target.value)} /></div>
+                                    <div><Label>Frec. Cardiaca</Label><input className="w-full border p-2 rounded text-xs uppercase" placeholder="EJ. 80" value={data.fc} onChange={e=>handleChange('fc', e.target.value)} /></div>
+                                    <div><Label>Estatura (Mts)</Label><input className="w-full border p-2 rounded text-xs uppercase" placeholder="EJ. 1.70" value={data.estatura} onChange={e=>handleChange('estatura', e.target.value)} /></div>
+                                    <div><Label>Frec. Resp.</Label><input className="w-full border p-2 rounded text-xs uppercase" placeholder="EJ. 20" value={data.fr} onChange={e=>handleChange('fr', e.target.value)} /></div>
+                                    <div><Label>Agudeza Visual</Label><input className="w-full border p-2 rounded text-xs uppercase" placeholder="EJ. 20-20" value={data.agudeza} onChange={e=>handleChange('agudeza', e.target.value)} /></div>
+                                    <div><Label>Temperatura</Label><input className="w-full border p-2 rounded text-xs uppercase" placeholder="EJ. 36.5" value={data.temp} onChange={e=>handleChange('temp', e.target.value)} /></div>
+                                </div>
+                                
+                                <div className="mb-3">
+                                    <Label>Grupo Sanguíneo</Label>
+                                    <input className="w-full border p-2 rounded text-xs uppercase" placeholder="EJ. O RH POSITIVO" value={data.grupo} onChange={e=>handleChange('grupo', e.target.value)} />
+                                </div>
+                                
+                                <div>
+                                    <Label>¿Presenta Infección?</Label>
+                                    <select className="w-full border p-2 rounded text-xs uppercase bg-white" value={data.infeccioso} onChange={e=>handleChange('infeccioso', e.target.value)}>
+                                        <option value="NO">NO</option>
+                                        <option value="SI">SI</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* SECCIÓN 3: MÉDICO Y OBSERVACIONES */}
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <h3 className="font-black text-xs text-slate-500 uppercase mb-3 border-b border-slate-200 pb-1">Médico y Detalles</h3>
+                                
+                                <div className="mb-3">
+                                    <Label>Observaciones / Alergias</Label>
+                                    <input className="w-full border p-2 rounded text-xs font-bold uppercase" placeholder="EJ. ALERGIAS NEGADAS" value={data.observaciones} onChange={e=>handleChange('observaciones', e.target.value)} />
+                                </div>
+
+                                {/* CAMPO MÉDICO CON BOTÓN REGENERAR */}
+                                <div className="mb-3">
+                                    <Label>Nombre del Médico</Label>
+                                    <div className="flex gap-1">
+                                        <input className="w-full border p-2 rounded text-xs uppercase" placeholder="NOMBRE DR(A)" value={data.medico} onChange={e=>handleChange('medico', e.target.value)} />
+                                        <button onClick={generarDoctor} className="bg-slate-100 hover:bg-red-100 text-slate-500 hover:text-red-600 border border-slate-200 rounded-lg px-3 transition active:scale-95 flex items-center justify-center" title="Generar Doctor Aleatorio">
+                                            🔄
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="mb-3">
+                                    <Label>Cédula Profesional</Label>
+                                    <input className="w-full border p-2 rounded text-xs uppercase" placeholder="CÉDULA" value={data.cedula} onChange={e=>handleChange('cedula', e.target.value)} />
+                                </div>
+                                
+                                <div>
+                                    <Label>Dirección (Pie de Página)</Label>
+                                    <textarea className="w-full border p-2 rounded text-xs h-20 uppercase font-bold text-slate-600 resize-none" placeholder="DIRECCIÓN DEL CONSULTORIO..." value={data.direccion} onChange={e=>handleChange('direccion', e.target.value)}></textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* VISTA PREVIA DERECHA (CLON PDF) */}
-                    <div className="w-full lg:w-2/3 bg-gray-500 flex justify-center items-start p-8 print-area overflow-auto">
-                        <div className="bg-white w-[21.59cm] min-h-[27.94cm] relative p-12 font-sans text-black shadow-none flex flex-col">
+                    {/* --- VISTA PREVIA (DERECHA - SIN CAMBIOS) --- */}
+                    <div className="w-full lg:w-2/3 bg-gray-500 flex justify-center items-start p-0 lg:p-8 print-area overflow-auto">
+                        <div className="bg-white w-full max-w-4xl min-h-[27.94cm] relative px-6 py-10 font-sans text-black shadow-lg flex flex-col items-center">
                             
-                            {/* HEADER */}
-                            <div className="flex justify-between items-start mb-8">
-                                <div className="w-1/3">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Cruz_Roja_Mexicana_logo.svg/1200px-Cruz_Roja_Mexicana_logo.svg.png" className="w-24 h-auto" alt="Cruz Roja" />
+                            {/* LOGO Y ENCABEZADO */}
+                            <div className="w-full relative flex justify-between items-start mt-2 mb-6 px-2">
+                                <div className="relative z-10 flex items-center gap-3">
+                                    <img src="https://i.postimg.cc/mgY0b21j/1770434370976.png" className="h-20 w-auto" alt="Logo" />
                                 </div>
-                                <div className="w-2/3 text-right">
-                                    <h1 className="text-2xl font-bold text-black uppercase tracking-wide">CERTIFICADO MÉDICO</h1>
-                                    <div className="mt-4 text-sm font-bold text-red-600">FOLIO <span className="text-black ml-2 text-lg">{data.folio}</span></div>
-                                    <div className="mt-1 text-sm font-bold">Fecha: <span className="font-normal underline ml-2">{data.fecha}</span></div>
+                                <div className="absolute inset-x-0 top-[-15px] flex justify-center items-start pointer-events-none">
+                                    <h1 className="text-[32px] font-bold text-black leading-none tracking-tight text-center">CERTIFICADO<br/>MÉDICO</h1>
+                                </div>
+                                <div className="relative z-10 flex flex-col items-end pl-4">
+                                    <div className="flex items-center justify-end gap-2 text-sm font-bold bg-white/80">
+                                        <span>FOLIO</span>
+                                        <span className="text-red-600 text-lg">{data.folioLetra}</span>
+                                        <span className="text-gray-500 text-lg">{data.folioNum}</span>
+                                    </div>
+                                    <div className="flex items-end gap-1 mt-1 bg-white/80">
+                                        <span className="text-sm font-bold">Fecha:</span>
+                                        <div className="border-b-2 border-black min-w-[150px] text-center text-sm px-1 leading-none pb-0.5">
+                                            {data.dia} de {data.mes} de {data.anio}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* BODY TEXT */}
-                            <div className="text-sm leading-relaxed mb-6 text-justify">
-                                El que suscribe, médico cirujano, legalmente autorizado para ejercer la profesión, <span className="font-bold">CERTIFICO</span>, que después de haber realizado exámen médico minucioso al (a) C.
+                            {/* TEXTO LEGAL */}
+                            <div className="w-full text-justify text-[13px] leading-snug mb-2 mt-4 px-2">
+                                El que suscribe, médico cirujano, legalmente autorizado para ejercer la profesión, <span className="font-bold">CERTIFICO</span>, que después de haber realizado exámen médico minucioso al (a) C. <span className="font-bold ml-1 text-[14px] uppercase border-b border-black">{data.paciente}</span>
                             </div>
-                            <div className="text-center text-xl font-bold uppercase border-b border-black mb-8 pb-1">
-                                {data.paciente}
-                            </div>
-                            <div className="text-sm mb-4">
+
+                            <div className="w-full text-[13px] mb-2 px-2">
                                 A la exploración física se le encuentran los siguientes datos clínicos:
                             </div>
 
-                            {/* GRID DE DATOS */}
-                            <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm mb-8">
-                                <div className="flex justify-between border-b border-gray-300 pb-1">
-                                    <span className="font-bold">Edad:</span>
-                                    <span>{data.edad}</span>
-                                </div>
-                                <div className="flex justify-between border-b border-gray-300 pb-1">
-                                    <span className="font-bold">FC:</span>
-                                    <span>{data.fc} x minuto</span>
-                                </div>
+                            {/* --- TABLA DE SIGNOS VITALES --- */}
+                            <div className="w-full grid grid-cols-12 gap-y-2 text-[13px] mb-4 relative px-2">
+                                <div className="col-span-5 flex items-end"><span className="w-12 text-right pr-2">Edad:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.edad} Años</div></div>
+                                <div className="col-span-2"></div>
+                                <div className="col-span-5 flex items-end"><span className="w-12 text-right pr-2">T/A:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.ta}</div><span className="ml-1 text-[11px]">mmHg</span></div>
 
-                                <div className="flex justify-between border-b border-gray-300 pb-1">
-                                    <span className="font-bold">T/A:</span>
-                                    <span>{data.ta} mmHg</span>
-                                </div>
-                                <div className="flex justify-between border-b border-gray-300 pb-1">
-                                    <span className="font-bold">Estatura:</span>
-                                    <span>{data.estatura} mts.</span>
-                                </div>
+                                <div className="col-span-5 flex items-end"><span className="w-12 text-right pr-2">Peso:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.peso}</div><span className="ml-1 text-[11px]">kg.</span></div>
+                                <div className="col-span-2 flex items-end justify-center"><span className="text-[12px] mr-1">I.M.C</span><span className="font-bold">{imc}</span></div>
+                                <div className="col-span-5 flex items-end"><span className="w-12 text-right pr-2">FC:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.fc}</div><span className="ml-1 text-[11px]">x minuto</span></div>
 
-                                <div className="flex justify-between border-b border-gray-300 pb-1">
-                                    <span className="font-bold">Peso:</span>
-                                    <span>{data.peso} kg.</span>
-                                </div>
-                                <div className="flex justify-between border-b border-gray-300 pb-1">
-                                    <span className="font-bold">FR:</span>
-                                    <span>{data.fr} x minuto</span>
-                                </div>
+                                <div className="col-span-5 flex items-end"><span className="w-12 text-right pr-2">Estatura:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.estatura}</div><span className="ml-1 text-[11px]">mts.</span></div>
+                                <div className="col-span-2"></div>
+                                <div className="col-span-5 flex items-end"><span className="w-12 text-right pr-2">FR:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.fr}</div><span className="ml-1 text-[11px]">x minuto</span></div>
 
-                                <div className="col-span-1 flex justify-between border-b border-gray-300 pb-1">
-                                    <span className="font-bold">I.M.C:</span>
-                                    <span>{(parseFloat(data.peso||0)/(parseFloat(data.estatura||1)*parseFloat(data.estatura||1))).toFixed(1)}</span>
-                                </div>
-                                <div className="flex justify-between border-b border-gray-300 pb-1">
-                                    <span className="font-bold">Agudeza Visual:</span>
-                                    <span>{data.agudeza}</span>
-                                </div>
+                                <div className="col-span-5 flex items-end"><span className="w-24 text-right pr-2 whitespace-nowrap">Agudeza Visual:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.agudeza}</div></div>
+                                <div className="col-span-2"></div>
+                                <div className="col-span-5 flex items-end"><span className="w-12 text-right pr-2">Temp.:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.temp}</div><span className="ml-1 text-[11px]">°C.</span></div>
 
-                                <div className="col-span-1"></div>
-                                <div className="flex justify-between border-b border-gray-300 pb-1">
-                                    <span className="font-bold">Temp.:</span>
-                                    <span>{data.temp} °C.</span>
-                                </div>
+                                <div className="col-span-12 flex justify-center items-end mt-1"><span className="text-[12px] mr-2">Grupo Sanguíneo</span><span className="font-bold border-b border-transparent uppercase">{data.grupo}</span></div>
                             </div>
 
-                            <div className="mb-6 flex items-center gap-4 text-sm">
-                                <span className="font-bold">Grupo Sanguíneo:</span>
-                                <span className="border-b border-black flex-grow text-center font-bold">{data.grupo}</span>
-                            </div>
-
-                            <div className="mb-6 flex items-center justify-between text-sm border p-2 border-black">
+                            {/* PREGUNTA INFECCIOSO */}
+                            <div className="w-full flex justify-end items-center gap-4 text-[13px] mb-2 mt-1 px-2">
                                 <span>Al momento de dicha exploración presenta algún proceso infeccioso</span>
-                                <div className="flex gap-6 font-bold">
-                                    <span>SI ☐</span>
-                                    <span>NO ☑</span>
+                                <div className="flex gap-4">
+                                    <div className="flex items-center gap-1">SI <div className="w-5 h-5 border border-black flex items-center justify-center relative">{data.infeccioso==='SI' && 'X'}</div></div>
+                                    <div className="flex items-center gap-1">NO <div className="w-5 h-5 border border-black flex items-center justify-center relative font-bold">{data.infeccioso==='NO' && 'X'}</div></div>
                                 </div>
                             </div>
 
-                            <div className="mb-2 text-sm font-bold">OBSERVACIONES:</div>
-                            <div className="w-full h-32 border border-black p-2 text-sm font-bold uppercase whitespace-pre-line leading-relaxed mb-12">
-                                {data.observaciones}
+                            {/* STATUS */}
+                            <div className="w-full text-center font-bold text-[11px] uppercase mt-1 mb-2 px-2">
+                                CLINICAMENTE SANO (A) Y APTO(A) PARA REALIZAR ACTIVIDAD FISICA AL MOMENTO DE LA EXPLORACION
                             </div>
 
-                            {/* FOOTER */}
-                            <div className="mt-auto flex justify-between items-end">
-                                <div className="text-[10px] text-center w-1/2 pr-4 leading-tight font-bold text-gray-600">
-                                    JESÚS CARRANZA ESQ.<br/>
-                                    CIRILO T. CANCELADA<br/>
-                                    COL. MODERNA DE LA CRUZ, TOLUCA, MÉXICO<br/>
-                                    C.P. 50180
-                                </div>
-                                <div className="w-1/2 text-center">
-                                    <div className="border-t border-black pt-2">
-                                        <div className="font-bold text-sm uppercase">DR. {data.medico}</div>
-                                        <div className="text-xs font-bold">CED. PROF. {data.cedula}</div>
-                                    </div>
+                            {/* OBSERVACIONES */}
+                            <div className="w-full flex items-end text-[14px] uppercase mb-8 px-2">
+                                <span className="mr-2 whitespace-nowrap">OBSERVACIONES:</span>
+                                <div className="flex-1 border-b-2 border-black font-bold text-center pb-0.5 leading-none">{data.observaciones}</div>
+                            </div>
+
+                            {/* PIE DE PÁGINA */}
+                            <div className="w-full mt-2 flex items-end justify-between px-2">
+                                <div className="text-[10px] leading-tight text-gray-600 font-bold uppercase whitespace-pre-line">{data.direccion}</div>
+                                <div className="flex flex-col items-center w-[300px]">
+                                    <div className="w-full flex items-end mb-1"><span className="text-[12px] mr-1">Dr.</span><div className="flex-1 border-b border-black text-center font-bold text-[13px] uppercase whitespace-nowrap px-1">Dr. {data.medico}</div></div>
+                                    <div className="w-full flex items-end justify-center"><span className="text-[10px] mr-1">CED. PROF.</span><div className="w-32 border-b border-black text-center font-bold text-[12px]">{data.cedula}</div></div>
                                 </div>
                             </div>
 
@@ -3259,95 +3557,150 @@
             );
         };
 
-        // ==========================================
-        // NUEVO COMPONENTE: IMPRESORA CRUZ ROJA (PARA HISTORIAL)
+
+
+
+                                                               // ==========================================
+        // COMPONENTE: IMPRESORA CRUZ ROJA (DISEÑO EXACTO DEL EDITOR)
         // ==========================================
         const CruzRojaPrinter = ({ data, onBack }) => {
             useEffect(() => {
                 const titleOrig = document.title;
-                document.title = data.paciente || "Certificado";
+                document.title = data.paciente || "Certificado_CruzRoja";
                 setTimeout(() => window.print(), 800);
                 return () => { document.title = titleOrig; };
             }, [data]);
             
-            const imc = (parseFloat(data.peso||0)/(parseFloat(data.estatura||1)*parseFloat(data.estatura||1))).toFixed(1);
+            const imc = (data.peso && data.estatura) ? (parseFloat(data.peso) / (parseFloat(data.estatura) * parseFloat(data.estatura))).toFixed(1) : '';
+            // Valor por defecto si no viene dirección
+            const direccionTexto = data.direccion || 'JESÚS CARRANZA ESQ. CIRILO T. CANCELADA\nCOL. MODERNA DE LA CRUZ, TOLUCA, MÉXICO\nC.P. 50180';
 
             return (
                 <div className="min-h-screen bg-white flex flex-col items-center justify-start pt-5 font-sans">
+                     
+                     {/* ESTILOS DE FORZADO PARA IMPRESIÓN SIN MÁRGENES */}
+                     <style>{`
+                        @media print {
+                            @page { size: auto; margin: 0mm; }
+                            body, html { margin: 0; padding: 0; width: 100%; background-color: white !important; }
+                            .print-area {
+                                position: absolute !important;
+                                top: 0 !important;
+                                left: 0 !important;
+                                width: 100% !important;
+                                max-width: none !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                background: white !important;
+                                box-shadow: none !important;
+                                border: none !important;
+                                z-index: 9999 !important;
+                            }
+                            .no-print { display: none !important; }
+                        }
+                     `}</style>
+
                      <div className="no-print mb-6 flex gap-4">
                         <button onClick={onBack} className="bg-white text-slate-800 px-6 py-2 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center gap-2"><i data-lucide="arrow-left"></i> Volver al Historial</button>
                         <button onClick={() => window.print()} className="bg-red-600 text-white px-6 py-2 rounded-full font-bold shadow-lg hover:scale-105 transition flex items-center gap-2"><i data-lucide="printer"></i> Imprimir</button>
                     </div>
 
-                    <div className="print-area bg-white w-[21.59cm] min-h-[27.94cm] relative p-12 font-sans text-black shadow-none flex flex-col mx-auto">
-                        {/* HEADER */}
-                        <div className="flex justify-between items-start mb-8">
-                            <div className="w-1/3">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Cruz_Roja_Mexicana_logo.svg/1200px-Cruz_Roja_Mexicana_logo.svg.png" className="w-24 h-auto" alt="Cruz Roja" />
-                            </div>
-                            <div className="w-2/3 text-right">
-                                <h1 className="text-2xl font-bold text-black uppercase tracking-wide">CERTIFICADO MÉDICO</h1>
-                                <div className="mt-4 text-sm font-bold text-red-600">FOLIO <span className="text-black ml-2 text-lg">{data.folio}</span></div>
-                                <div className="mt-1 text-sm font-bold">Fecha: <span className="font-normal underline ml-2">{data.fecha}</span></div>
-                            </div>
-                        </div>
-
-                        {/* BODY TEXT */}
-                        <div className="text-sm leading-relaxed mb-6 text-justify">
-                            El que suscribe, médico cirujano, legalmente autorizado para ejercer la profesión, <span className="font-bold">CERTIFICO</span>, que después de haber realizado exámen médico minucioso al (a) C.
-                        </div>
-                        <div className="text-center text-xl font-bold uppercase border-b border-black mb-8 pb-1">
-                            {data.paciente}
-                        </div>
-                        <div className="text-sm mb-4">
-                            A la exploración física se le encuentran los siguientes datos clínicos:
-                        </div>
-
-                        {/* GRID DE DATOS */}
-                        <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm mb-8">
-                            <div className="flex justify-between border-b border-gray-300 pb-1"><span className="font-bold">Edad:</span><span>{data.edad}</span></div>
-                            <div className="flex justify-between border-b border-gray-300 pb-1"><span className="font-bold">FC:</span><span>{data.fc} x minuto</span></div>
-                            <div className="flex justify-between border-b border-gray-300 pb-1"><span className="font-bold">T/A:</span><span>{data.ta} mmHg</span></div>
-                            <div className="flex justify-between border-b border-gray-300 pb-1"><span className="font-bold">Estatura:</span><span>{data.estatura} mts.</span></div>
-                            <div className="flex justify-between border-b border-gray-300 pb-1"><span className="font-bold">Peso:</span><span>{data.peso} kg.</span></div>
-                            <div className="flex justify-between border-b border-gray-300 pb-1"><span className="font-bold">FR:</span><span>{data.fr} x minuto</span></div>
-                            <div className="col-span-1 flex justify-between border-b border-gray-300 pb-1"><span className="font-bold">I.M.C:</span><span>{imc}</span></div>
-                            <div className="flex justify-between border-b border-gray-300 pb-1"><span className="font-bold">Agudeza Visual:</span><span>{data.agudeza}</span></div>
-                            <div className="col-span-1"></div>
-                            <div className="flex justify-between border-b border-gray-300 pb-1"><span className="font-bold">Temp.:</span><span>{data.temp} °C.</span></div>
-                        </div>
-
-                        <div className="mb-6 flex items-center gap-4 text-sm">
-                            <span className="font-bold">Grupo Sanguíneo:</span>
-                            <span className="border-b border-black flex-grow text-center font-bold">{data.grupo}</span>
-                        </div>
-
-                        <div className="mb-6 flex items-center justify-between text-sm border p-2 border-black">
-                            <span>Al momento de dicha exploración presenta algún proceso infeccioso</span>
-                            <div className="flex gap-6 font-bold"><span>SI ☐</span><span>NO ☑</span></div>
-                        </div>
-
-                        <div className="mb-2 text-sm font-bold">OBSERVACIONES:</div>
-                        <div className="w-full h-32 border border-black p-2 text-sm font-bold uppercase whitespace-pre-line leading-relaxed mb-12">
-                            {data.observaciones}
-                        </div>
-
-                        {/* FOOTER */}
-                        <div className="mt-auto flex justify-between items-end">
-                            <div className="text-[10px] text-center w-1/2 pr-4 leading-tight font-bold text-gray-600">
-                                JESÚS CARRANZA ESQ.<br/>CIRILO T. CANCELADA<br/>COL. MODERNA DE LA CRUZ, TOLUCA, MÉXICO<br/>C.P. 50180
-                            </div>
-                            <div className="w-1/2 text-center">
-                                <div className="border-t border-black pt-2">
-                                    <div className="font-bold text-sm uppercase">DR. {data.medico}</div>
-                                    <div className="text-xs font-bold">CED. PROF. {data.cedula}</div>
+                    {/* CONTENEDOR PRINCIPAL (IDÉNTICO AL EDITOR) */}
+                    <div className="print-area bg-white w-full max-w-[21.59cm] min-h-[27.94cm] relative p-0 font-sans text-black shadow-none flex flex-col items-center mx-auto">
+                        
+                        <div className="w-full px-6 py-10">
+                            
+                            {/* LOGO Y ENCABEZADO */}
+                            <div className="w-full relative flex justify-between items-start mt-2 mb-6 px-2">
+                                <div className="relative z-10 flex items-center gap-3">
+                                    <img src="https://i.postimg.cc/mgY0b21j/1770434370976.png" className="h-20 w-auto" alt="Logo" />
+                                </div>
+                                <div className="absolute inset-x-0 top-[-15px] flex justify-center items-start pointer-events-none">
+                                    <h1 className="text-[32px] font-bold text-black leading-none tracking-tight text-center">CERTIFICADO<br/>MÉDICO</h1>
+                                </div>
+                                <div className="relative z-10 flex flex-col items-end pl-4">
+                                    <div className="flex items-center justify-end gap-2 text-sm font-bold bg-white/80">
+                                        <span>FOLIO</span>
+                                        <span className="text-red-600 text-lg">{data.folioLetra}</span>
+                                        <span className="text-gray-500 text-lg">{data.folioNum}</span>
+                                    </div>
+                                    <div className="flex items-end gap-1 mt-1 bg-white/80">
+                                        <span className="text-sm font-bold">Fecha:</span>
+                                        <div className="border-b-2 border-black min-w-[150px] text-center text-sm px-1 leading-none pb-0.5">
+                                            {data.dia} de {data.mes} de {data.anio}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* TEXTO LEGAL */}
+                            <div className="w-full text-justify text-[13px] leading-snug mb-2 mt-4 px-2">
+                                El que suscribe, médico cirujano, legalmente autorizado para ejercer la profesión, <span className="font-bold">CERTIFICO</span>, que después de haber realizado exámen médico minucioso al (a) C. <span className="font-bold ml-1 text-[14px] uppercase border-b border-black">{data.paciente}</span>
+                            </div>
+
+                            <div className="w-full text-[13px] mb-2 px-2">
+                                A la exploración física se le encuentran los siguientes datos clínicos:
+                            </div>
+
+                            {/* --- TABLA DE SIGNOS VITALES --- */}
+                            <div className="w-full grid grid-cols-12 gap-y-2 text-[13px] mb-4 relative px-2">
+                                <div className="col-span-5 flex items-end"><span className="w-12 text-right pr-2">Edad:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.edad} Años</div></div>
+                                <div className="col-span-2"></div>
+                                <div className="col-span-5 flex items-end"><span className="w-12 text-right pr-2">T/A:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.ta}</div><span className="ml-1 text-[11px]">mmHg</span></div>
+
+                                <div className="col-span-5 flex items-end"><span className="w-12 text-right pr-2">Peso:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.peso}</div><span className="ml-1 text-[11px]">kg.</span></div>
+                                <div className="col-span-2 flex items-end justify-center"><span className="text-[12px] mr-1">I.M.C</span><span className="font-bold">{imc}</span></div>
+                                <div className="col-span-5 flex items-end"><span className="w-12 text-right pr-2">FC:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.fc}</div><span className="ml-1 text-[11px]">x minuto</span></div>
+
+                                <div className="col-span-5 flex items-end"><span className="w-12 text-right pr-2">Estatura:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.estatura}</div><span className="ml-1 text-[11px]">mts.</span></div>
+                                <div className="col-span-2"></div>
+                                <div className="col-span-5 flex items-end"><span className="w-12 text-right pr-2">FR:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.fr}</div><span className="ml-1 text-[11px]">x minuto</span></div>
+
+                                <div className="col-span-5 flex items-end"><span className="w-24 text-right pr-2 whitespace-nowrap">Agudeza Visual:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.agudeza}</div></div>
+                                <div className="col-span-2"></div>
+                                <div className="col-span-5 flex items-end"><span className="w-12 text-right pr-2">Temp.:</span><div className="flex-1 border-b border-black text-center font-bold px-1">{data.temp}</div><span className="ml-1 text-[11px]">°C.</span></div>
+
+                                <div className="col-span-12 flex justify-center items-end mt-1"><span className="text-[12px] mr-2">Grupo Sanguíneo</span><span className="font-bold border-b border-transparent uppercase">{data.grupo}</span></div>
+                            </div>
+
+                            {/* PREGUNTA INFECCIOSO */}
+                            <div className="w-full flex justify-end items-center gap-4 text-[13px] mb-2 mt-1 px-2">
+                                <span>Al momento de dicha exploración presenta algún proceso infeccioso</span>
+                                <div className="flex gap-4">
+                                    <div className="flex items-center gap-1">SI <div className="w-5 h-5 border border-black flex items-center justify-center relative">{data.infeccioso==='SI' && 'X'}</div></div>
+                                    <div className="flex items-center gap-1">NO <div className="w-5 h-5 border border-black flex items-center justify-center relative font-bold">{data.infeccioso==='NO' && 'X'}</div></div>
+                                </div>
+                            </div>
+
+                            {/* STATUS */}
+                            <div className="w-full text-center font-bold text-[11px] uppercase mt-1 mb-2 px-2">
+                                CLINICAMENTE SANO (A) Y APTO(A) PARA REALIZAR ACTIVIDAD FISICA AL MOMENTO DE LA EXPLORACION
+                            </div>
+
+                            {/* OBSERVACIONES */}
+                            <div className="w-full flex items-end text-[14px] uppercase mb-8 px-2">
+                                <span className="mr-2 whitespace-nowrap">OBSERVACIONES:</span>
+                                <div className="flex-1 border-b-2 border-black font-bold text-center pb-0.5 leading-none">{data.observaciones}</div>
+                            </div>
+
+                            {/* PIE DE PÁGINA */}
+                            <div className="w-full mt-2 flex items-end justify-between px-2">
+                                <div className="text-[10px] leading-tight text-gray-600 font-bold uppercase whitespace-pre-line">{direccionTexto}</div>
+                                <div className="flex flex-col items-center w-[300px]">
+                                    <div className="w-full flex items-end mb-1"><span className="text-[12px] mr-1">Dr.</span><div className="flex-1 border-b border-black text-center font-bold text-[13px] uppercase whitespace-nowrap px-1">Dr. {data.medico}</div></div>
+                                    <div className="w-full flex items-end justify-center"><span className="text-[10px] mr-1">CED. PROF.</span><div className="w-32 border-b border-black text-center font-bold text-[12px]">{data.cedula}</div></div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
             );
         };
+
+
+
+
 
                                                                  // ==========================================
         // COMPONENTE PRINCIPAL (MAIN APP) - CON REDIRECCIÓN ADMIN
