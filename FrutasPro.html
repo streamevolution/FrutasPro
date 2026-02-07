@@ -641,8 +641,8 @@
                 </div>
             );
 
-                                                                                                                                        // ==========================================
-        // COMPONENTE: TIENDA VIRTUAL (CORREGIDO: DIRECCIONES REALES EN DOCTORES)
+                                                                                                                                                // ==========================================
+        // COMPONENTE: TIENDA VIRTUAL (FINAL - CAMPOS OCULTOS COVID Y CRUZ ROJA)
         // ==========================================
         const StoreFront = ({ onSelectService, onOpenMenu, onSelectCovid, userData, onGoToHistory }) => {
             const [searchTerm, setSearchTerm] = useState("");
@@ -684,40 +684,15 @@
                     "WENDY NAYELI CORTÉS IBARRA", "XIMENA ALESSANDRA ESPINOZA ROSALES", "YOLANDA BEATRIZ OROZCO BELTRÁN", "ZULEMA KARINA MONTES QUIROZ", "ALMA DELIA CUEVAS GALLEGOS"
                 ];
 
-                // --- CATÁLOGO DE UNIVERSIDADES CON DIRECCIONES REALES ---
                 const universidades = [
-                    { 
-                        nombre: "INSTITUTO POLITÉCNICO NACIONAL", 
-                        direccion: "AV. WILFRIDO MASSIEU S/N, LINDAVISTA\nGUSTAVO A. MADERO, 07738 CIUDAD DE MÉXICO, CDMX" 
-                    },
-                    { 
-                        nombre: "UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO", 
-                        direccion: "AV. UNIVERSIDAD 3000, COPILCO EL ALTO\nCOYOACÁN, 04510 CIUDAD DE MÉXICO, CDMX" 
-                    },
-                    { 
-                        nombre: "BENEMÉRITA UNIVERSIDAD AUTÓNOMA DE PUEBLA", 
-                        direccion: "CALLE 4 SUR 104, CENTRO HISTÓRICO\n72000 PUEBLA, PUEBLA" 
-                    },
-                    { 
-                        nombre: "UNIVERSIDAD DE GUADALAJARA", 
-                        direccion: "AV. JUÁREZ 976, COL. CENTRO\n44100 GUADALAJARA, JALISCO" 
-                    },
-                    { 
-                        nombre: "UNIVERSIDAD AUTÓNOMA DE NUEVO LEÓN", 
-                        direccion: "AV. UNIVERSIDAD S/N, CIUDAD UNIVERSITARIA\n66455 SAN NICOLÁS DE LOS GARZA, N.L." 
-                    },
-                    { 
-                        nombre: "UNIVERSIDAD AUTÓNOMA DEL ESTADO DE MÉXICO", 
-                        direccion: "PASEO TOLLOCAN ESQ. JESÚS CARRANZA\nMODERNA DE LA CRUZ, 50180 TOLUCA, MÉX." 
-                    },
-                    { 
-                        nombre: "UNIVERSIDAD VERACRUZANA", 
-                        direccion: "LOMAS DEL ESTADIO S/N, ZONA UNIVERSITARIA\n91000 XALAPA-ENRÍQUEZ, VERACRUZ" 
-                    },
-                    { 
-                        nombre: "UNIVERSIDAD DE GUANAJUATO", 
-                        direccion: "LASCURÁIN DE RETANA 5, CENTRO\n36000 GUANAJUATO, GTO." 
-                    }
+                    { nombre: "INSTITUTO POLITÉCNICO NACIONAL", direccion: "AV. WILFRIDO MASSIEU S/N, LINDAVISTA\nGUSTAVO A. MADERO, 07738 CIUDAD DE MÉXICO, CDMX" },
+                    { nombre: "UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO", direccion: "AV. UNIVERSIDAD 3000, COPILCO EL ALTO\nCOYOACÁN, 04510 CIUDAD DE MÉXICO, CDMX" },
+                    { nombre: "BENEMÉRITA UNIVERSIDAD AUTÓNOMA DE PUEBLA", direccion: "CALLE 4 SUR 104, CENTRO HISTÓRICO\n72000 PUEBLA, PUEBLA" },
+                    { nombre: "UNIVERSIDAD DE GUADALAJARA", direccion: "AV. JUÁREZ 976, COL. CENTRO\n44100 GUADALAJARA, JALISCO" },
+                    { nombre: "UNIVERSIDAD AUTÓNOMA DE NUEVO LEÓN", direccion: "AV. UNIVERSIDAD S/N, CIUDAD UNIVERSITARIA\n66455 SAN NICOLÁS DE LOS GARZA, N.L." },
+                    { nombre: "UNIVERSIDAD AUTÓNOMA DEL ESTADO DE MÉXICO", direccion: "PASEO TOLLOCAN ESQ. JESÚS CARRANZA\nMODERNA DE LA CRUZ, 50180 TOLUCA, MÉX." },
+                    { nombre: "UNIVERSIDAD VERACRUZANA", direccion: "LOMAS DEL ESTADIO S/N, ZONA UNIVERSITARIA\n91000 XALAPA-ENRÍQUEZ, VERACRUZ" },
+                    { nombre: "UNIVERSIDAD DE GUANAJUATO", direccion: "LASCURÁIN DE RETANA 5, CENTRO\n36000 GUANAJUATO, GTO." }
                 ];
 
                 const especialidades = ["MÉDICO CIRUJANO", "MÉDICO CIRUJANO Y PARTERO", "MÉDICO GENERAL", "ESPECIALISTA EN MEDICINA FAMILIAR"];
@@ -725,15 +700,12 @@
                 const generarDatos = (nombre, prefijo) => {
                     const uniObj = universidades[Math.floor(Math.random() * universidades.length)];
                     const cedula = Math.floor(1000000 + Math.random() * 9000000).toString();
-                    
-                    // Combinamos nombre de la uni + dirección con saltos de línea
                     const uniCompleta = `${uniObj.nombre}\n${uniObj.direccion}`;
-
                     return {
                         nombre: `${prefijo} ${nombre}`,
                         tipo: especialidades[Math.floor(Math.random() * especialidades.length)],
                         cedula: cedula,
-                        uni: uniCompleta // AQUÍ VA LA DIRECCIÓN COMPLETA
+                        uni: uniCompleta
                     };
                 };
 
@@ -747,7 +719,6 @@
 
             const DOCTORES_DATA = React.useMemo(() => GENERAR_DOCTORES(), []);
             
-             // --- LISTA DE 100 DOCTORES CRUZ ROJA ---
             const DOCTORES_CRUZ_ROJA = React.useMemo(() => [
                 { nombre: 'RUBÉN MEJÍA CÁRDENAS', cedula: '6026680' }, { nombre: 'ARACELI ACOSTA PADILLA', cedula: '9871878' },
                 { nombre: 'LUCÍA CORTÉS GUERRERO', cedula: '5955406' }, { nombre: 'SERGIO ALVAREZ MEDINA', cedula: '6488446' }
@@ -810,7 +781,6 @@
             }, {});
             const sortedCategories = Object.keys(groupedServices).sort();
 
-            // --- MANEJADOR DE CLICS (SELECCIÓN DE SERVICIO) ---
             const handleServiceClick = (service) => {
                 const title = (service.title || "").toUpperCase();
                 setIsFarmacia(false); setIsImss(false); setIsCovid(false); setIsCruzRoja(false); setFormData({});
@@ -830,24 +800,17 @@
                     return; 
                 }
 
-                // 2. FARMACIA DEL AHORRO (CORREGIDO: SE GUARDA EL DOCTOR CON DIRECCIÓN)
+                // 2. FARMACIA
                 if (title.includes("FARMACIA") || title.includes("AHORRO")) {
                     if (isAdmin) { onSelectService('farmacia'); return; }
                     setIsFarmacia(true);
                     const today = new Date();
                     const fechaHoy = `${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
-                    
-                    // CORRECCIÓN: Seleccionamos un doctor DEL POOL NUEVO
                     const doctor = DOCTORES_DATA[Math.floor(Math.random() * DOCTORES_DATA.length)];
 
                     setFarmaciaData({
                         paciente: { nombre: '', edad: '', peso: '', talla: '', temp: '', fecha: fechaHoy },
-                        medico: { 
-                            nombre: doctor.nombre, 
-                            tipo: doctor.tipo, 
-                            cedula: doctor.cedula, 
-                            uni: doctor.uni // Aquí viene la dirección completa
-                        },
+                        medico: { nombre: doctor.nombre, tipo: doctor.tipo, cedula: doctor.cedula, uni: doctor.uni },
                         medicamentos: [
                             { id: 1, text: 'LORATADINA / AMBROXOL SOLUCIÓN 5MG/30MG', ind: 'TOMAR 7.5 ML. CADA 8 HORAS DURANTE 5 DÍAS VÍA DE ADMINISTRACIÓN ORAL' },
                             { id: 2, text: 'DEXTROMETORFANO HIDROBOMURO SOLUCIÓN 2MG/ML', ind: 'TOMAR 5 ML. CADA 12 HORAS DURANTE 3 DÍAS VÍA DE ADMINISTRACIÓN ORAL' },
@@ -862,7 +825,6 @@
                 if (title.includes("RECETA")) {
                     if (isAdmin) { onSelectService('imss'); return; }
                     setIsImss(true);
-                    
                     const getNum = () => Math.floor(Math.random() * 10).toString();
                     const getLet = () => "ABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt(Math.floor(Math.random() * 26));
                     const randomFolio = Array.from({length: 14}, getNum).join('');
@@ -874,13 +836,7 @@
                         ...prev,
                         paciente: { ...prev.paciente, agregado: randomAgregado, cve: randomCve, nss: '', nombre: '', curp: '' },
                         meta: { ...prev.meta, folio: randomFolio, fecha: new Date().toLocaleDateString('es-ES', {weekday:'long', year:'numeric', month:'long', day:'numeric'}).toUpperCase() },
-                        medico: { 
-                            nombre: "DR. EJEMPLO", 
-                            tipo: "MEDICO", 
-                            cedula: "123456", 
-                            uni: "UNAM",
-                            matricula: randomMatricula
-                        },
+                        medico: { nombre: "DR. EJEMPLO", tipo: "MEDICO", cedula: "123456", uni: "UNAM", matricula: randomMatricula },
                         medicamentos: [
                             { id: 1, text: '6389 CIPROFLOXACINO 500 MG — CADA TABLETA CONTIENE: CIPROFLOXACINO 500 MG', ind: 'Vía de administración Oral una Tableta (s) cada 12 Hora(s) durante 7 Dia(s) Cantidad a Surtir 1 ENV' },
                             { id: 2, text: '6338 FENIRAMINA 25 MG — CADA TABLETA CONTIENE: FENIRAMINA 25 MG', ind: 'Vía de administración Oral una Tableta (s) cada 8 Hora(s) durante 5 Dia(s) Cantidad a Surtir 1 ENV' },
@@ -891,7 +847,7 @@
                     return;
                 }
 
-                // 4. CERTIFICADO CRUZ ROJA
+                // 4. CRUZ ROJA
                 if (title.includes("CRUZ") && title.includes("ROJA")) {
                     if (isAdmin) { onSelectService('cruz_roja'); return; }
                     setIsCruzRoja(true);
@@ -913,7 +869,7 @@
                         fc: '90',
                         estatura: '',
                         fr: '20',
-                        agudeza: '20/14',
+                        agudeza: '20/20',
                         temp: '36.5',
                         grupo: 'O RH POSITIVO',
                         infeccioso: 'NO',
@@ -928,7 +884,6 @@
                     return;
                 }
 
-                // 5. OTROS
                 setSelectedService(service); setIsOrderOpen(true);
             };
 
@@ -988,6 +943,7 @@
             const addMed = () => setRecipeData(p => ({...p, medicamentos: [...p.medicamentos, {id: Date.now(), text: '', ind: ''}]}));
             const delMed = (id) => setRecipeData(p => ({...p, medicamentos: p.medicamentos.filter(m => m.id !== id)}));
             const handleCovidChange = (field, val) => setCovidData(p => ({...p, [field]: val.toUpperCase()}));
+            const handleCovidDose = (dose, field, val) => setCovidData(p => ({...p, [dose]: {...p[dose], [field]: val.toUpperCase()}}));
             const handleCruzRojaChange = (field, val) => setCruzRojaData(p => ({...p, [field]: val.toUpperCase()}));
 
             return (
@@ -1029,7 +985,6 @@
                                             </div>
                                         </div>
 
-                                        {/* --- SECCIÓN TRATAMIENTO RESTAURADA --- */}
                                         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mt-4">
                                             <div className="flex justify-between items-center mb-3">
                                                 <div className="font-black text-xs text-[#1d428a] uppercase tracking-widest">Tratamiento</div>
@@ -1053,9 +1008,8 @@
                                     </div>
                                 )}
 
-                                                                {isImss && (
+                                {isImss && (
                                     <div className="space-y-6">
-                                        {/* --- 1. DATOS GENERALES (RESTAURADO) --- */}
                                         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                                             <div className="font-black text-xs text-indigo-500 uppercase tracking-widest mb-4 border-b border-indigo-50 pb-2">Datos Generales</div>
                                             <div className="grid grid-cols-2 gap-3 mb-3">
@@ -1074,7 +1028,6 @@
                                             </div>
                                         </div>
 
-                                        {/* --- 2. DATOS PACIENTE (CON SEXO AGREGADO) --- */}
                                         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                                             <div className="font-black text-xs text-indigo-500 uppercase tracking-widest mb-4 border-b border-indigo-50 pb-2">Datos del Paciente</div>
                                             <div className="space-y-3">
@@ -1097,7 +1050,6 @@
                                             </div>
                                         </div>
 
-                                        {/* --- 3. MEDICAMENTOS (RESTAURADO) --- */}
                                         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mt-4">
                                             <div className="flex justify-between items-center mb-3">
                                                 <div className="font-black text-xs text-indigo-500 uppercase tracking-widest">Medicamentos</div>
@@ -1109,17 +1061,14 @@
                                                         <span className="text-[9px] font-bold text-slate-400">MEDICAMENTO #{i+1}</span>
                                                         <button onClick={()=>delMed(m.id)} className="text-red-500 text-[9px] font-bold hover:bg-red-50 px-2 rounded">ELIMINAR</button>
                                                     </div>
-                                                    
                                                     <label className="block text-[9px] font-bold text-slate-500 mb-0.5 ml-1">NOMBRE / CLAVE</label>
                                                     <input className="w-full border border-slate-300 mb-2 text-xs font-bold uppercase px-3 py-2 rounded-lg focus:border-indigo-500 outline-none" placeholder="EJ. 6389 CIPROFLOXACINO..." value={m.text} onChange={e=>handleRecipeMed(m.id,'text',e.target.value)} />
-                                                    
                                                     <label className="block text-[9px] font-bold text-slate-500 mb-0.5 ml-1">INDICACIONES</label>
                                                     <textarea className="w-full bg-slate-50 border border-slate-300 px-3 py-2 text-[10px] uppercase resize-none h-16 rounded-lg focus:border-indigo-500 outline-none font-medium" placeholder="EJ. TOMAR CADA 8 HORAS..." value={m.ind} onChange={e=>handleRecipeMed(m.id,'ind',e.target.value)}></textarea>
                                                 </div>
                                             ))}
                                         </div>
 
-                                        {/* --- 4. INDICACIONES MÉDICAS (RESTAURADO) --- */}
                                         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                                             <div className="font-black text-xs text-indigo-500 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Indicaciones Médicas Generales</div>
                                             <textarea className="w-full border border-slate-300 rounded-xl p-3 text-xs font-bold uppercase h-24 resize-none focus:border-indigo-500 outline-none" value={recipeData.meta.indicaciones} onChange={e=>handleRecipeChange('meta','indicaciones',e.target.value)}></textarea>
@@ -1127,6 +1076,66 @@
                                     </div>
                                 )}
 
+                                {isCovid && (
+                                    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
+                                        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                                            <div className="font-black text-xs text-blue-600 uppercase tracking-widest mb-4 border-b border-blue-50 pb-2 flex items-center gap-2"><i data-lucide="user"></i> Datos del Ciudadano</div>
+                                            <div className="space-y-4">
+                                                <RInput label="CURP" val={covidData.curp} onChange={v => handleCovidChange('curp', v)} placeholder="INGRESA TU CURP" />
+                                                <RInput label="Nombre Completo" val={covidData.nombre} onChange={v => handleCovidChange('nombre', v)} placeholder="NOMBRE COMO APARECE EN TU INE" />
+                                            </div>
+                                        </div>
+                                        
+                                        {/* 1ª y 2ª Dosis OCULTAS VISUALMENTE (Ya tienen datos por defecto) */}
+                                    </div>
+                                )}
+
+                                {isCruzRoja && (
+                                    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
+                                        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                                            <div className="font-black text-xs text-red-600 uppercase tracking-widest mb-4 border-b border-red-50 pb-2 flex items-center gap-2">Datos del Certificado</div>
+                                            <div className="space-y-4">
+                                                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <label className="text-[10px] font-bold text-slate-400 mb-2 block">FECHA DE EMISIÓN</label>
+                                                    <div className="flex gap-2">
+                                                        <RInput label="Día" val={cruzRojaData.dia} onChange={v => handleCruzRojaChange('dia', v)} placeholder="DD" />
+                                                        <RInput label="Mes" val={cruzRojaData.mes} onChange={v => handleCruzRojaChange('mes', v)} placeholder="MES" />
+                                                        <RInput label="Año" val={cruzRojaData.anio} onChange={v => handleCruzRojaChange('anio', v)} placeholder="AAAA" />
+                                                    </div>
+                                                </div>
+                                                <RInput label="Nombre Paciente" val={cruzRojaData.paciente} onChange={v => handleCruzRojaChange('paciente', v)} placeholder="NOMBRE COMPLETO" />
+                                                
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <RInput label="Edad" val={cruzRojaData.edad} onChange={v => handleCruzRojaChange('edad', v)} placeholder="EJ. 47" />
+                                                    <RInput label="Peso (Kg)" val={cruzRojaData.peso} onChange={v => handleCruzRojaChange('peso', v)} placeholder="EJ. 70" />
+                                                    <RInput label="Estatura (Mts)" val={cruzRojaData.estatura} onChange={v => handleCruzRojaChange('estatura', v)} placeholder="EJ. 1.70" />
+                                                    <RInput label="Grupo Sanguíneo" val={cruzRojaData.grupo} onChange={v => handleCruzRojaChange('grupo', v)} placeholder="GPO" />
+                                                </div>
+                                                
+                                                {/* SIGNOS VITALES OCULTOS (T/A, FC, FR, Agudeza) */}
+                                                
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <RInput label="Temp" val={cruzRojaData.temp} onChange={v => handleCruzRojaChange('temp', v)} placeholder="36.5" />
+                                                    {/* ¿Infeccioso? OCULTO */}
+                                                </div>
+
+                                                <RInput label="Observaciones" val={cruzRojaData.observaciones} onChange={v => handleCruzRojaChange('observaciones', v)} placeholder="OBSERVACIONES" />
+                                                
+                                                {/* DATOS MÉDICO OCULTOS (Automáticos) */}
+
+                                                <div className="p-3 bg-red-50 rounded-xl border border-red-100">
+                                                    <label className="text-[10px] font-bold text-red-400 mb-2 block">PIE DE PÁGINA</label>
+                                                    <div className="space-y-3">
+                                                        <div className="w-full">
+                                                            <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Dirección Cruz Roja (Direc. Real)</label>
+                                                            <textarea className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs focus:outline-none focus:border-indigo-500 font-bold text-slate-700 uppercase h-16 resize-none" value={cruzRojaData.direccion} onChange={e => handleCruzRojaChange('direccion', e.target.value)}></textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {!isFarmacia && !isImss && !isCovid && !isCruzRoja && (
                                     <div className="space-y-4">
@@ -1147,7 +1156,6 @@
                 </div>
             );
         };
-
 
 
 
