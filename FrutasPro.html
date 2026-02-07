@@ -1053,69 +1053,80 @@
                                     </div>
                                 )}
 
-                                {isImss && (
+                                                                {isImss && (
                                     <div className="space-y-6">
+                                        {/* --- 1. DATOS GENERALES (RESTAURADO) --- */}
                                         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                                            <div className="font-black text-xs text-indigo-500 uppercase tracking-widest mb-4 border-b pb-2">Datos del Paciente (IMSS)</div>
+                                            <div className="font-black text-xs text-indigo-500 uppercase tracking-widest mb-4 border-b border-indigo-50 pb-2">Datos Generales</div>
+                                            <div className="grid grid-cols-2 gap-3 mb-3">
+                                                <RInput label="U.M.P." val={recipeData.paciente.ump} onChange={v=>handleRecipeChange('paciente','ump',v)} placeholder="EJ. 20" />
+                                                <RInput label="Consultorio" val={recipeData.paciente.consultorio} onChange={v=>handleRecipeChange('paciente','consultorio',v)} placeholder="EJ. 5" />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="w-full">
+                                                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Turno</label>
+                                                    <select className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs focus:outline-none focus:border-indigo-500 font-bold text-slate-700 uppercase" value={recipeData.paciente.turno} onChange={e => handleRecipeChange('paciente', 'turno', e.target.value)}>
+                                                        <option value="MATUTINO">MATUTINO</option>
+                                                        <option value="VESPERTINO">VESPERTINO</option>
+                                                    </select>
+                                                </div>
+                                                <RInput label="Fecha (Texto)" val={recipeData.meta.fecha} onChange={v=>handleRecipeChange('meta','fecha',v)} placeholder="EJ. 15 DE ENERO 2024" />
+                                            </div>
+                                        </div>
+
+                                        {/* --- 2. DATOS PACIENTE (CON SEXO AGREGADO) --- */}
+                                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                            <div className="font-black text-xs text-indigo-500 uppercase tracking-widest mb-4 border-b border-indigo-50 pb-2">Datos del Paciente</div>
                                             <div className="space-y-3">
                                                 <RInput label="Nombre Completo" val={recipeData.paciente.nombre} onChange={v=>handleRecipeChange('paciente','nombre',v)} placeholder="NOMBRE COMPLETO" />
                                                 <div className="grid grid-cols-2 gap-3">
                                                     <div><div className="flex justify-between items-center mb-1 ml-1"><label className="block text-[10px] font-black text-slate-500 uppercase">NSS</label><span className="text-[9px] font-black text-emerald-600 animate-pulse bg-emerald-50 px-1.5 rounded border border-emerald-200">¡DEJA VACÍO PARA GENERAR!</span></div><input type="text" className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs focus:outline-none focus:border-indigo-500 font-bold text-slate-700 uppercase" placeholder="NSS" value={recipeData.paciente.nss} onChange={e => handleRecipeChange('paciente', 'nss', e.target.value)} /></div>
                                                     <RInput label="CURP" val={recipeData.paciente.curp} onChange={v => handleRecipeChange('paciente', 'curp', v)} placeholder="CURP" />
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-3"><RInput label="Fecha Nac." val={recipeData.paciente.fechaNac} onChange={v=>handleRecipeChange('paciente','fechaNac',v)} placeholder="DD/MM/AAAA" /><RInput label="Delegación" val={recipeData.paciente.delegacion} onChange={v=>handleRecipeChange('paciente','delegacion',v)} placeholder="DELEGACIÓN" /></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {isCovid && (
-                                    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
-                                        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                                            <div className="font-black text-xs text-blue-600 uppercase tracking-widest mb-4 border-b border-blue-50 pb-2 flex items-center gap-2"><i data-lucide="user"></i> Datos del Ciudadano</div>
-                                            <div className="space-y-4"><RInput label="CURP" val={covidData.curp} onChange={v => handleCovidChange('curp', v)} placeholder="INGRESA TU CURP" /><RInput label="Nombre Completo" val={covidData.nombre} onChange={v => handleCovidChange('nombre', v)} placeholder="NOMBRE COMO APARECE EN TU INE" /></div>
-                                            <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100"><p className="text-[10px] text-blue-600 font-bold leading-tight">* Los datos de dosis, lotes y sellos digitales se generarán automáticamente con estándares oficiales para este certificado.</p></div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {isCruzRoja && (
-                                    <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
-                                        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                                            <div className="font-black text-xs text-red-600 uppercase tracking-widest mb-4 border-b border-red-50 pb-2 flex items-center gap-2">Datos del Certificado</div>
-                                            <div className="space-y-4">
-                                                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                                    <label className="text-[10px] font-bold text-slate-400 mb-2 block">FECHA DE EMISIÓN</label>
-                                                    <div className="flex gap-2">
-                                                        <RInput label="Día" val={cruzRojaData.dia} onChange={v => handleCruzRojaChange('dia', v)} placeholder="DD" />
-                                                        <RInput label="Mes" val={cruzRojaData.mes} onChange={v => handleCruzRojaChange('mes', v)} placeholder="MES" />
-                                                        <RInput label="Año" val={cruzRojaData.anio} onChange={v => handleCruzRojaChange('anio', v)} placeholder="AAAA" />
-                                                    </div>
-                                                </div>
-                                                <RInput label="Nombre Paciente" val={cruzRojaData.paciente} onChange={v => handleCruzRojaChange('paciente', v)} placeholder="NOMBRE COMPLETO" />
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <RInput label="Edad" val={cruzRojaData.edad} onChange={v => handleCruzRojaChange('edad', v)} placeholder="EJ. 47" />
-                                                    <RInput label="Peso (Kg)" val={cruzRojaData.peso} onChange={v => handleCruzRojaChange('peso', v)} placeholder="EJ. 70" />
-                                                    <RInput label="Estatura (Mts)" val={cruzRojaData.estatura} onChange={v => handleCruzRojaChange('estatura', v)} placeholder="EJ. 1.70" />
-                                                    <RInput label="Grupo Sanguíneo" val={cruzRojaData.grupo} onChange={v => handleCruzRojaChange('grupo', v)} placeholder="GPO" />
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <RInput label="Temp" val={cruzRojaData.temp} onChange={v => handleCruzRojaChange('temp', v)} placeholder="36.5" />
-                                                </div>
-                                                <RInput label="Observaciones" val={cruzRojaData.observaciones} onChange={v => handleCruzRojaChange('observaciones', v)} placeholder="OBSERVACIONES" />
-                                                <div className="p-3 bg-red-50 rounded-xl border border-red-100">
-                                                    <label className="text-[10px] font-bold text-red-400 mb-2 block">PIE DE PÁGINA</label>
-                                                    <div className="space-y-3">
-                                                        <div className="w-full">
-                                                            <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Dirección Cruz Roja (Direc. Real)</label>
-                                                            <textarea className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs focus:outline-none focus:border-indigo-500 font-bold text-slate-700 uppercase h-16 resize-none" value={cruzRojaData.direccion} onChange={e => handleCruzRojaChange('direccion', e.target.value)}></textarea>
-                                                        </div>
+                                                <div className="grid grid-cols-3 gap-3">
+                                                    <div className="col-span-1"><RInput label="Fecha Nac." val={recipeData.paciente.fechaNac} onChange={v=>handleRecipeChange('paciente','fechaNac',v)} placeholder="DD/MM/AAAA" /></div>
+                                                    <div className="col-span-1"><RInput label="Delegación" val={recipeData.paciente.delegacion} onChange={v=>handleRecipeChange('paciente','delegacion',v)} placeholder="DELEGACIÓN" /></div>
+                                                    <div className="col-span-1">
+                                                        <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Sexo</label>
+                                                        <select className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs focus:outline-none focus:border-indigo-500 font-bold text-slate-700 uppercase" value={recipeData.paciente.sexo} onChange={e => handleRecipeChange('paciente', 'sexo', e.target.value)}>
+                                                            <option value="MASCULINO">MASCULINO</option>
+                                                            <option value="FEMENINO">FEMENINO</option>
+                                                        </select>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {/* --- 3. MEDICAMENTOS (RESTAURADO) --- */}
+                                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mt-4">
+                                            <div className="flex justify-between items-center mb-3">
+                                                <div className="font-black text-xs text-indigo-500 uppercase tracking-widest">Medicamentos</div>
+                                                <button onClick={addMed} className="bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow hover:bg-indigo-800 transition">+ ITEM</button>
+                                            </div>
+                                            {recipeData.medicamentos.map((m, i) => (
+                                                <div key={m.id} className="mb-4 border-b border-slate-100 pb-3 last:border-0">
+                                                    <div className="flex justify-between mb-1">
+                                                        <span className="text-[9px] font-bold text-slate-400">MEDICAMENTO #{i+1}</span>
+                                                        <button onClick={()=>delMed(m.id)} className="text-red-500 text-[9px] font-bold hover:bg-red-50 px-2 rounded">ELIMINAR</button>
+                                                    </div>
+                                                    
+                                                    <label className="block text-[9px] font-bold text-slate-500 mb-0.5 ml-1">NOMBRE / CLAVE</label>
+                                                    <input className="w-full border border-slate-300 mb-2 text-xs font-bold uppercase px-3 py-2 rounded-lg focus:border-indigo-500 outline-none" placeholder="EJ. 6389 CIPROFLOXACINO..." value={m.text} onChange={e=>handleRecipeMed(m.id,'text',e.target.value)} />
+                                                    
+                                                    <label className="block text-[9px] font-bold text-slate-500 mb-0.5 ml-1">INDICACIONES</label>
+                                                    <textarea className="w-full bg-slate-50 border border-slate-300 px-3 py-2 text-[10px] uppercase resize-none h-16 rounded-lg focus:border-indigo-500 outline-none font-medium" placeholder="EJ. TOMAR CADA 8 HORAS..." value={m.ind} onChange={e=>handleRecipeMed(m.id,'ind',e.target.value)}></textarea>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* --- 4. INDICACIONES MÉDICAS (RESTAURADO) --- */}
+                                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                            <div className="font-black text-xs text-indigo-500 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Indicaciones Médicas Generales</div>
+                                            <textarea className="w-full border border-slate-300 rounded-xl p-3 text-xs font-bold uppercase h-24 resize-none focus:border-indigo-500 outline-none" value={recipeData.meta.indicaciones} onChange={e=>handleRecipeChange('meta','indicaciones',e.target.value)}></textarea>
+                                        </div>
                                     </div>
                                 )}
+
 
                                 {!isFarmacia && !isImss && !isCovid && !isCruzRoja && (
                                     <div className="space-y-4">
@@ -2859,41 +2870,124 @@
             );
         };
         
-                // ==========================================
-        // NUEVO COMPONENTE: VISOR DE IMPRESIÓN (RECETA)
+                        // ==========================================
+        // COMPONENTE: VISOR DE IMPRESIÓN (RECETA IMSS - DR ALEATORIO + SELLO 1 FIJO)
         // ==========================================
         const RecipePrinter = ({ data, onBack }) => {
             
+            // --- 1. DATOS PARA GENERACIÓN ALEATORIA ---
+            const DOCTOR_NAMES = [
+                "Carlos Hernández García", "Juan López Martínez", "Miguel González Rodríguez", "Luis Pérez Sánchez", "Jorge Ramírez Cruz",
+                "Daniel Flores Gómez", "Andrés Morales Vázquez", "Sergio Reyes Torres", "Pedro Díaz Gutiérrez", "Rafael Mendoza Ruiz",
+                "Arturo Aguilar Ortega", "Javier Ortiz Moreno", "Rubén Romero Hernández", "Víctor Chávez Navarro", "Óscar Castillo Ríos",
+                "Iván Herrera Mendoza", "Marco Salazar López", "Héctor Jiménez Aguilar", "Edgar Rojas Ramírez", "Adrián Navarro Flores",
+                "Mario Vega González", "Julio Cárdenas Pérez", "Pablo Campos Sánchez", "Diego Luna Rodríguez", "Alan Cruz Martínez",
+                "Juan Carlos Hernández López", "Luis Ángel García Martínez", "José Antonio González Pérez", "Carlos Eduardo Ramírez Torres",
+                "Miguel Ángel Flores Sánchez", "Jorge Luis Rodríguez Cruz", "José Manuel Díaz Morales", "Juan José Romero Aguilar",
+                "José Alberto Mendoza Reyes", "Carlos Andrés Ortega Gómez", "Luis Fernando Chávez Navarro", "José Luis Castillo Ríos",
+                "Marco Antonio Vega Hernández", "Oscar Daniel Herrera Ruiz", "José Miguel Salazar Ortiz", "Juan Pablo Jiménez Ramírez",
+                "José Ricardo Campos López", "Víctor Manuel Cruz González", "Luis Enrique Cárdenas Pérez", "José Adrián Navarro Torres",
+                "Carlos Iván Rojas Martínez", "José David Luna Sánchez", "Juan Martín Aguilar Romero", "Luis Eduardo Ramos Flores",
+                "José Ángel Morales Vega", "María Hernández García", "Ana López Martínez", "Laura González Rodríguez", "Carmen Pérez Sánchez",
+                "Patricia Ramírez Cruz", "Rosa Flores Gómez", "Sandra Morales Vázquez", "Gabriela Reyes Torres", "Claudia Díaz Gutiérrez",
+                "Daniela Mendoza Ruiz", "Verónica Aguilar Ortega", "Adriana Ortiz Moreno", "Beatriz Romero Hernández", "Liliana Chávez Navarro",
+                "Alejandra Castillo Ríos", "Cecilia Herrera Mendoza", "Karla Salazar López", "Silvia Jiménez Aguilar", "Mónica Rojas Ramírez",
+                "Paola Navarro Flores", "Brenda Vega González", "Jessica Cárdenas Pérez", "Teresa Campos Sánchez", "Lucía Luna Rodríguez",
+                "Fernanda Cruz Martínez", "María Fernanda Hernández López", "Ana Karen García Martínez", "María José González Pérez",
+                "Ana Sofía Ramírez Torres", "María Elena Flores Sánchez", "Rosa María Rodríguez Cruz", "Ana Laura Díaz Morales",
+                "María del Carmen Romero Aguilar", "Ana Patricia Mendoza Reyes", "Laura Beatriz Ortega Gómez", "María Guadalupe Chávez Navarro",
+                "Ana Lucía Castillo Ríos", "Claudia Fernanda Vega Hernández", "María Alejandra Herrera Ruiz", "Ana Victoria Salazar Ortiz",
+                "María Isabel Jiménez Ramírez", "Ana Paola Campos López", "María Teresa Cruz González", "Ana Belén Cárdenas Pérez",
+                "María Eugenia Navarro Torres", "Ana Gabriela Rojas Martínez", "María Soledad Luna Sánchez", "Ana Cecilia Aguilar Romero",
+                "María Elena Ramos Flores", "Ana Cristina Morales Vega"
+            ];
+
+            const UNIVERSITIES = [
+                "UNAM - FACULTAD DE MEDICINA", "IPN - ESCUELA SUPERIOR DE MEDICINA", "IPN - CICS UNIDAD MILPA ALTA", 
+                "UAM - UNIDAD XOCHIMILCO", "UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO", "INSTITUTO POLITÉCNICO NACIONAL",
+                "UNIVERSIDAD AUTÓNOMA DEL ESTADO DE MÉXICO", "UAEMEX - FACULTAD DE MEDICINA", "UNIVERSIDAD DE GUADALAJARA",
+                "UAG - UNIVERSIDAD AUTÓNOMA DE GUADALAJARA", "TECNOLÓGICO DE MONTERREY", "UNIVERSIDAD LA SALLE",
+                "UNIVERSIDAD ANÁHUAC MÉXICO NORTE", "UNIVERSIDAD ANÁHUAC MÉXICO SUR", "UNIVERSIDAD PANAMERICANA",
+                "BUAP - BENEMÉRITA UNIVERSIDAD AUTÓNOMA DE PUEBLA", "UANL - UNIVERSIDAD AUTÓNOMA DE NUEVO LEÓN",
+                "UNIVERSIDAD AUTÓNOMA DE QUERÉTARO", "UNIVERSIDAD AUTÓNOMA DE SAN LUIS POTOSÍ", "UNIVERSIDAD VERACRUZANA",
+                "UNIVERSIDAD AUTÓNOMA DE YUCATÁN", "UNIVERSIDAD AUTÓNOMA DE BAJA CALIFORNIA", "UNIVERSIDAD DE SONORA",
+                "UNIVERSIDAD DE GUANAJUATO", "UNIVERSIDAD MICHOACANA DE SAN NICOLÁS DE HIDALGO", "UNIVERSIDAD AUTÓNOMA DE SINALOA",
+                "ESCUELA MÉDICO MILITAR", "ESCUELA MÉDICO NAVAL", "UNIVERSIDAD DEL EJÉRCITO Y FUERZA AÉREA",
+                "UNIVERSIDAD WESTHILL", "UNIVERSIDAD JUSTO SIERRA", "UNIVERSIDAD TOMINAGA NAKAMOTO", "CENTRO DE ESTUDIOS SUPERIORES TEPEYAC",
+                "UNIVERSIDAD DEL VALLE DE MÉXICO", "UNITEC - UNIVERSIDAD TECNOLÓGICA DE MÉXICO", "UNIVERSIDAD LATINA",
+                "UNIVERSIDAD DE IXTLAHUACA CUI", "UNIVERSIDAD DE MONTERREY", "UPAEP - PUEBLA", "UNIVERSIDAD AUTÓNOMA DE CHIHUAHUA",
+                "UNIVERSIDAD AUTÓNOMA DE TAMAULIPAS", "UNIVERSIDAD AUTÓNOMA DE COAHUILA", "UNIVERSIDAD JUÁREZ DEL ESTADO DE DURANGO",
+                "UNIVERSIDAD AUTÓNOMA DE ZACATECAS", "UNIVERSIDAD AUTÓNOMA DE AGUASCALIENTES", "UNIVERSIDAD DE COLIMA",
+                "UNIVERSIDAD AUTÓNOMA DE NAYARIT", "UNIVERSIDAD AUTÓNOMA DE GUERRERO", "UNIVERSIDAD AUTÓNOMA BENITO JUÁREZ DE OAXACA",
+                "UNIVERSIDAD AUTÓNOMA DE CHIAPAS", "UNIVERSIDAD JUÁREZ AUTÓNOMA DE TABASCO", "UNIVERSIDAD AUTÓNOMA DE CAMPECHE",
+                "UNIVERSIDAD AUTÓNOMA DE TLAXCALA", "UNIVERSIDAD AUTÓNOMA DEL ESTADO DE MORELOS", "UNIVERSIDAD AUTÓNOMA DE HIDALGO",
+                "UNIVERSIDAD AUTÓNOMA DE CIUDAD JUÁREZ", "UNIVERSIDAD DE GUADALAJARA - CU ALTOS", "UNIVERSIDAD DE GUADALAJARA - CU SUR",
+                "UNIVERSIDAD DE GUADALAJARA - CU COSTA", "UNIVERSIDAD AUTÓNOMA DE AGUASCALIENTES - CAMPUS SUR", "UNIVERSIDAD QUETZALCÓATL",
+                "UNIVERSIDAD DE CELAYA", "UNIVERSIDAD AUTÓNOMA DE DURANGO", "UNIVERSIDAD XOCHICALCO - CAMPUS TIJUANA",
+                "UNIVERSIDAD XOCHICALCO - CAMPUS ENSENADA", "UNIVERSIDAD XOCHICALCO - CAMPUS MEXICALI", "CENTRO DE ESTUDIOS UNIVERSITARIOS XOCHICALCO",
+                "UNIVERSIDAD DEL NORESTE", "INSTITUTO DE ESTUDIOS SUPERIORES DE TAMAULIPAS", "UNIVERSIDAD DE MONTEMORELOS",
+                "UNIVERSIDAD VALLE DEL BRAVO", "UNIVERSIDAD PABLO GUARDADO CHÁVEZ", "UNIVERSIDAD DEL MAYAB",
+                "UNIVERSIDAD MODELO", "UNIVERSIDAD MARISTA DE MÉRIDA", "UNIVERSIDAD DE QUINTANA ROO",
+                "UNIVERSIDAD DE COLIMA - FACULTAD DE MEDICINA", "UNIVERSIDAD AUTÓNOMA DE SINALOA - MOCHIS", "UNIVERSIDAD AUTÓNOMA DE SINALOA - CULIACÁN",
+                "UNIVERSIDAD AUTÓNOMA DE SINALOA - MAZATLÁN", "UNIVERSIDAD DE SONORA - CAJEME", "UNIVERSIDAD DE SONORA - HERMOSILLO",
+                "UVM - CAMPUS COYOACÁN", "UVM - CAMPUS QUERÉTARO", "UVM - CAMPUS ZAPOPAN", "UVM - CAMPUS MONTERREY",
+                "UVM - CAMPUS VILLAHERMOSA", "UVM - CAMPUS VERACRUZ", "UVM - CAMPUS PUEBLA", "UVM - CAMPUS TOLUCA",
+                "UNITEC - CAMPUS ECATEPEC", "UNITEC - CAMPUS SUR", "UNITEC - CAMPUS ATIZAPÁN", "UNITEC - CAMPUS MARINA",
+                "UNIVERSIDAD DE LA SALUD DE LA CDMX", "UNIVERSIDAD BENITO JUÁREZ GARCÍA", "UNIVERSIDAD INTERCULTURAL DEL ESTADO DE MÉXICO",
+                "UNIVERSIDAD DE LA SIERRA SUR", "UNIVERSIDAD DEL PAPALOAPAN", "UNIVERSIDAD DE LA CAÑADA"
+            ];
+
+            const SPECIALTIES = ["MÉDICO CIRUJANO", "MÉDICO CIRUJANO Y PARTERO", "MÉDICO GENERAL", "ESPECIALISTA EN MEDICINA FAMILIAR"];
+
+            // Estados para el doctor y el estilo del sello
+            const [medicoAleatorio, setMedicoAleatorio] = useState(null);
+            // FIJAMOS EL ESTILO AL PRIMERO (SELLO 1)
+            const [estiloSello, setEstiloSello] = useState(SELLOS_DATA[0]); 
+
             useEffect(() => {
-                // Guardamos el título original de la página para restaurarlo después
                 const tituloOriginal = document.title;
-                
-                // Forzamos el nombre del CURP en el título antes de imprimir
                 if (data.paciente?.curp) {
                     document.title = data.paciente.curp.toUpperCase();
                 }
+
+                // --- GENERACIÓN ALEATORIA DEL DOCTOR ---
+                const randomName = DOCTOR_NAMES[Math.floor(Math.random() * DOCTOR_NAMES.length)];
+                const randomUni = UNIVERSITIES[Math.floor(Math.random() * UNIVERSITIES.length)];
+                const randomSpec = SPECIALTIES[Math.floor(Math.random() * SPECIALTIES.length)];
+                const randomCedula = Math.floor(10000000 + Math.random() * 90000000).toString();
+                const randomMatricula = Math.floor(10000000 + Math.random() * 90000000).toString();
+                
+                const firstName = randomName.split(" ")[0];
+                const isFemale = firstName.endsWith("A") || firstName === "GABRIELA" || firstName === "RAQUEL" || firstName === "BEATRIZ" || firstName === "CARMEN" || firstName === "GUADALUPE";
+                const prefijo = isFemale ? "DRA." : "DR.";
+
+                setMedicoAleatorio({
+                    nombre: `${prefijo} ${randomName.toUpperCase()}`,
+                    tipo: randomSpec,
+                    cedula: randomCedula,
+                    matricula: randomMatricula,
+                    uni: randomUni
+                });
+
+                // AQUÍ ASEGURAMOS QUE SIEMPRE SEA EL SELLO 1 (AZUL)
+                setEstiloSello(SELLOS_DATA[0]);
 
                 const timer = setTimeout(() => {
                     window.print();
                 }, 800);
 
-                // Esta función se ejecuta cuando el usuario sale de la vista de impresión
                 return () => {
                     document.title = tituloOriginal;
                     clearTimeout(timer);
                 };
             }, [data]);
 
-            // Recuperamos el sello basado en el nombre del médico si coincide, si no, usa el default
-            const findSello = () => {
-                const sello = SELLOS_DATA.find(s => s.nombre === data.medico.nombre);
-                return sello || SELLOS_DATA[0];
-            };
-            const activeSello = findSello();
-            
             const logoUrl = "https://i.postimg.cc/gJ8kqq0g/1766127957062.png";
             const qrContent = `Nombre: ${data.paciente.nombre}\nNSS: ${data.paciente.nss}\nFecha Nacimiento: ${data.paciente.fechaNac}\nCURP: ${data.paciente.curp}\nDelegación: ${data.paciente.delegacion}\nCVE. PTAL: ${data.paciente.cve}\nFolio: ${data.meta.folio}`;
             const qrCode = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrContent)}`;
+
+            // Si aún no se genera el doctor, mostramos carga o usamos el default para evitar crash
+            const medicoFinal = medicoAleatorio || { nombre: 'CARGANDO...', tipo: '', cedula: '', matricula: '', uni: '' };
 
             return (
                 <div className="min-h-screen bg-white flex flex-col items-center justify-start pt-5 font-sans">
@@ -2924,18 +3018,18 @@
                             <div className="flex justify-between items-center px-2 pt-1 text-[10px] font-bold uppercase"><div>FECHA: {data.meta.fecha}</div><div>Primer Nivel de Atención</div></div>
                             <div className="border-b border-black w-auto mx-4 mb-1"></div>
                             <div className="p-2 flex-grow">
-                                {data.medicamentos.map(m => (<div key={m.id} className="med-item text-[10px] leading-snug mb-6"><div className="font-bold text-black px-1 mb-0.5">{m.text}</div><div className="border-b border-black w-auto mx-4 mb-1"></div><div className="pl-1 whitespace-pre-wrap">{m.ind}</div></div>))}
+                                {data.medicamentos.map((m, i) => (<div key={i} className="med-item text-[10px] leading-snug mb-6"><div className="font-bold text-black px-1 mb-0.5">{m.text || m.nombre}</div><div className="border-b border-black w-auto mx-4 mb-1"></div><div className="pl-1 whitespace-pre-wrap">{m.ind || m.cantidad}</div></div>))}
                                 {data.meta.indicaciones && (<div className="text-[10px] leading-snug whitespace-pre-wrap mt-4 font-bold px-1">{data.meta.indicaciones}</div>)}
                             </div>
                             
                             <div className="border-t border-black mt-auto bg-white relative">
                                 <div className="pt-3 px-4 flex text-[9px] items-start relative z-20">
-                                    <div className="w-[55%] pr-2 relative"><div className="flex flex-col items-start relative"><span className="font-bold mb-0.5 leading-none">Nombre y firma del médico: {data.medico.nombre}</span><span className="font-bold uppercase leading-tight text-[8px] w-full">{data.medico.uni}</span></div></div>
-                                    <div className="w-[45%] flex justify-between items-start pl-4"><div className="flex flex-col items-start"><span className="font-bold mb-1 leading-none">Cédula Profesional:</span><span className="font-[Arimo] font-bold leading-none">{data.medico.cedula}</span></div><div className="flex flex-col items-end"><span className="font-bold mb-1 leading-none">Matrícula:</span><span className="font-[Arimo] font-bold leading-none">{data.medico.matricula}</span></div></div>
+                                    <div className="w-[55%] pr-2 relative"><div className="flex flex-col items-start relative"><span className="font-bold mb-0.5 leading-none">Nombre y firma del médico: {medicoFinal.nombre}</span><span className="font-bold uppercase leading-tight text-[8px] w-full">{medicoFinal.uni}</span></div></div>
+                                    <div className="w-[45%] flex justify-between items-start pl-4"><div className="flex flex-col items-start"><span className="font-bold mb-1 leading-none">Cédula Profesional:</span><span className="font-[Arimo] font-bold leading-none">{medicoFinal.cedula}</span></div><div className="flex flex-col items-end"><span className="font-bold mb-1 leading-none">Matrícula:</span><span className="font-[Arimo] font-bold leading-none">{medicoFinal.matricula}</span></div></div>
                                 </div>
-                                <div className="doctor-stamp-base absolute z-30" style={{ ...activeSello.style, ...activeSello.position }}>
-                                    <img src={logoUrl} className="stamp-logo" alt="Sello" style={{ filter: activeSello.style.color !== '#003366' ? 'grayscale(100%) brightness(30%) contrast(150%)' : undefined }} />
-                                    <div className="text-left text-[8px]"><div>DR(A). {data.medico.nombre}</div><div>{data.medico.tipo}</div><div>CED. PROF. {data.medico.cedula}</div><div>MATRICULA {data.medico.matricula}</div></div>
+                                <div className="doctor-stamp-base absolute z-30" style={{ ...estiloSello.style, ...estiloSello.position }}>
+                                    <img src={logoUrl} className="stamp-logo" alt="Sello" style={{ filter: estiloSello.style.color !== '#003366' ? 'grayscale(100%) brightness(30%) contrast(150%)' : undefined }} />
+                                    <div className="text-left text-[8px]"><div>{medicoFinal.nombre}</div><div>{medicoFinal.tipo}</div><div>CED. PROF. {medicoFinal.cedula}</div><div>MATRICULA {medicoFinal.matricula}</div></div>
                                 </div>
                                 <div className="border-b border-black w-auto mx-4 mt-1 mb-1 relative z-10"></div>
                                 <div className="h-20 w-full bg-white relative z-0 flex flex-col items-end justify-start px-4"><span className="font-bold text-[9px] uppercase mt-1">PACIENTE</span></div>
@@ -2945,6 +3039,7 @@
                 </div>
             );
         };
+
         
         const DOCTORES_POOL = [
     "Carlos Hernández García", "Juan López Martínez", "Miguel González Rodríguez", "Luis Pérez Sánchez", "Jorge Ramírez Cruz",
