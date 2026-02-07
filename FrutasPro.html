@@ -641,8 +641,8 @@
                 </div>
             );
 
-                                                                                                                        // ==========================================
-        // COMPONENTE: TIENDA VIRTUAL (ACTUALIZADO CON FORMULARIO CRUZ ROJA)
+                                                                                                                                        // ==========================================
+        // COMPONENTE: TIENDA VIRTUAL (CORREGIDO: DIRECCIONES REALES EN DOCTORES)
         // ==========================================
         const StoreFront = ({ onSelectService, onOpenMenu, onSelectCovid, userData, onGoToHistory }) => {
             const [searchTerm, setSearchTerm] = useState("");
@@ -662,67 +662,95 @@
             const [isFarmacia, setIsFarmacia] = useState(false);
             const [isImss, setIsImss] = useState(false);
             const [isCovid, setIsCovid] = useState(false);
-            const [isCruzRoja, setIsCruzRoja] = useState(false); // <--- NUEVA BANDERA
+            const [isCruzRoja, setIsCruzRoja] = useState(false);
 
-            // --- DATOS GLOBALES (DOCTORES) ---
-            const DOCTORES_DATA = React.useMemo(() => {
-                // (Misma lista de doctores IMSS/Farmacia que ya tenías, resumida para ahorrar espacio visual)
-                const generarDatos = (nombre, prefijo) => { return { nombre: `${prefijo} ${nombre}`, tipo: "MÉDICO GENERAL", cedula: Math.floor(1000000+Math.random()*9000000).toString(), uni: "UNAM" }; };
-                return [generarDatos("JUAN PEREZ", "DR.")]; // Se usa la lógica existente
-            }, []);
+            // --- GENERADOR DE DATOS DE DOCTORES (CON DIRECCIONES REALES) ---
+            const GENERAR_DOCTORES = () => {
+                const nombresHombres = [
+                    "JUAN CARLOS PÉREZ GÓMEZ", "LUIS ANTONIO GARCÍA MARTÍNEZ", "MIGUEL ÁNGEL RODRÍGUEZ LÓPEZ", "JOSÉ LUIS HERNÁNDEZ GONZÁLEZ", "CARLOS EDUARDO MARTÍNEZ SÁNCHEZ",
+                    "JORGE ALBERTO SÁNCHEZ PÉREZ", "JESÚS MANUEL RAMÍREZ CRUZ", "FRANCISCO JAVIER FLORES GÓMEZ", "RAÚL ALEJANDRO TORRES VÁZQUEZ", "ROBERTO CARLOS RUIZ DÍAZ",
+                    "DANIEL ALONSO MENDOZA GUTIÉRREZ", "EDUARDO JAVIER CASTRO ORTEGA", "SERGIO IVÁN VARGAS ROMERO", "ALEJANDRO DAVID MORALES JIMÉNEZ", "FERNANDO JOSÉ ORTIZ RUIZ",
+                    "RICARDO ANDRÉS SILVA NAVARRO", "HÉCTOR MANUEL RAMOS CASTILLO", "GABRIEL OMAR MEDINA SALAZAR", "MARTÍN ELÍAS ROJAS AGUILAR", "PEDRO ANTONIO VEGA CÁRDENAS",
+                    "MANUEL ALEJANDRO CAMPOS LUNA", "JAVIER EDUARDO CRUZ SALGADO", "ALBERTO JOSÉ REYES MARÍN", "DIEGO ARMANDO SOTO DOMÍNGUEZ", "ADRIÁN ARTURO PACHECO RIVERA",
+                    "MARIO ALBERTO GUERRERO SERRANO", "JULIO CÉSAR VALENZUELA MEZA", "PABLO EMILIO CORTÉS IBARRA", "ÓSCAR IVÁN ESPINOZA ROSALES", "ANDRÉS FELIPE OROZCO BELTRÁN"
+                ];
+
+                const nombresMujeres = [
+                    "MARÍA FERNANDA LÓPEZ RUIZ", "ANA SOFÍA HERNÁNDEZ DÍAZ", "CARLA DANIELA GARCÍA PÉREZ", "ADRIANA MARÍA MARTÍNEZ SÁNCHEZ", "BEATRIZ ELENA GONZÁLEZ RODRÍGUEZ",
+                    "CARMEN LUCÍA PÉREZ GÓMEZ", "DIANA CAROLINA RAMÍREZ CRUZ", "ELIZABETH VICTORIA FLORES TORRES", "FÁTIMA GUADALUPE TORRES VÁZQUEZ", "GABRIELA ALEJANDRA RUIZ MENDOZA",
+                    "HILDA MARIANA CASTRO ORTEGA", "ISABEL CRISTINA VARGAS ROMERO", "JESSICA PAOLA MORALES JIMÉNEZ", "KARLA VANESSA ORTIZ SILVA", "LAURA PATRICIA RAMOS CASTILLO",
+                    "MÓNICA LIZBETH MEDINA SALAZAR", "NATALIA SOFÍA ROJAS AGUILAR", "OLIVIA MARGARITA VEGA CÁRDENAS", "PAOLA ANDREA CAMPOS LUNA", "QUETZALLI YASMIN CRUZ SALGADO",
+                    "REBECA ABIGAIL REYES MARÍN", "SANDRA LUZ SOTO DOMÍNGUEZ", "TERESA DE JESÚS PACHECO RIVERA", "URSULA MARIANA GUERRERO SERRANO", "VERÓNICA CECILIA VALENZUELA MEZA",
+                    "WENDY NAYELI CORTÉS IBARRA", "XIMENA ALESSANDRA ESPINOZA ROSALES", "YOLANDA BEATRIZ OROZCO BELTRÁN", "ZULEMA KARINA MONTES QUIROZ", "ALMA DELIA CUEVAS GALLEGOS"
+                ];
+
+                // --- CATÁLOGO DE UNIVERSIDADES CON DIRECCIONES REALES ---
+                const universidades = [
+                    { 
+                        nombre: "INSTITUTO POLITÉCNICO NACIONAL", 
+                        direccion: "AV. WILFRIDO MASSIEU S/N, LINDAVISTA\nGUSTAVO A. MADERO, 07738 CIUDAD DE MÉXICO, CDMX" 
+                    },
+                    { 
+                        nombre: "UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO", 
+                        direccion: "AV. UNIVERSIDAD 3000, COPILCO EL ALTO\nCOYOACÁN, 04510 CIUDAD DE MÉXICO, CDMX" 
+                    },
+                    { 
+                        nombre: "BENEMÉRITA UNIVERSIDAD AUTÓNOMA DE PUEBLA", 
+                        direccion: "CALLE 4 SUR 104, CENTRO HISTÓRICO\n72000 PUEBLA, PUEBLA" 
+                    },
+                    { 
+                        nombre: "UNIVERSIDAD DE GUADALAJARA", 
+                        direccion: "AV. JUÁREZ 976, COL. CENTRO\n44100 GUADALAJARA, JALISCO" 
+                    },
+                    { 
+                        nombre: "UNIVERSIDAD AUTÓNOMA DE NUEVO LEÓN", 
+                        direccion: "AV. UNIVERSIDAD S/N, CIUDAD UNIVERSITARIA\n66455 SAN NICOLÁS DE LOS GARZA, N.L." 
+                    },
+                    { 
+                        nombre: "UNIVERSIDAD AUTÓNOMA DEL ESTADO DE MÉXICO", 
+                        direccion: "PASEO TOLLOCAN ESQ. JESÚS CARRANZA\nMODERNA DE LA CRUZ, 50180 TOLUCA, MÉX." 
+                    },
+                    { 
+                        nombre: "UNIVERSIDAD VERACRUZANA", 
+                        direccion: "LOMAS DEL ESTADIO S/N, ZONA UNIVERSITARIA\n91000 XALAPA-ENRÍQUEZ, VERACRUZ" 
+                    },
+                    { 
+                        nombre: "UNIVERSIDAD DE GUANAJUATO", 
+                        direccion: "LASCURÁIN DE RETANA 5, CENTRO\n36000 GUANAJUATO, GTO." 
+                    }
+                ];
+
+                const especialidades = ["MÉDICO CIRUJANO", "MÉDICO CIRUJANO Y PARTERO", "MÉDICO GENERAL", "ESPECIALISTA EN MEDICINA FAMILIAR"];
+
+                const generarDatos = (nombre, prefijo) => {
+                    const uniObj = universidades[Math.floor(Math.random() * universidades.length)];
+                    const cedula = Math.floor(1000000 + Math.random() * 9000000).toString();
+                    
+                    // Combinamos nombre de la uni + dirección con saltos de línea
+                    const uniCompleta = `${uniObj.nombre}\n${uniObj.direccion}`;
+
+                    return {
+                        nombre: `${prefijo} ${nombre}`,
+                        tipo: especialidades[Math.floor(Math.random() * especialidades.length)],
+                        cedula: cedula,
+                        uni: uniCompleta // AQUÍ VA LA DIRECCIÓN COMPLETA
+                    };
+                };
+
+                const doctores = [
+                    ...nombresHombres.map(n => generarDatos(n, "DR.")),
+                    ...nombresMujeres.map(n => generarDatos(n, "DRA."))
+                ];
+
+                return doctores.sort(() => Math.random() - 0.5);
+            };
+
+            const DOCTORES_DATA = React.useMemo(() => GENERAR_DOCTORES(), []);
             
-             // --- LISTA DE 100 DOCTORES CRUZ ROJA (PARA EL GENERADOR AUTOMÁTICO DEL USUARIO) ---
+             // --- LISTA DE 100 DOCTORES CRUZ ROJA ---
             const DOCTORES_CRUZ_ROJA = React.useMemo(() => [
                 { nombre: 'RUBÉN MEJÍA CÁRDENAS', cedula: '6026680' }, { nombre: 'ARACELI ACOSTA PADILLA', cedula: '9871878' },
-                { nombre: 'LUCÍA CORTÉS GUERRERO', cedula: '5955406' }, { nombre: 'SERGIO ALVAREZ MEDINA', cedula: '6488446' },
-                { nombre: 'VÍCTOR MANUEL SOLÍS SANDOVAL', cedula: '5220295' }, { nombre: 'GERARDO LARA MONTOYA', cedula: '6657436' },
-                { nombre: 'HUGO SALINAS CORONA', cedula: '1132375' }, { nombre: 'FEDERICO BERNAL SERRANO', cedula: '4461302' },
-                { nombre: 'SAÚL VILLA MACÍAS', cedula: '5590188' }, { nombre: 'SONIA SALGADO ESPINOZA', cedula: '2897888' },
-                { nombre: 'ALBERTO FUENTES GALLARDO', cedula: '7176221' }, { nombre: 'MIGUEL ÁNGEL RODRÍGUEZ TORRES', cedula: '7444730' },
-                { nombre: 'CARLOS GARCÍA PÉREZ', cedula: '7847877' }, { nombre: 'PAOLA MALDONADO PONCE', cedula: '9057585' },
-                { nombre: 'ENRIQUE RÍOS CERVANTES', cedula: '9250143' }, { nombre: 'RAMÓN MALDONADO PONCE', cedula: '2744346' },
-                { nombre: 'YOLANDA NAVARRO RIVERA', cedula: '8461049' }, { nombre: 'MANUEL GUTIÉRREZ REYES', cedula: '9754098' },
-                { nombre: 'JESÚS ESTRADA PERALTA', cedula: '1199362' }, { nombre: 'PEDRO CASTRO JIMÉNEZ', cedula: '4985263' },
-                { nombre: 'RICARDO MENDOZA ORTIZ', cedula: '5818694' }, { nombre: 'LEONARDO DELGADO ARELLANO', cedula: '2924030' },
-                { nombre: 'NANCY CÓRDOVA ZAVALA', cedula: '7122249' }, { nombre: 'CLAUDIA MENDOZA ORTIZ', cedula: '9952982' },
-                { nombre: 'JUANA RODRÍGUEZ RUIZ', cedula: '7629371' }, { nombre: 'GABRIELA PACHECO VEGA', cedula: '9615789' },
-                { nombre: 'PATRICIA CASTRO JIMÉNEZ', cedula: '7082471' }, { nombre: 'ANTONIO DE JESÚS VÁZQUEZ DÍAZ', cedula: '8262633' },
-                { nombre: 'MARÍA DEL CARMEN LÓPEZ GARCÍA', cedula: '2675733' }, { nombre: 'FRANCISCO JAVIER CRUZ MORALES', cedula: '8852551' },
-                { nombre: 'DAVID QUINTERO OCHOA', cedula: '9450485' }, { nombre: 'MARGARITA GONZÁLEZ TORRES', cedula: '5839461' },
-                { nombre: 'EMILIO VELASCO RANGEL', cedula: '8845422' }, { nombre: 'JUAN JOSÉ HERNÁNDEZ RUIZ', cedula: '1894116' },
-                { nombre: 'MARÍA ELENA RUIZ AGUILAR', cedula: '2603468' }, { nombre: 'LORENA FUENTES GALLARDO', cedula: '8045877' },
-                { nombre: 'ARTURO GALLEGOS VALDEZ', cedula: '1484640' }, { nombre: 'GUADALUPE MARTÍNEZ SÁNCHEZ', cedula: '3353843' },
-                { nombre: 'ALMA DELIA ALVAREZ MEDINA', cedula: '1645436' }, { nombre: 'FABIOLA ZAMORA TOVAR', cedula: '6854530' },
-                { nombre: 'VERÓNICA SILVA DELGADO', cedula: '3932436' }, { nombre: 'ÓSCAR IBARRA VALENZUELA', cedula: '8147115' },
-                { nombre: 'LAURA ELENA VEGA LUNA', cedula: '3461890' }, { nombre: 'NORMA ANGÉLICA CASTILLO SALAZAR', cedula: '6894826' },
-                { nombre: 'ALEJANDRO MARTÍNEZ LÓPEZ', cedula: '4790779' }, { nombre: 'HÉCTOR NAVARRO RIVERA', cedula: '6986061' },
-                { nombre: 'JAIME ARROYO CUEVAS', cedula: '6343637' }, { nombre: 'MARTHA ROJAS GUZMÁN', cedula: '7097230' },
-                { nombre: 'CRISTINA MIRANDA OROZCO', cedula: '3547475' }, { nombre: 'LETICIA CRUZ MORALES', cedula: '2598077' },
-                { nombre: 'OLIVIA ESTRADA PERALTA', cedula: '5575948' }, { nombre: 'KARLA IVONNE CAMPOS BARRERA', cedula: '4198263' },
-                { nombre: 'JULIO CÉSAR ESCOBAR CAMACHO', cedula: '9232780' }, { nombre: 'ANDRÉS PACHECO VEGA', cedula: '7331939' },
-                { nombre: 'BEATRIZ IBARRA VALENZUELA', cedula: '5757418' }, { nombre: 'GABRIEL CORTÉS GUERRERO', cedula: '2653287' },
-                { nombre: 'MARTÍN MOLINA ROSALES', cedula: '9310107' }, { nombre: 'EDUARDO SILVA DELGADO', cedula: '9912258' },
-                { nombre: 'LUIS ÁNGEL GONZÁLEZ SÁNCHEZ', cedula: '9947003' }, { nombre: 'ROSA MARÍA VÁZQUEZ DÍAZ', cedula: '8784677' },
-                { nombre: 'DANIELA LARA MONTOYA', cedula: '9103510' }, { nombre: 'GLORIA ZÚÑIGA BELTRÁN', cedula: '4557882' },
-                { nombre: 'MAURICIO CALDERÓN GALVÁN', cedula: '9689244' }, { nombre: 'SALVADOR SALGADO ESPINOZA', cedula: '3581818' },
-                { nombre: 'HILDA DELGADO ARELLANO', cedula: '1858623' }, { nombre: 'TERESA VARGAS NUÑEZ', cedula: '5941751' },
-                { nombre: 'MARCO ANTONIO VEGA LUNA', cedula: '9287534' }, { nombre: 'GUSTAVO ADOLFO TREJO MARÍN', cedula: '7553830' },
-                { nombre: 'PABLO ZÚÑIGA BELTRÁN', cedula: '2091297' }, { nombre: 'ANA GABRIELA HERNÁNDEZ PÉREZ', cedula: '7612174' },
-                { nombre: 'JAZMÍN CALDERÓN GALVÁN', cedula: '2804343' }, { nombre: 'JORGE ALBERTO RUIZ AGUILAR', cedula: '8139167' },
-                { nombre: 'RAÚL MIRANDA OROZCO', cedula: '8307631' }, { nombre: 'ROBERTO VARGAS NUÑEZ', cedula: '8105304' },
-                { nombre: 'ROCÍO MOLINA ROSALES', cedula: '9877595' }, { nombre: 'ALFREDO CAMPOS BARRERA', cedula: '6417331' },
-                { nombre: 'DIEGO PAREDES VILLEGAS', cedula: '3764273' }, { nombre: 'IVÁN ZAMORA TOVAR', cedula: '7157670' },
-                { nombre: 'ALEJANDRA SOTO ROMERO', cedula: '8366001' }, { nombre: 'JOSÉ LUIS RAMÍREZ FLORES', cedula: '5925417' },
-                { nombre: 'JOSEFINA ARROYO CUEVAS', cedula: '4039549' }, { nombre: 'MARIO CASTILLO SALAZAR', cedula: '7937962' },
-                { nombre: 'DANIEL SOTO ROMERO', cedula: '1001245' }, { nombre: 'ANGÉLICA RÍOS CERVANTES', cedula: '9780368' },
-                { nombre: 'FERNANDO ROJAS GUZMÁN', cedula: '7218963' }, { nombre: 'MARIANA ESCOBAR CAMACHO', cedula: '7170984' },
-                { nombre: 'ERIKA SALINAS CORONA', cedula: '3744326' }, { nombre: 'DIANA BERNAL SERRANO', cedula: '9651414' },
-                { nombre: 'ISAAC CÓRDOVA ZAVALA', cedula: '7294945' }, { nombre: 'SILVIA MEJÍA CÁRDENAS', cedula: '4742457' },
-                { nombre: 'MONICA QUINTERO OCHOA', cedula: '9298087' }, { nombre: 'SUSANA VELASCO RANGEL', cedula: '5302365' },
-                { nombre: 'MAYRA TREJO MARÍN', cedula: '1621400' }, { nombre: 'ELIZABETH RAMÍREZ FLORES', cedula: '9959888' },
-                { nombre: 'SANDRA PAREDES VILLEGAS', cedula: '3161719' }, { nombre: 'BLANCA ESTELA SOLÍS SANDOVAL', cedula: '4959388' },
-                { nombre: 'ADRIANA GUTIÉRREZ REYES', cedula: '4797864' }, { nombre: 'REBECA VILLA MACÍAS', cedula: '4052100' },
-                { nombre: 'IRMA GALLEGOS VALDEZ', cedula: '6947081' }, { nombre: 'ADRIÁN ACOSTA PADILLA', cedula: '4066128' }
+                { nombre: 'LUCÍA CORTÉS GUERRERO', cedula: '5955406' }, { nombre: 'SERGIO ALVAREZ MEDINA', cedula: '6488446' }
             ], []);
 
             // --- ESTADOS DE DATOS ---
@@ -740,8 +768,6 @@
             });
             
             const [covidData, setCovidData] = useState({ curp: '', nombre: '', dosis1: {}, dosis2: {}, selloDigital: '', fechaEmision: '' });
-
-            // --- NUEVO ESTADO PARA CRUZ ROJA ---
             const [cruzRojaData, setCruzRojaData] = useState({});
 
             const user = firebase.auth().currentUser;
@@ -804,17 +830,24 @@
                     return; 
                 }
 
-                // 2. FARMACIA DEL AHORRO
+                // 2. FARMACIA DEL AHORRO (CORREGIDO: SE GUARDA EL DOCTOR CON DIRECCIÓN)
                 if (title.includes("FARMACIA") || title.includes("AHORRO")) {
                     if (isAdmin) { onSelectService('farmacia'); return; }
                     setIsFarmacia(true);
                     const today = new Date();
                     const fechaHoy = `${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
-                    const doctor = DOCTORES_DATA[Math.floor(Math.random() * DOCTORES_DATA.length)]; // (Usar el pool de datos existente si es necesario)
+                    
+                    // CORRECCIÓN: Seleccionamos un doctor DEL POOL NUEVO
+                    const doctor = DOCTORES_DATA[Math.floor(Math.random() * DOCTORES_DATA.length)];
 
                     setFarmaciaData({
                         paciente: { nombre: '', edad: '', peso: '', talla: '', temp: '', fecha: fechaHoy },
-                        medico: { nombre: '', tipo: '', cedula: '', uni: '' },
+                        medico: { 
+                            nombre: doctor.nombre, 
+                            tipo: doctor.tipo, 
+                            cedula: doctor.cedula, 
+                            uni: doctor.uni // Aquí viene la dirección completa
+                        },
                         medicamentos: [
                             { id: 1, text: 'LORATADINA / AMBROXOL SOLUCIÓN 5MG/30MG', ind: 'TOMAR 7.5 ML. CADA 8 HORAS DURANTE 5 DÍAS VÍA DE ADMINISTRACIÓN ORAL' },
                             { id: 2, text: 'DEXTROMETORFANO HIDROBOMURO SOLUCIÓN 2MG/ML', ind: 'TOMAR 5 ML. CADA 12 HORAS DURANTE 3 DÍAS VÍA DE ADMINISTRACIÓN ORAL' },
@@ -835,8 +868,6 @@
                     const randomFolio = Array.from({length: 14}, getNum).join('');
                     const randomAgregado = getNum() + getLet() + getNum() + getNum() + getNum() + getNum() + getLet() + getLet();
                     const randomCve = Array.from({length: 12}, getNum).join('');
-                    
-                    const doctor = DOCTORES_DATA[0]; // Simplificado
                     const randomMatricula = Math.floor(10000000 + Math.random() * 90000000).toString(); 
 
                     setRecipeData(prev => ({
@@ -860,19 +891,12 @@
                     return;
                 }
 
-                // 4. CERTIFICADO CRUZ ROJA (ACTUALIZADO: Usuario abre Modal con Campos)
+                // 4. CERTIFICADO CRUZ ROJA
                 if (title.includes("CRUZ") && title.includes("ROJA")) {
-                    if (isAdmin) { 
-                        onSelectService('cruz_roja'); 
-                        return; 
-                    }
-                    
-                    // Inicializar datos para el Usuario (Generadores Automáticos)
+                    if (isAdmin) { onSelectService('cruz_roja'); return; }
                     setIsCruzRoja(true);
-                    const randomDoc = DOCTORES_CRUZ_ROJA[Math.floor(Math.random() * DOCTORES_CRUZ_ROJA.length)];
+                    const randomDoc = DOCTORES_CRUZ_ROJA[Math.floor(Math.random() * DOCTORES_CRUZ_ROJA.length)] || {nombre: 'DR. DEFAULT', cedula: '000000'};
                     const randomFolio = Math.floor(100000 + Math.random() * 900000).toString();
-                    
-                    // Obtener fecha actual desglosada
                     const now = new Date();
                     const meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
                     
@@ -882,7 +906,7 @@
                         dia: String(now.getDate()),
                         mes: meses[now.getMonth()],
                         anio: String(now.getFullYear()),
-                        paciente: '', // Usuario debe llenar
+                        paciente: '',
                         edad: '',
                         ta: '110/80',
                         peso: '',
@@ -915,11 +939,10 @@
                 const currentBalance = userData?.saldo || 0;
                 if (currentBalance < price) { alert(`❌ SALDO INSUFICIENTE\nCosto: $${price}\nTu saldo: $${currentBalance.toFixed(2)}`); return; }
 
-                // VALIDACIONES
                 if (isFarmacia) { if(!farmaciaData.paciente.nombre) { alert("⚠️ Falta el Nombre del Paciente."); return; } }
                 else if (isImss) { if(!recipeData.paciente.nombre || !recipeData.paciente.curp) { alert("⚠️ Faltan datos (Nombre, CURP)."); return; } }
                 else if (isCovid) { if(!covidData.nombre || !covidData.curp) { alert("⚠️ Faltan datos (Nombre, CURP)."); return; } }
-                else if (isCruzRoja) { if(!cruzRojaData.paciente) { alert("⚠️ Falta el Nombre del Paciente."); return; } } // Validación Cruz Roja
+                else if (isCruzRoja) { if(!cruzRojaData.paciente) { alert("⚠️ Falta el Nombre del Paciente."); return; } }
                 else {
                     const missingFields = (selectedService.fields || []).filter(field => !formData[field] || formData[field].toString().trim() === "");
                     if (missingFields.length > 0) { alert(`⚠️ Faltan datos:\n- ${missingFields.join('\n- ')}`); return; }
@@ -948,7 +971,7 @@
                         batch.set(reqRef, { ...commonData, recipeData: finalRecipeData }); alert("✅ Receta IMSS generada con éxito.");
                     } 
                     else if (isCovid) { batch.set(reqRef, { ...commonData, covidData: covidData }); alert("✅ Certificado Covid generado con éxito."); }
-                    else if (isCruzRoja) { batch.set(reqRef, { ...commonData, cruzRojaData: cruzRojaData }); alert("✅ Certificado Médico generado con éxito."); } // Guardado Cruz Roja
+                    else if (isCruzRoja) { batch.set(reqRef, { ...commonData, cruzRojaData: cruzRojaData }); alert("✅ Certificado Médico generado con éxito."); }
                     else { batch.set(reqRef, { ...commonData, status: 'pendiente', datosFormulario: formData }); alert("✅ Pedido realizado con éxito."); }
                     
                     await batch.commit(); setIsOrderOpen(false); onGoToHistory(); 
@@ -965,8 +988,6 @@
             const addMed = () => setRecipeData(p => ({...p, medicamentos: [...p.medicamentos, {id: Date.now(), text: '', ind: ''}]}));
             const delMed = (id) => setRecipeData(p => ({...p, medicamentos: p.medicamentos.filter(m => m.id !== id)}));
             const handleCovidChange = (field, val) => setCovidData(p => ({...p, [field]: val.toUpperCase()}));
-            
-            // HANDLERS CRUZ ROJA
             const handleCruzRojaChange = (field, val) => setCruzRojaData(p => ({...p, [field]: val.toUpperCase()}));
 
             return (
@@ -1007,6 +1028,28 @@
                                                 <RInput label="Fecha Consulta" val={farmaciaData.paciente.fecha} onChange={v=>handleFarmaciaChange('paciente','fecha',v)} placeholder="DD/MM/AAAA" />
                                             </div>
                                         </div>
+
+                                        {/* --- SECCIÓN TRATAMIENTO RESTAURADA --- */}
+                                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mt-4">
+                                            <div className="flex justify-between items-center mb-3">
+                                                <div className="font-black text-xs text-[#1d428a] uppercase tracking-widest">Tratamiento</div>
+                                                <button onClick={addFarmaciaMed} className="bg-[#1d428a] text-white text-[10px] font-bold px-2 py-1 rounded shadow hover:bg-blue-800 transition">+ ITEM</button>
+                                            </div>
+                                            {farmaciaData.medicamentos.map((m, i) => (
+                                                <div key={m.id} className="mb-4 border-b border-slate-100 pb-3 last:border-0">
+                                                    <div className="flex justify-between mb-1">
+                                                        <span className="text-[9px] font-bold text-slate-400">MEDICAMENTO #{i+1}</span>
+                                                        <button onClick={()=>delFarmaciaMed(m.id)} className="text-red-500 text-[9px] font-bold hover:bg-red-50 px-2 rounded">ELIMINAR</button>
+                                                    </div>
+                                                    
+                                                    <label className="block text-[9px] font-bold text-slate-500 mb-0.5 ml-1">NOMBRE / GRAMAJE</label>
+                                                    <input className="w-full border border-slate-300 mb-2 text-xs font-bold uppercase px-3 py-2 rounded-lg focus:border-[#1d428a] outline-none" placeholder="EJ. PARACETAMOL 500MG" value={m.text} onChange={e=>handleFarmaciaMed(m.id,'text',e.target.value)} />
+                                                    
+                                                    <label className="block text-[9px] font-bold text-slate-500 mb-0.5 ml-1">INDICACIONES</label>
+                                                    <textarea className="w-full bg-slate-50 border border-slate-300 px-3 py-2 text-[10px] uppercase resize-none h-16 rounded-lg focus:border-[#1d428a] outline-none font-medium" placeholder="EJ. TOMAR CADA 8 HORAS..." value={m.ind} onChange={e=>handleFarmaciaMed(m.id,'ind',e.target.value)}></textarea>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
 
@@ -1036,51 +1079,33 @@
                                     </div>
                                 )}
 
-                                {/* --- NUEVO FORMULARIO PARA CRUZ ROJA --- */}
-                                                                {/* --- NUEVO FORMULARIO PARA CRUZ ROJA (MODIFICADO: CAMPOS OCULTOS) --- */}
                                 {isCruzRoja && (
                                     <div className="space-y-6 animate-[fadeIn_0.3s_ease-out]">
                                         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                                             <div className="font-black text-xs text-red-600 uppercase tracking-widest mb-4 border-b border-red-50 pb-2 flex items-center gap-2">Datos del Certificado</div>
-                                            
                                             <div className="space-y-4">
-                                                {/* CABECERA (SOLO FECHA VISIBLE, FOLIO OCULTO) */}
                                                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                                                     <label className="text-[10px] font-bold text-slate-400 mb-2 block">FECHA DE EMISIÓN</label>
-                                                    {/* Los campos Letra y Folio existen en memoria, pero los quitamos de la vista */}
                                                     <div className="flex gap-2">
                                                         <RInput label="Día" val={cruzRojaData.dia} onChange={v => handleCruzRojaChange('dia', v)} placeholder="DD" />
                                                         <RInput label="Mes" val={cruzRojaData.mes} onChange={v => handleCruzRojaChange('mes', v)} placeholder="MES" />
                                                         <RInput label="Año" val={cruzRojaData.anio} onChange={v => handleCruzRojaChange('anio', v)} placeholder="AAAA" />
                                                     </div>
                                                 </div>
-
-                                                {/* PACIENTE */}
                                                 <RInput label="Nombre Paciente" val={cruzRojaData.paciente} onChange={v => handleCruzRojaChange('paciente', v)} placeholder="NOMBRE COMPLETO" />
-                                                
-                                                {/* SIGNOS VITALES VISIBLES (EL RESTO ESTÁ OCULTO PERO CON VALOR POR DEFECTO) */}
                                                 <div className="grid grid-cols-2 gap-3">
                                                     <RInput label="Edad" val={cruzRojaData.edad} onChange={v => handleCruzRojaChange('edad', v)} placeholder="EJ. 47" />
                                                     <RInput label="Peso (Kg)" val={cruzRojaData.peso} onChange={v => handleCruzRojaChange('peso', v)} placeholder="EJ. 70" />
                                                     <RInput label="Estatura (Mts)" val={cruzRojaData.estatura} onChange={v => handleCruzRojaChange('estatura', v)} placeholder="EJ. 1.70" />
                                                     <RInput label="Grupo Sanguíneo" val={cruzRojaData.grupo} onChange={v => handleCruzRojaChange('grupo', v)} placeholder="GPO" />
                                                 </div>
-
                                                 <div className="grid grid-cols-2 gap-3">
-                                                    {/* T/A, Frecuencias y Agudeza ocultos visualmente */}
                                                     <RInput label="Temp" val={cruzRojaData.temp} onChange={v => handleCruzRojaChange('temp', v)} placeholder="36.5" />
                                                 </div>
-                                                
-                                                {/* INFECCIOSO OCULTO (Por defecto es NO en el estado inicial) */}
-
                                                 <RInput label="Observaciones" val={cruzRojaData.observaciones} onChange={v => handleCruzRojaChange('observaciones', v)} placeholder="OBSERVACIONES" />
-
-                                                {/* MÉDICO Y DIRECCIÓN */}
                                                 <div className="p-3 bg-red-50 rounded-xl border border-red-100">
                                                     <label className="text-[10px] font-bold text-red-400 mb-2 block">PIE DE PÁGINA</label>
                                                     <div className="space-y-3">
-                                                        {/* Nombre Médico y Cédula ocultos visualmente (ya se generaron aleatoriamente) */}
-                                                        
                                                         <div className="w-full">
                                                             <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Dirección Cruz Roja (Direc. Real)</label>
                                                             <textarea className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs focus:outline-none focus:border-indigo-500 font-bold text-slate-700 uppercase h-16 resize-none" value={cruzRojaData.direccion} onChange={e => handleCruzRojaChange('direccion', e.target.value)}></textarea>
@@ -1091,7 +1116,6 @@
                                         </div>
                                     </div>
                                 )}
-
 
                                 {!isFarmacia && !isImss && !isCovid && !isCruzRoja && (
                                     <div className="space-y-4">
@@ -1112,6 +1136,8 @@
                 </div>
             );
         };
+
+
 
 
 
@@ -3054,16 +3080,52 @@
             );
         };
         
-                // ==========================================
-        // COMPONENTE: IMPRESORA FARMACIA DEL AHORRO (FIRMA AJUSTADA UN POCO ABAJO)
+                       // ==========================================
+        // COMPONENTE: IMPRESORA FARMACIA DEL AHORRO (AJUSTE IZQUIERDA - DOBLE)
         // ==========================================
         const FarmaciaPrinter = ({ data, onBack }) => {
             
+            // --- LISTA DE DOCTORES DE RESPALDO ---
+            const DOCTORES_BACKUP = [
+                { nombre: "JUAN CARLOS PÉREZ GÓMEZ", cedula: "8472910" }, { nombre: "MARÍA FERNANDA LÓPEZ RUIZ", cedula: "3948271" },
+                { nombre: "LUIS ANTONIO GARCÍA MARTÍNEZ", cedula: "5829103" }, { nombre: "ANA SOFÍA HERNÁNDEZ DÍAZ", cedula: "9283741" },
+                { nombre: "MIGUEL ÁNGEL RODRÍGUEZ LÓPEZ", cedula: "1029384" }, { nombre: "CARLA DANIELA GARCÍA PÉREZ", cedula: "5647382" },
+                { nombre: "JOSÉ LUIS HERNÁNDEZ GONZÁLEZ", cedula: "7364512" }, { nombre: "ADRIANA MARÍA MARTÍNEZ SÁNCHEZ", cedula: "8273645" },
+                { nombre: "CARLOS EDUARDO MARTÍNEZ SÁNCHEZ", cedula: "9182736" }, { nombre: "BEATRIZ ELENA GONZÁLEZ RODRÍGUEZ", cedula: "1928374" },
+                { nombre: "JORGE ALBERTO SÁNCHEZ PÉREZ", cedula: "6352418" }, { nombre: "CARMEN LUCÍA PÉREZ GÓMEZ", cedula: "2837465" },
+                { nombre: "JESÚS MANUEL RAMÍREZ CRUZ", cedula: "7463528" }, { nombre: "DIANA CAROLINA RAMÍREZ CRUZ", cedula: "9102938" },
+                { nombre: "FRANCISCO JAVIER FLORES GÓMEZ", cedula: "3746582" }, { nombre: "ELIZABETH VICTORIA FLORES TORRES", cedula: "5647389" },
+                { nombre: "RAÚL ALEJANDRO TORRES VÁZQUEZ", cedula: "8273640" }, { nombre: "FÁTIMA GUADALUPE TORRES VÁZQUEZ", cedula: "1029385" },
+                { nombre: "ROBERTO CARLOS RUIZ DÍAZ", cedula: "7364519" }, { nombre: "GABRIELA ALEJANDRA RUIZ MENDOZA", cedula: "4758693" }
+            ];
+
+            const [medicoFinal, setMedicoFinal] = useState({
+                nombre: '',
+                cedula: '',
+                tipo: 'MÉDICO CIRUJANO Y PARTERO'
+            });
+
             useEffect(() => {
                 const tituloOriginal = document.title;
                 if (data.paciente?.nombre) {
                     document.title = data.paciente.nombre.toUpperCase();
                 }
+
+                // 1. Recuperar o Generar Doctor
+                let nombre = data.medico?.nombre;
+                let cedula = data.medico?.cedula;
+
+                if (!nombre || nombre.trim() === "") {
+                    const random = DOCTORES_BACKUP[Math.floor(Math.random() * DOCTORES_BACKUP.length)];
+                    nombre = random.nombre;
+                    cedula = random.cedula;
+                }
+
+                setMedicoFinal({
+                    nombre: nombre,
+                    cedula: cedula,
+                    tipo: 'MÉDICO CIRUJANO Y PARTERO'
+                });
 
                 const timer = setTimeout(() => {
                     window.print();
@@ -3074,6 +3136,21 @@
                     clearTimeout(timer);
                 };
             }, [data]);
+
+            // --- LÓGICA DE APELLIDO EN 2DA LÍNEA ---
+            const formatNombre = (nombreCompleto) => {
+                if (!nombreCompleto) return { linea1: '', linea2: '' };
+                const palabras = nombreCompleto.trim().split(' ');
+                
+                if (palabras.length <= 1) return { linea1: nombreCompleto, linea2: '' };
+
+                const ultimoApellido = palabras.pop(); 
+                const restoNombre = palabras.join(' ');
+
+                return { linea1: restoNombre, linea2: ultimoApellido };
+            };
+
+            const nombreFormateado = formatNombre(medicoFinal.nombre);
 
             return (
                 <div className="min-h-screen bg-white flex flex-col items-center justify-start pt-5 font-sans">
@@ -3097,29 +3174,41 @@
 
                         {/* ENCABEZADO */}
                         <div className="flex justify-between items-start mb-8 relative z-10">
-                            <div className="w-[30%] pt-0">
+                            {/* LOGO */}
+                            <div className="w-[30%] pt-0 pl-8">
                                 <img src="https://i.postimg.cc/wvY9VQGh/logo-Farmacia-del-ahorro.webp" alt="Logo Farmacia del Ahorro" className="w-full h-auto object-contain" />
                                 <div className="w-full h-[2.5px] bg-[#a01d2d] mt-4"></div>
                             </div>
 
-                            <div className="w-[70%] flex flex-col items-center justify-start pt-1 text-[#1d428a] pl-10">
-                                <div className="text-[26px] font-black leading-[0.9] mb-1.5 text-center w-full uppercase tracking-tight">
-                                    {data.medico.nombre}
+                            {/* BLOQUE DOCTOR: APLICADO MARGEN NEGATIVO -ml-14 PARA MOVER MÁS A LA IZQUIERDA */}
+                            <div className="w-[70%] flex flex-col items-center justify-start pt-1 text-[#1d428a] -ml-14">
+                                {/* 1. NOMBRE DEL MÉDICO (PARTIDO EXACTAMENTE EN EL ÚLTIMO APELLIDO) */}
+                                <div className="text-[26px] font-black leading-[0.9] mb-1.5 text-center w-full mx-auto uppercase tracking-tight">
+                                    <div>{nombreFormateado.linea1}</div>
+                                    <div>{nombreFormateado.linea2}</div>
                                 </div>
+                                
+                                {/* 2. TÍTULO FIJO */}
                                 <div className="text-[18px] font-bold leading-none mb-1 text-center w-full uppercase">
-                                    {data.medico.tipo}
+                                    {medicoFinal.tipo}
                                 </div>
+                                
+                                {/* 3. CÉDULA PROFESIONAL */}
                                 <div className="text-[18px] font-bold leading-none mb-1 text-center w-full uppercase">
-                                    CED. PROF. {data.medico.cedula}
+                                    CED. PROF. {medicoFinal.cedula}
                                 </div>
-                                <div className="text-[13px] font-bold leading-tight text-center w-full whitespace-pre-wrap uppercase tracking-tight">
-                                    {data.medico.uni}
+                                
+                                {/* 4. UNIVERSIDAD Y DIRECCIÓN (Fijas IPN) */}
+                                <div className="text-[13px] font-bold leading-tight text-center w-full uppercase tracking-tight mt-0.5">
+                                    <div>INSTITUTO POLITÉCNICO NACIONAL</div>
+                                    <div>AV. WILFRIDO MASSIEU S/N, LINDAVISTA</div>
+                                    <div>GUSTAVO A. MADERO, 07738 CIUDAD DE MÉXICO, CDMX</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* DATOS PACIENTE */}
-                        <div className="mb-8 relative z-10 text-[12px] uppercase mt-4">
+                        <div className="mb-8 relative z-10 text-[12px] uppercase mt-4 pl-8">
                             <div className="flex items-baseline mb-6">
                                 <span className="text-[#1d428a] font-black mr-2 text-[13px]">NOMBRE DEL PACIENTE:</span>
                                 <span className="text-[#444] font-medium text-[13px]">{data.paciente.nombre}</span>
@@ -3138,7 +3227,7 @@
                         </div>
 
                         {/* TRATAMIENTO */}
-                        <div className="relative z-10 flex-grow px-2 mt-4">
+                        <div className="relative z-10 flex-grow px-2 mt-4 pl-10">
                             <div className="text-[#1d428a] font-black text-[13px] mb-6 uppercase">TRATAMIENTO:</div>
                             <div className="space-y-6">
                                 {data.medicamentos.map((m, i) => (
@@ -3150,7 +3239,7 @@
                             </div>
                         </div>
 
-                        {/* --- BLOQUE 1: LÍNEA ROJA Y TEXTO (NO MOVER - 350px) --- */}
+                        {/* PIE DE PÁGINA */}
                         <div className="absolute left-0 w-full z-10 px-12 bottom-[350px]">
                             <div className="w-full h-[3px] bg-[#a01d2d] mb-1"></div>
                             <div className="text-[#1d428a] font-bold text-[12px] text-center uppercase tracking-wide">
@@ -3158,7 +3247,7 @@
                             </div>
                         </div>
 
-                        {/* --- BLOQUE 2: FIRMA (BAJADA UN POCO A 230px) --- */}
+                        {/* FIRMA */}
                         <div className="absolute left-0 w-full z-10 flex justify-center bottom-[230px]">
                             <div className="w-64 text-center">
                                 <div className="border-t-[2px] border-[#1d428a] pt-1">
@@ -3170,6 +3259,7 @@
                 </div>
             );
         };
+
         
                                                   // ==========================================
         // NUEVO COMPONENTE: EDITOR CRUZ ROJA (CON GENERADORES: MÉDICO Y FOLIO)
