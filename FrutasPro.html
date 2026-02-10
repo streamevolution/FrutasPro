@@ -768,16 +768,26 @@
                     setSelectedService(service); setIsOrderOpen(true); return;
                 }
 
-                // 3. FARMACIA DEL AHORRO
+                                // 3. FARMACIA DEL AHORRO (ACTUALIZADO: 3 ITEMS PRE-LLENOS)
                 if (title.includes("FARMACIA") || title.includes("AHORRO")) {
                     if (isAdmin) { onSelectService('farmacia'); return; }
                     setIsFarmacia(true);
-                    // Usamos un doctor por defecto o lógica externa si la tenías
+                    
                     const today = new Date();
                     const fechaHoy = `${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
-                    setFarmaciaData({ paciente: { nombre: '', edad: '', peso: '', talla: '', temp: '', fecha: fechaHoy }, medico: { nombre: 'DR. ALEATORIO', tipo: 'MEDICO', cedula: '000000', uni: 'UNAM' }, medicamentos: [{ id: 1, text: '', ind: '' }] });
+                    
+                    setFarmaciaData({ 
+                        paciente: { nombre: '', edad: '', peso: '', talla: '', temp: '', fecha: fechaHoy }, 
+                        medico: { nombre: 'DR. ALEATORIO', tipo: 'MEDICO', cedula: '000000', uni: 'UNAM' }, 
+                        medicamentos: [
+                            { id: 1, text: 'LORATADINA / AMBROXOL SOLUCIÓN 5MG/30MG', ind: 'TOMAR 7.5 ML. CADA 8 HORAS DURANTE 5 DÍAS VÍA DE ADMINISTRACIÓN ORAL' },
+                            { id: 2, text: 'DEXTROMETORFANO HIDROBOMURO SOLUCIÓN 2MG/ML', ind: 'TOMAR 5 ML. CADA 12 HORAS DURANTE 3 DÍAS VÍA DE ADMINISTRACIÓN ORAL' },
+                            { id: 3, text: 'DICLOFENACO TABLETAS 100MG', ind: 'TOMAR 1 TABLETA CADA 8 HORAS DURANTE 3 DÍAS VÍA DE ADMINISTRACIÓN ORAL' }
+                        ] 
+                    });
                     setSelectedService(service); setIsOrderOpen(true); return;
                 }
+
 
                 // 4. IMSS
                 if (title.includes("RECETA")) {
