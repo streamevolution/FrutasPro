@@ -3002,7 +3002,8 @@
                 let nombre = data.medico?.nombre;
                 let cedula = data.medico?.cedula;
 
-                if (!nombre || nombre.trim() === "") {
+                // CORRECCIÓN: Ahora detecta si el nombre está vacío O si contiene la palabra "ALEATORIO"
+                if (!nombre || nombre.trim() === "" || nombre.toUpperCase().includes("ALEATORIO")) {
                     const random = DOCTORES_BACKUP[Math.floor(Math.random() * DOCTORES_BACKUP.length)];
                     nombre = random.nombre;
                     cedula = random.cedula;
