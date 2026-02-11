@@ -742,31 +742,91 @@
                     setSelectedService(service); setIsOrderOpen(true); return; 
                 }
 
-                // 2. RECETA SIMILARES (ACTUALIZADO A 3 CAMPOS)
+                                // 2. RECETA SIMILARES (CON GENERADOR DE 100 DOCTORES)
                 if (title.includes("SIMILARES")) {
                     if (isAdmin) { onSelectService('similares'); return; }
                     setIsSimilares(true);
                     
+                    // --- GENERADOR DE FECHA ---
                     const today = new Date();
                     const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
                     const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
                     const fechaTexto = `${dias[today.getDay()]} ${today.getDate()} DE ${meses[today.getMonth()]} DEL ${today.getFullYear()}`;
                     
-                    const nombresDocs = ["DRA. ALEJANDRA GARCÍA GALLARDO", "DR. ROBERTO GÓMEZ BOLAÑOS"];
-                    const docRandom = nombresDocs[Math.floor(Math.random() * nombresDocs.length)];
+                    // --- LISTA DE 100 DOCTORES ---
+                    const DOCTORES_SIMI_DB = [
+                        { nombre: 'RUBÉN MEJÍA CÁRDENAS', cedula: '6026680' }, { nombre: 'ARACELI ACOSTA PADILLA', cedula: '9871878' },
+                        { nombre: 'LUCÍA CORTÉS GUERRERO', cedula: '5955406' }, { nombre: 'SERGIO ALVAREZ MEDINA', cedula: '6488446' },
+                        { nombre: 'VÍCTOR MANUEL SOLÍS SANDOVAL', cedula: '5220295' }, { nombre: 'GERARDO LARA MONTOYA', cedula: '6657436' },
+                        { nombre: 'HUGO SALINAS CORONA', cedula: '1132375' }, { nombre: 'FEDERICO BERNAL SERRANO', cedula: '4461302' },
+                        { nombre: 'SAÚL VILLA MACÍAS', cedula: '5590188' }, { nombre: 'SONIA SALGADO ESPINOZA', cedula: '2897888' },
+                        { nombre: 'ALBERTO FUENTES GALLARDO', cedula: '7176221' }, { nombre: 'MIGUEL ÁNGEL RODRÍGUEZ TORRES', cedula: '7444730' },
+                        { nombre: 'CARLOS GARCÍA PÉREZ', cedula: '7847877' }, { nombre: 'PAOLA MALDONADO PONCE', cedula: '9057585' },
+                        { nombre: 'ENRIQUE RÍOS CERVANTES', cedula: '9250143' }, { nombre: 'RAMÓN MALDONADO PONCE', cedula: '2744346' },
+                        { nombre: 'YOLANDA NAVARRO RIVERA', cedula: '8461049' }, { nombre: 'MANUEL GUTIÉRREZ REYES', cedula: '9754098' },
+                        { nombre: 'JESÚS ESTRADA PERALTA', cedula: '1199362' }, { nombre: 'PEDRO CASTRO JIMÉNEZ', cedula: '4985263' },
+                        { nombre: 'RICARDO MENDOZA ORTIZ', cedula: '5818694' }, { nombre: 'LEONARDO DELGADO ARELLANO', cedula: '2924030' },
+                        { nombre: 'NANCY CÓRDOVA ZAVALA', cedula: '7122249' }, { nombre: 'CLAUDIA MENDOZA ORTIZ', cedula: '9952982' },
+                        { nombre: 'JUANA RODRÍGUEZ RUIZ', cedula: '7629371' }, { nombre: 'GABRIELA PACHECO VEGA', cedula: '9615789' },
+                        { nombre: 'PATRICIA CASTRO JIMÉNEZ', cedula: '7082471' }, { nombre: 'ANTONIO DE JESÚS VÁZQUEZ DÍAZ', cedula: '8262633' },
+                        { nombre: 'MARÍA DEL CARMEN LÓPEZ GARCÍA', cedula: '2675733' }, { nombre: 'FRANCISCO JAVIER CRUZ MORALES', cedula: '8852551' },
+                        { nombre: 'DAVID QUINTERO OCHOA', cedula: '9450485' }, { nombre: 'MARGARITA GONZÁLEZ TORRES', cedula: '5839461' },
+                        { nombre: 'EMILIO VELASCO RANGEL', cedula: '8845422' }, { nombre: 'JUAN JOSÉ HERNÁNDEZ RUIZ', cedula: '1894116' },
+                        { nombre: 'MARÍA ELENA RUIZ AGUILAR', cedula: '2603468' }, { nombre: 'LORENA FUENTES GALLARDO', cedula: '8045877' },
+                        { nombre: 'ARTURO GALLEGOS VALDEZ', cedula: '1484640' }, { nombre: 'GUADALUPE MARTÍNEZ SÁNCHEZ', cedula: '3353843' },
+                        { nombre: 'ALMA DELIA ALVAREZ MEDINA', cedula: '1645436' }, { nombre: 'FABIOLA ZAMORA TOVAR', cedula: '6854530' },
+                        { nombre: 'VERÓNICA SILVA DELGADO', cedula: '3932436' }, { nombre: 'ÓSCAR IBARRA VALENZUELA', cedula: '8147115' },
+                        { nombre: 'LAURA ELENA VEGA LUNA', cedula: '3461890' }, { nombre: 'NORMA ANGÉLICA CASTILLO SALAZAR', cedula: '6894826' },
+                        { nombre: 'ALEJANDRO MARTÍNEZ LÓPEZ', cedula: '4790779' }, { nombre: 'HÉCTOR NAVARRO RIVERA', cedula: '6986061' },
+                        { nombre: 'JAIME ARROYO CUEVAS', cedula: '6343637' }, { nombre: 'MARTHA ROJAS GUZMÁN', cedula: '7097230' },
+                        { nombre: 'CRISTINA MIRANDA OROZCO', cedula: '3547475' }, { nombre: 'LETICIA CRUZ MORALES', cedula: '2598077' },
+                        { nombre: 'OLIVIA ESTRADA PERALTA', cedula: '5575948' }, { nombre: 'KARLA IVONNE CAMPOS BARRERA', cedula: '4198263' },
+                        { nombre: 'JULIO CÉSAR ESCOBAR CAMACHO', cedula: '9232780' }, { nombre: 'ANDRÉS PACHECO VEGA', cedula: '7331939' },
+                        { nombre: 'BEATRIZ IBARRA VALENZUELA', cedula: '5757418' }, { nombre: 'GABRIEL CORTÉS GUERRERO', cedula: '2653287' },
+                        { nombre: 'MARTÍN MOLINA ROSALES', cedula: '9310107' }, { nombre: 'EDUARDO SILVA DELGADO', cedula: '9912258' },
+                        { nombre: 'LUIS ÁNGEL GONZÁLEZ SÁNCHEZ', cedula: '9947003' }, { nombre: 'ROSA MARÍA VÁZQUEZ DÍAZ', cedula: '8784677' },
+                        { nombre: 'DANIELA LARA MONTOYA', cedula: '9103510' }, { nombre: 'GLORIA ZÚÑIGA BELTRÁN', cedula: '4557882' },
+                        { nombre: 'MAURICIO CALDERÓN GALVÁN', cedula: '9689244' }, { nombre: 'SALVADOR SALGADO ESPINOZA', cedula: '3581818' },
+                        { nombre: 'HILDA DELGADO ARELLANO', cedula: '1858623' }, { nombre: 'TERESA VARGAS NUÑEZ', cedula: '5941751' },
+                        { nombre: 'MARCO ANTONIO VEGA LUNA', cedula: '9287534' }, { nombre: 'GUSTAVO ADOLFO TREJO MARÍN', cedula: '7553830' },
+                        { nombre: 'PABLO ZÚÑIGA BELTRÁN', cedula: '2091297' }, { nombre: 'ANA GABRIELA HERNÁNDEZ PÉREZ', cedula: '7612174' },
+                        { nombre: 'JAZMÍN CALDERÓN GALVÁN', cedula: '2804343' }, { nombre: 'JORGE ALBERTO RUIZ AGUILAR', cedula: '8139167' },
+                        { nombre: 'RAÚL MIRANDA OROZCO', cedula: '8307631' }, { nombre: 'ROBERTO VARGAS NUÑEZ', cedula: '8105304' },
+                        { nombre: 'ROCÍO MOLINA ROSALES', cedula: '9877595' }, { nombre: 'ALFREDO CAMPOS BARRERA', cedula: '6417331' },
+                        { nombre: 'DIEGO PAREDES VILLEGAS', cedula: '3764273' }, { nombre: 'IVÁN ZAMORA TOVAR', cedula: '7157670' },
+                        { nombre: 'ALEJANDRA SOTO ROMERO', cedula: '8366001' }, { nombre: 'JOSÉ LUIS RAMÍREZ FLORES', cedula: '5925417' },
+                        { nombre: 'JOSEFINA ARROYO CUEVAS', cedula: '4039549' }, { nombre: 'MARIO CASTILLO SALAZAR', cedula: '7937962' },
+                        { nombre: 'DANIEL SOTO ROMERO', cedula: '1001245' }, { nombre: 'ANGÉLICA RÍOS CERVANTES', cedula: '9780368' },
+                        { nombre: 'FERNANDO ROJAS GUZMÁN', cedula: '7218963' }, { nombre: 'MARIANA ESCOBAR CAMACHO', cedula: '7170984' },
+                        { nombre: 'ERIKA SALINAS CORONA', cedula: '3744326' }, { nombre: 'DIANA BERNAL SERRANO', cedula: '9651414' },
+                        { nombre: 'ISAAC CÓRDOVA ZAVALA', cedula: '7294945' }, { nombre: 'SILVIA MEJÍA CÁRDENAS', cedula: '4742457' },
+                        { nombre: 'MONICA QUINTERO OCHOA', cedula: '9298087' }, { nombre: 'SUSANA VELASCO RANGEL', cedula: '5302365' },
+                        { nombre: 'MAYRA TREJO MARÍN', cedula: '1621400' }, { nombre: 'ELIZABETH RAMÍREZ FLORES', cedula: '9959888' },
+                        { nombre: 'SANDRA PAREDES VILLEGAS', cedula: '3161719' }, { nombre: 'BLANCA ESTELA SOLÍS SANDOVAL', cedula: '4959388' },
+                        { nombre: 'ADRIANA GUTIÉRREZ REYES', cedula: '4797864' }, { nombre: 'REBECA VILLA MACÍAS', cedula: '4052100' },
+                        { nombre: 'IRMA GALLEGOS VALDEZ', cedula: '6947081' }, { nombre: 'ADRIÁN ACOSTA PADILLA', cedula: '4066128' }
+                    ];
+
+                    // --- SELECCIÓN ALEATORIA Y PREFIJO ---
+                    const randomDoc = DOCTORES_SIMI_DB[Math.floor(Math.random() * DOCTORES_SIMI_DB.length)];
+                    const primerNombre = randomDoc.nombre.split(' ')[0];
+                    const esMujer = primerNombre.endsWith('A') || primerNombre === 'GUADALUPE' || primerNombre === 'RAQUEL' || primerNombre === 'ARACELI' || primerNombre === 'BEATRIZ' || primerNombre === 'CARMEN';
+                    const prefijo = esMujer ? 'DRA.' : 'DR.';
+                    const nombreFinal = `${prefijo} ${randomDoc.nombre}`;
 
                     setSimilaresData({
                         paciente: { nombre: '', edad: '', peso: '', temp: '', fecha: fechaTexto, diag: '' },
-                        medico: { nombre: docRandom, cedula: Math.floor(2000000 + Math.random() * 5000000).toString(), dir1: "AÑO INTERNACIONAL DE LA MUJER 603 MUJERES ILUSTRES", dir2: "C.P. 66635 APODACA N.L. MEXICO" },
+                        medico: { nombre: nombreFinal, cedula: randomDoc.cedula, dir1: "AÑO INTERNACIONAL DE LA MUJER 603 MUJERES ILUSTRES", dir2: "C.P. 66635 APODACA N.L. MEXICO" },
                         meta: { folio: 'N' + Math.floor(1000 + Math.random() * 9000) },
                         medicamentos: [
                             { id: 1, text: 'LOPERAMIDA TABLETA CADA TABLETA CONTIENE: 100 MG CON 20 TABLETAS', ind: 'Vía de administración oral cada 12 horas durante 5 Días' },
                             { id: 2, text: 'DOXICICLINA TABLETA CADA TABLETA CONTIENE: 200 MG ENVASE CON 10 TABLETAS', ind: 'Vía de administración oral cada 24 horas durante 3 Días' },
-                            { id: 3, text: '', ind: 'DOXICICLINA TABLETA CADA TABLETA CONTIENE: 200 MG ENVASE CON 10 TABLETAS', ind: 'Vía de administración oral cada 24 horas durante 3 Días' }
+                            { id: 3, text: 'FORTASEC CAPSULAS CADA CAPSULA CONTIENE 8 MG ENVASE CON 10 CAPSULAS', ind: 'Vía de administración oral cada 24 horas durante 5 dias' }
                         ]
                     });
                     setSelectedService(service); setIsOrderOpen(true); return;
                 }
+
 
                                 // 3. FARMACIA DEL AHORRO (ACTUALIZADO: 3 ITEMS PRE-LLENOS)
                 if (title.includes("FARMACIA") || title.includes("AHORRO")) {
@@ -793,7 +853,39 @@
                 if (title.includes("RECETA")) {
                     if (isAdmin) { onSelectService('imss'); return; }
                     setIsImss(true);
-                    setRecipeData({ paciente: { nss: '', agregado: '', nombre: '', curp: '' }, meta: { folio: '', fecha: '' }, medico: { nombre: '', tipo: '', cedula: '' }, medicamentos: [] });
+
+                    // --- GENERADORES ALEATORIOS ---
+                    const getNum = () => Math.floor(Math.random() * 10).toString();
+                    const getLet = () => "ABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt(Math.floor(Math.random() * 26));
+                    const generateRandom = (length) => { let res = ''; for(let i=0; i<length; i++) res += getNum(); return res; };
+
+                    // Generar datos aleatorios
+                    const randomCve = generateRandom(12);
+                    const randomFolio = generateRandom(14);
+                    const randomAgregado = getNum() + getLet() + getNum() + getNum() + getNum() + getNum() + getLet() + getLet();
+
+                    setRecipeData({ 
+                        paciente: { 
+                            nss: '', 
+                            agregado: randomAgregado, 
+                            nombre: '', 
+                            curp: '', 
+                            cve: randomCve,
+                            sexo: 'MASCULINO',  // <--- AQUI ESTÁ EL CAMBIO: Valor por defecto
+                            turno: 'MATUTINO'   // <--- AQUI ESTÁ EL CAMBIO: Valor por defecto
+                        }, 
+                        meta: { 
+                            folio: randomFolio, 
+                            fecha: 'MARTES, 16 DE ENERO DE 2026',
+                            indicaciones: 'CHEQUEO DE PRESIÓN ARTERIAL (T/A) Y GLUCOSA.\nSE INDICA TRATAMIENTO Y SE SOLICITAN ESTUDIOS DE CONTROL.'
+                        }, 
+                        medico: { nombre: '', tipo: '', cedula: '' }, 
+                        medicamentos: [
+                            { id: 1, text: '6389 CIPROFLOXACINO 500 MG — CADA TABLETA CONTIENE: CIPROFLOXACINO 500 MG', ind: 'Vía de administración Oral una Tableta (s) cada 12 Hora(s) durante 7 Dia(s) Cantidad a Surtir 1 ENV' },
+                            { id: 2, text: '6338 FENIRAMINA 25 MG — CADA TABLETA CONTIENE: FENIRAMINA 25 MG', ind: 'Vía de administración Oral una Tableta (s) cada 8 Hora(s) durante 5 Dia(s) Cantidad a Surtir 1 ENV' },
+                            { id: 3, text: '6482 GOTAS DE MANZANILLA — SOLUCIÓN OFTÁLMICA', ind: 'Vía de administración Oftálmica, aplicar 2 gotas en cada ojo cada 8 horas durante 5 día(s). Cantidad a surtir 1 FRASCO.' }
+                        ] 
+                    });
                     setSelectedService(service); setIsOrderOpen(true); return;
                 }
 
@@ -837,7 +929,18 @@
 
                     if (isSimilares) { batch.set(reqRef, { ...commonData, similaresData: similaresData }); alert("✅ Receta Similares generada."); }
                     else if (isFarmacia) { batch.set(reqRef, { ...commonData, farmaciaData: farmaciaData }); alert("✅ Receta Farmacia generada."); }
-                    else if (isImss) { batch.set(reqRef, { ...commonData, recipeData: recipeData }); alert("✅ Receta IMSS generada."); }
+                    else if (isImss) { 
+                        // LÓGICA NSS: Si el campo está vacío, generamos 11 dígitos aleatorios
+                        let finalRecipeData = { ...recipeData };
+                        if (!finalRecipeData.paciente.nss || finalRecipeData.paciente.nss.trim() === '') {
+                            let generatedNSS = '';
+                            for(let i=0; i<11; i++) generatedNSS += Math.floor(Math.random() * 10).toString();
+                            finalRecipeData.paciente.nss = generatedNSS;
+                        }
+                        
+                        batch.set(reqRef, { ...commonData, recipeData: finalRecipeData }); 
+                        alert("✅ Receta IMSS generada (NSS Asignado)."); 
+                    }
                     else if (isCovid) { batch.set(reqRef, { ...commonData, covidData: covidData }); alert("✅ Certificado Covid generado."); }
                     else if (isCruzRoja) { batch.set(reqRef, { ...commonData, cruzRojaData: cruzRojaData }); alert("✅ Certificado Cruz Roja generado."); }
                     else { batch.set(reqRef, { ...commonData, status: 'pendiente', datosFormulario: formData }); alert("✅ Pedido realizado."); }
