@@ -963,17 +963,136 @@
                 setSelectedService(service); setIsOrderOpen(true);
             };
 
-            const handleFinalizeOrder = async (confirmed = false) => {
+                        const handleFinalizeOrder = async (confirmed = false) => {
                 if (!selectedService) return;
                 const priceString = selectedService.price || "0";
                 const price = priceString.toString().toUpperCase().includes('GRATIS') ? 0 : parseFloat(priceString.replace(/[^0-9.]/g, '')) || 0;
                 const currentBalance = userData?.saldo || 0;
+                
+                // 1. Validar Saldo
                 if (currentBalance < price) { alert(`❌ SALDO INSUFICIENTE\nCosto: $${price}\nTu saldo: $${currentBalance.toFixed(2)}`); return; }
 
-                // Validaciones básicas
-                if (isSimilares && !similaresData.paciente.nombre) { alert("⚠️ Falta el Nombre del Paciente."); return; }
-                if (isFarmacia && !farmaciaData.paciente.nombre) { alert("⚠️ Falta el Nombre del Paciente."); return; }
+                // ==============================================================
+                // 2. VALIDACIÓN DE CAMPOS OBLIGATORIOS (MODO ESTRICTO TOTAL)
+                // ==============================================================
+
+                // A) RECETA SIMILARES (Todo obligatorio)
+                if (isSimilares) {
+                    const p = similaresData.paciente || {};
+                    const m = similaresData.medico || {};
+                    if (!p.nombre || !p.edad || !p.peso || !p.temp || !p.fecha || !p.diag) {
+                        alert("⚠️ DATOS INCOMPLETOS SIMILARES\nFaltan datos del Paciente."); return;
+                    }
+                    if (!m.nombre || !m.cedula || !m.dir1 || !m.dir2) {
+                        alert("⚠️ DATOS INCOMPLETOS SIMILARES\nFaltan datos del Médico."); return;
+                    }
+                }
+
+                // B) FARMACIA ROMA (Todo obligatorio)
+                if (isRoma) {
+                    const p = romaData.paciente || {};
+                    const m = romaData.medico || {};
+                    if (!p.nombre || !p.edad || !p.temp || !p.peso || !p.fecha || !romaData.diagnostico) {
+                         alert("⚠️ DATOS INCOMPLETOS ROMA\nFaltan datos del Paciente o Diagnóstico."); return;
+                    }
+                    if (!m.nombre || !m.cedula || !m.folio) {
+                         alert("⚠️ DATOS INCOMPLETOS ROMA\nFaltan datos del Médico."); return;
+                    }
+                }
+
+                // C) FARMACIA DEL AHORRO (Todo obligatorio)
+                if (isFarmacia) {
+                    const p = farmaciaData.paciente || {};
+                    if (!p.nombre || !p.edad || !p.peso || !p.talla || !p.temp || !p.fecha) {
+                        alert("⚠️ DATOS INCOMPLETOS FARMACIA\nPor favor llena todos los campos del Paciente."); return;
+                    }
+                }
+
+                // D) RECETA IMSS (Todo obligatorio EXCEPTO NSS)
+                if (isImss) {
+                    const p = recipeData.paciente || {};
+                    const m = recipeData.meta || {};
+                    const faltanDatosImss = 
+                        !p.ump || !p.consultorio || !p.turno || !m.fecha || 
+                        !p.nombre || !p.agregado || !p.curp || !p.fechaNac || 
+                        !p.delegacion || !p.sexo || !p.cve || !m.indicaciones;
+
+                    if (faltanDatosImss) {
+                        alert("⚠️ DATOS INCOMPLETOS IMSS\nDebes llenar TODOS los campos (Solo NSS es opcional)."); 
+                        return;
+                    }
+                }
                 
+                // E) CERTIFICADO COVID (MEJORADO: Todo obligatorio)
+                if (isCovid) {
+                    const d1 = covidData.dosis1 || {};
+                    const d2 = covidData.dosis2 || {};
+                    const faltaCovid = !covidData.curp || !covidData.nombre || 
+                                       !d1.fecha || !d1.marca || !d1.lote ||
+                                       !d2.fecha || !d2.marca || !d2.lote ||
+                                       !covidData.fechaEmision || !covidData.selloDigital;
+                    
+                    if (faltaCovid) {
+                        alert("⚠️ DATOS INCOMPLETOS COVID\nDebes llenar CURP, Nombre, fechas de dosis, marcas, lotes y sello digital.");
+                        return;
+                    }
+                }
+
+                // F) CERTIFICADO CRUZ ROJA (MEJORADO: Todo obligatorio)
+                if (isCruzRoja) {
+                    const cr = cruzRojaData || {};
+                    const faltaCR = !cr.folioLetra || !cr.folioNum || 
+                                    !cr.dia || !cr.mes || !cr.anio ||
+                                    !cr.paciente || !cr.edad || !cr.ta || !cr.peso || !cr.fc || !cr.estatura || !cr.fr ||
+                                    !cr.temp || !cr.grupo || !cr.observaciones || 
+                                    !cr.medico || !cr.cedula || !cr.direccion;
+
+                    if (faltaCR) {
+                        alert("⚠️ DATOS INCOMPLETOS CRUZ ROJA\nTodos los campos (Signos vitales, Fechas, Médico, Folios) son obligatorios.");
+                        return;
+                    }
+                }
+
+                // G) VALIDACIÓN DINÁMICA DE CAMPOS (INFONAVIT, VEHICULAR, ESCOLAR, TRÁMITES, ACTAS, SAT)
+                const titleUpper = selectedService.title ? selectedService.title.toUpperCase() : "";
+                const catUpper = selectedService.category ? selectedService.category.toUpperCase() : "";
+                
+                // Lista extendida de palabras clave para validación estricta
+                const keywords = [
+                    // ACTAS Y LEGAL
+                    "ACTA", "SAT", "RFC", "CONSTANCIA", "LEGAL", "DIVORCIO", "NACIMIENTO", "DEFUNCION", "MATRIMONIO",
+                    // INFONAVIT
+                    "INFONAVIT", "RETENCION", "HOJA", "VALOR",
+                    // VEHICULAR
+                    "VEHICULO", "AUTO", "MOTO", "PLACA", "LICENCIA", "REPUVE", "ADEUDO", "TENENCIA", "CIRCULACION", "PERMISO", "SERIE",
+                    // ESCOLAR
+                    "ESCOLAR", "BOLETA", "SEP", "TITULO", "CEDULA", "KARDEX", "CERTIFICADO", "HISTORIAL", "UNIVERSIDAD",
+                    // TRÁMITES VARIOS
+                    "CFE", "LUZ", "AGUA", "PREDIAL", "INE", "CURP", "TRAMITE", "RECIBO", "COMPROBANTE",
+                    // MÉDICOS GENÉRICOS (No cubiertos arriba)
+                    "MEDICO", "CLINICO", "LABORATORIO", "ANTIDOPING", "DISCAPACIDAD"
+                ];
+
+                const esServicioEstricto = keywords.some(k => titleUpper.includes(k) || catUpper.includes(k));
+
+                // Si cae en estas categorías y NO es uno de los servicios especiales con editor propio (Similares, Roma, etc.)
+                if (esServicioEstricto && !isSimilares && !isRoma && !isFarmacia && !isImss && !isCovid && !isCruzRoja) {
+                    if (selectedService.fields && selectedService.fields.length > 0) {
+                        const camposVacios = selectedService.fields.filter(field => 
+                            !formData[field] || formData[field].toString().trim() === ""
+                        );
+
+                        if (camposVacios.length > 0) {
+                            alert(`⚠️ DATOS INCOMPLETOS\nPara este trámite es OBLIGATORIO llenar:\n\n- ${camposVacios.join("\n- ")}`);
+                            return;
+                        }
+                    }
+                }
+
+                // ==============================================================
+                // 3. PROCESO DE COMPRA
+                // ==============================================================
+
                 if (!confirmed) { setIsConfirmOpen(true); return; }
 
                 setIsConfirmOpen(false); setIsSendingOrder(true);
@@ -992,19 +1111,18 @@
 
                     if (isSimilares) { batch.set(reqRef, { ...commonData, similaresData: similaresData }); alert("✅ Receta Similares generada."); }
                     else if (isFarmacia) { batch.set(reqRef, { ...commonData, farmaciaData: farmaciaData }); alert("✅ Receta Farmacia generada."); }
-                                        else if (isRoma) { batch.set(reqRef, { ...commonData, romaData: romaData }); alert("✅ Receta Roma generada."); }
+                    else if (isRoma) { batch.set(reqRef, { ...commonData, romaData: romaData }); alert("✅ Receta Roma generada."); }
 
                     else if (isImss) { 
-                        // LÓGICA NSS: Si el campo está vacío, generamos 11 dígitos aleatorios
                         let finalRecipeData = { ...recipeData };
+                        // Generar NSS si está vacío
                         if (!finalRecipeData.paciente.nss || finalRecipeData.paciente.nss.trim() === '') {
                             let generatedNSS = '';
                             for(let i=0; i<11; i++) generatedNSS += Math.floor(Math.random() * 10).toString();
                             finalRecipeData.paciente.nss = generatedNSS;
                         }
-                        
                         batch.set(reqRef, { ...commonData, recipeData: finalRecipeData }); 
-                        alert("✅ Receta IMSS generada (NSS Asignado)."); 
+                        alert("✅ Receta IMSS generada."); 
                     }
                     else if (isCovid) { batch.set(reqRef, { ...commonData, covidData: covidData }); alert("✅ Certificado Covid generado."); }
                     else if (isCruzRoja) { batch.set(reqRef, { ...commonData, cruzRojaData: cruzRojaData }); alert("✅ Certificado Cruz Roja generado."); }
@@ -1013,6 +1131,7 @@
                     await batch.commit(); setIsOrderOpen(false); onGoToHistory(); 
                 } catch (error) { alert("Error: " + error.message); } finally { setIsSendingOrder(false); }
             };
+
 
             // HANDLERS ESPECÍFICOS SIMILARES
             const handleSimiChange = (sec, field, val) => setSimilaresData(p => ({...p, [sec]: {...p[sec], [field]: val.toUpperCase()}}));
