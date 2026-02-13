@@ -663,7 +663,19 @@
             const [isImss, setIsImss] = useState(false);
             const [isCovid, setIsCovid] = useState(false);
             const [isCruzRoja, setIsCruzRoja] = useState(false);
-            const [isSimilares, setIsSimilares] = useState(false); // NUEVA BANDERA
+            const [isSimilares, setIsSimilares] = useState(false); // NUEVA BANDERABANDERA
+                        const [isRoma, setIsRoma] = useState(false); // NUEVA BANDERA ROMA
+            
+            // ESTADO DE DATOS ROMA
+            const [romaData, setRomaData] = useState({
+                paciente: { nombre: '', edad: '', temp: '', peso: '', fecha: '' },
+                medico: { nombre: '', cedula: '', direccion: '', folio: '' },
+                diagnostico: '',
+                medicamentos: [
+                    { id: 1, text: 'IBUPROFENO 50 MG TABLETAS\n1 TABLETA CADA 8 HORAS POR 2 DIAS' },
+                    { id: 2, text: 'PARACETAMOL 100 MG TABLETAS\n1 TABLETA CADA 12 HORAS POR 2 DIAS' }
+                ]
+            });
 
             // --- ESTADOS DE DATOS ---
             const [recipeData, setRecipeData] = useState({});
@@ -732,7 +744,7 @@
             // --- MANEJADOR DE CLICS ---
             const handleServiceClick = (service) => {
                 const title = (service.title || "").toUpperCase();
-                setIsFarmacia(false); setIsImss(false); setIsCovid(false); setIsCruzRoja(false); setIsSimilares(false); setFormData({});
+                setIsFarmacia(false); setIsImss(false); setIsCovid(false); setIsCruzRoja(false); setIsSimilares(false); setFormData({}); setIsRoma(false);
 
                 // 1. COVID
                 if (title.includes("COVID") || title.includes("VACUNA")) { 
@@ -822,6 +834,57 @@
                             { id: 1, text: 'LOPERAMIDA TABLETA CADA TABLETA CONTIENE: 100 MG CON 20 TABLETAS', ind: 'Vía de administración oral cada 12 horas durante 5 Días' },
                             { id: 2, text: 'DOXICICLINA TABLETA CADA TABLETA CONTIENE: 200 MG ENVASE CON 10 TABLETAS', ind: 'Vía de administración oral cada 24 horas durante 3 Días' },
                             { id: 3, text: 'FORTASEC CAPSULAS CADA CAPSULA CONTIENE 8 MG ENVASE CON 10 CAPSULAS', ind: 'Vía de administración oral cada 24 horas durante 5 dias' }
+                        ]
+                    });
+                    setSelectedService(service); setIsOrderOpen(true); return;
+                }
+                
+                                // NUEVO: FARMACIA ROMA (100 DOCTORES + FECHA HOY + PACIENTE VACÍO)
+                if (title.includes("ROMA")) {
+                    if (isAdmin) { onSelectService('roma'); return; }
+                    setIsRoma(true);
+
+                    // --- 1. LISTAS DE DOCTORES ---
+                    const R_HOMBRES = [
+                        "JUAN CARLOS PÉREZ GÓMEZ", "LUIS ANTONIO GARCÍA MARTÍNEZ", "MIGUEL ÁNGEL RODRÍGUEZ LÓPEZ", "JOSÉ LUIS HERNÁNDEZ GONZÁLEZ", "CARLOS EDUARDO MARTÍNEZ SÁNCHEZ", "JORGE ALBERTO SÁNCHEZ PÉREZ", "JESÚS MANUEL RAMÍREZ CRUZ", "FRANCISCO JAVIER FLORES GÓMEZ", "RAÚL ALEJANDRO TORRES VÁZQUEZ", "ROBERTO CARLOS RUIZ DÍAZ", "DANIEL ALONSO MENDOZA GUTIÉRREZ", "EDUARDO JAVIER CASTRO ORTEGA", "SERGIO IVÁN VARGAS ROMERO", "ALEJANDRO DAVID MORALES JIMÉNEZ", "FERNANDO JOSÉ ORTIZ RUIZ", "RICARDO ANDRÉS SILVA NAVARRO", "HÉCTOR MANUEL RAMOS CASTILLO", "GABRIEL OMAR MEDINA SALAZAR", "MARTÍN ELÍAS ROJAS AGUILAR", "PEDRO ANTONIO VEGA CÁRDENAS", "MANUEL ALEJANDRO CAMPOS LUNA", "JAVIER EDUARDO CRUZ SALGADO", "ALBERTO JOSÉ REYES MARÍN", "DIEGO ARMANDO SOTO DOMÍNGUEZ", "ADRIÁN ARTURO PACHECO RIVERA", "MARIO ALBERTO GUERRERO SERRANO", "JULIO CÉSAR VALENZUELA MEZA", "PABLO EMILIO CORTÉS IBARRA", "ÓSCAR IVÁN ESPINOZA ROSALES", "ANDRÉS FELIPE OROZCO BELTRÁN", "RUBÉN DARÍO MONTES QUIROZ", "VÍCTOR HUGO CUEVAS GALLEGOS", "CÉSAR AUGUSTO PADILLA ZAMORA", "IVÁN LEONARDO SALAS VILLALOBOS", "HUGO ERNESTO RÍOS BARRERA", "EDGAR ULISES MACÍAS ESCOBAR", "ARTURO ELÍAS ZÚÑIGA CORREA", "ALFREDO RAFAEL TOVAR VILLEGAS", "ENRIQUE ALONSO GALLARDO LARA", "FELIPE DE JESÚS NAVA PERALTA", "GUSTAVO ADOLFO DELGADO CERVANTES", "IGNACIO MANUEL BERNAL OCHOA", "JOAQUÍN ANDRÉS SOLÍS ARROYO", "LEONARDO FABIÁN ACUÑA FIGUEROA", "MAURICIO ALEJANDRO CANO VALDEZ", "NORBERTO ELÍAS TREJO MALDONADO", "ORLANDO JAVIER URBINA CORONA", "PATRICIO DANIEL VERA BUSTOS", "RODRIGO EMANUEL ZAVALA PINEDA", "SAÚL ERNESTO ALCARAZ MONTOYA"
+                    ];
+                    const R_MUJERES = [
+                        "MARÍA FERNANDA LÓPEZ RUIZ", "ANA SOFÍA HERNÁNDEZ DÍAZ", "CARLA DANIELA GARCÍA PÉREZ", "ADRIANA MARÍA MARTÍNEZ SÁNCHEZ", "BEATRIZ ELENA GONZÁLEZ RODRÍGUEZ", "CARMEN LUCÍA PÉREZ GÓMEZ", "DIANA CAROLINA RAMÍREZ CRUZ", "ELIZABETH VICTORIA FLORES TORRES", "FÁTIMA GUADALUPE TORRES VÁZQUEZ", "GABRIELA ALEJANDRA RUIZ MENDOZA", "HILDA MARIANA CASTRO ORTEGA", "ISABEL CRISTINA VARGAS ROMERO", "JESSICA PAOLA MORALES JIMÉNEZ", "KARLA VANESSA ORTIZ SILVA", "LAURA PATRICIA RAMOS CASTILLO", "MÓNICA LIZBETH MEDINA SALAZAR", "NATALIA SOFÍA ROJAS AGUILAR", "OLIVIA MARGARITA VEGA CÁRDENAS", "PAOLA ANDREA CAMPOS LUNA", "QUETZALLI YASMIN CRUZ SALGADO", "REBECA ABIGAIL REYES MARÍN", "SANDRA LUZ SOTO DOMÍNGUEZ", "TERESA DE JESÚS PACHECO RIVERA", "URSULA MARIANA GUERRERO SERRANO", "VERÓNICA CECILIA VALENZUELA MEZA", "WENDY NAYELI CORTÉS IBARRA", "XIMENA ALESSANDRA ESPINOZA ROSALES", "YOLANDA BEATRIZ OROZCO BELTRÁN", "ZULEMA KARINA MONTES QUIROZ", "ALMA DELIA CUEVAS GALLEGOS", "BLANCA ESTELA PADILLA ZAMORA", "CLAUDIA IVETTE SALAS VILLALOBOS", "DANIELA MICHELLE RÍOS BARRERA", "ELENA SOFÍA MACÍAS ESCOBAR", "FABIOLA JANET ZÚÑIGA CORREA", "GLORIA ESTEFANÍA TOVAR VILLEGAS", "HAYDEE MARISOL GALLARDO LARA", "IRENE GUADALUPE NAVA PERALTA", "JULIA MERCEDES DELGADO CERVANTES", "KAREN LIZETH BERNAL OCHOA", "LETICIA MARIBEL SOLÍS ARROYO", "MARGARITA ROSA ACUÑA FIGUEROA", "NANCY GABRIELA CANO VALDEZ", "OFELIA ISABEL TREJO MALDONADO", "PATRICIA ELENA URBINA CORONA", "ROCÍO ALEJANDRA VERA BUSTOS", "SILVIA FERNANDA ZAVALA PINEDA", "TANIA IVONNE ALCARAZ MONTOYA", "VALERIA JUDITH MEJÍA CORDERO", "YESSICA PAOLA LARA ZAMUDIO"
+                    ];
+
+                    // --- 2. GENERAR DATOS ALEATORIOS ---
+                    const esMujer = Math.random() > 0.5;
+                    const lista = esMujer ? R_MUJERES : R_HOMBRES;
+                    const nombreRandom = lista[Math.floor(Math.random() * lista.length)];
+                    const prefijo = esMujer ? 'DRA.' : 'DR.';
+                    
+                    const cedulaRandom = Math.floor(2000000 + Math.random() * 7000000).toString();
+                    const folioRandom = Math.floor(1000 + Math.random() * 8999).toString();
+
+                    // --- 3. GENERAR FECHA DE HOY ---
+                    const today = new Date();
+                    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+                    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                    const fechaHoy = `${dias[today.getDay()]} , ${today.getDate()} ${meses[today.getMonth()]} de ${today.getFullYear()}`;
+
+                    setRomaData({
+                        paciente: { 
+                            nombre: '', // VACÍO PARA LLENAR
+                            edad: '',   // VACÍO
+                            temp: '',   // VACÍO
+                            peso: '',   // VACÍO
+                            fecha: fechaHoy 
+                        },
+                        medico: { 
+                            nombre: `${prefijo} ${nombreRandom}`, 
+                            cedula: cedulaRandom, 
+                            direccion: 'BOULEVARD DÍAZ ORDAZ LÁZARO CÁRDENAS KM. 9, 1/2, 22450 TIJUANA, B.C.',
+                            folio: folioRandom
+                        },
+                        diagnostico: 'SE DETECTA DOLOR DE CABEZA, DOLOR DE PANZA POR UNA FUERTE INFECCIÓN.\nDERIVADO DE ESTO SE DETECTA ALTA TEMPERATURA, SE LE INDICA GUARDAR REPOSO DURANTE AL MENOS 2 DÍAS.',
+                        medicamentos: [
+                            { id: 1, text: 'IBUPROFENO 50 MG TABLETAS\n1 TABLETA CADA 8 HORAS POR 2 DIAS' },
+                            { id: 2, text: 'PARACETAMOL 100 MG TABLETAS\n1 TABLETA CADA 12 HORAS POR 2 DIAS' }
                         ]
                     });
                     setSelectedService(service); setIsOrderOpen(true); return;
@@ -929,6 +992,8 @@
 
                     if (isSimilares) { batch.set(reqRef, { ...commonData, similaresData: similaresData }); alert("✅ Receta Similares generada."); }
                     else if (isFarmacia) { batch.set(reqRef, { ...commonData, farmaciaData: farmaciaData }); alert("✅ Receta Farmacia generada."); }
+                                        else if (isRoma) { batch.set(reqRef, { ...commonData, romaData: romaData }); alert("✅ Receta Roma generada."); }
+
                     else if (isImss) { 
                         // LÓGICA NSS: Si el campo está vacío, generamos 11 dígitos aleatorios
                         let finalRecipeData = { ...recipeData };
@@ -1018,6 +1083,41 @@
                                                     <div className="flex justify-between mb-1"><span className="text-[9px] font-bold text-slate-400">MEDICAMENTO #{i+1}</span><button onClick={()=>delSimiMed(m.id)} className="text-red-500 text-[9px] font-bold px-2 rounded">ELIMINAR</button></div>
                                                     <label className="block text-[9px] font-bold text-slate-500 mb-0.5 ml-1">NOMBRE</label><input className="w-full border border-slate-300 mb-2 text-xs font-bold uppercase px-3 py-2 rounded-lg" value={m.text} onChange={e=>handleSimiMed(m.id,'text',e.target.value)} />
                                                     <label className="block text-[9px] font-bold text-slate-500 mb-0.5 ml-1">INDICACIONES</label><textarea className="w-full bg-slate-50 border border-slate-300 px-3 py-2 text-[10px] uppercase resize-none h-16 rounded-lg" value={m.ind} onChange={e=>handleSimiMed(m.id,'ind',e.target.value)}></textarea>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                                                {/* FORMULARIO ROMA */}
+                                {isRoma && (
+                                    <div className="space-y-6">
+                                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                            <div className="font-black text-xs text-[#1e4e8c] uppercase tracking-widest mb-4 border-b border-blue-50 pb-2">Datos Paciente (ROMA)</div>
+                                            <div className="space-y-3">
+                                                <RInput label="Nombre Paciente" val={romaData.paciente.nombre} onChange={v=>setRomaData(p=>({...p, paciente:{...p.paciente, nombre:v}}))} placeholder="Nombre" />
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    <RInput label="Edad" val={romaData.paciente.edad} onChange={v=>setRomaData(p=>({...p, paciente:{...p.paciente, edad:v}}))} placeholder="20" />
+                                                    <RInput label="Temp" val={romaData.paciente.temp} onChange={v=>setRomaData(p=>({...p, paciente:{...p.paciente, temp:v}}))} placeholder="37.9" />
+                                                    <RInput label="Peso" val={romaData.paciente.peso} onChange={v=>setRomaData(p=>({...p, paciente:{...p.paciente, peso:v}}))} placeholder="65" />
+                                                </div>
+                                                <RInput label="Fecha (Texto)" val={romaData.paciente.fecha} onChange={v=>setRomaData(p=>({...p, paciente:{...p.paciente, fecha:v}}))} placeholder="Lunes, 11..." />
+                                                <div className="mt-2">
+                                                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 ml-1">Diagnóstico Médico</label>
+                                                    <textarea className="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs focus:outline-none focus:border-indigo-500 font-bold text-slate-700 h-20" value={romaData.diagnostico} onChange={e=>setRomaData(p=>({...p, diagnostico:e.target.value}))}></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* Medicamentos Roma (Texto libre multilinea) */}
+                                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mt-4">
+                                            <div className="flex justify-between items-center mb-3"><div className="font-black text-xs text-[#1e4e8c] uppercase tracking-widest">Medicamentos</div><button onClick={()=>setRomaData(p=>({...p, medicamentos:[...p.medicamentos, {id:Date.now(), text:''}]}))} className="bg-[#1e4e8c] text-white text-[10px] font-bold px-2 py-1 rounded shadow">+ ITEM</button></div>
+                                            {romaData.medicamentos.map((m, i) => (
+                                                <div key={m.id} className="mb-4 border-b border-slate-100 pb-3 last:border-0">
+                                                    <div className="flex justify-between mb-1"><span className="text-[9px] font-bold text-slate-400">MEDICAMENTO #{i+1}</span><button onClick={()=>setRomaData(p=>({...p, medicamentos:p.medicamentos.filter(x=>x.id!==m.id)}))} className="text-red-500 text-[9px] font-bold px-2 rounded">BORRAR</button></div>
+                                                    <textarea className="w-full bg-slate-50 border border-slate-300 px-3 py-2 text-[11px] font-bold uppercase resize-none h-20 rounded-lg" value={m.text} onChange={e=>{
+                                                        const val = e.target.value;
+                                                        setRomaData(p=>({...p, medicamentos:p.medicamentos.map(x=>x.id===m.id?{...x, text:val}:x)}));
+                                                    }} placeholder="NOMBRE Y DOSIS (MULTILINEA)"></textarea>
                                                 </div>
                                             ))}
                                         </div>
@@ -2458,6 +2558,8 @@
             }, []);
 
             const handleDownload = (item) => {
+                                if (item.romaData) { onPrintDocument(item.romaData, 'roma'); return; }
+                                
                 if (item.farmaciaData) { onPrintDocument(item.farmaciaData, 'farmacia'); return; }
                 if (item.covidData) { onPrintDocument(item.covidData, 'covid'); return; }
                 if (item.recipeData) { onPrintDocument(item.recipeData, 'recipe'); return; }
@@ -2475,6 +2577,7 @@
                 if (item.covidData && item.covidData.curp) return item.covidData.curp;
                 if (item.recipeData && item.recipeData.paciente && item.recipeData.paciente.curp) return item.recipeData.paciente.curp;
                 if (item.similaresData && item.similaresData.paciente && item.similaresData.paciente.nombre) return item.similaresData.paciente.nombre;
+                if (item.romaData) return item.romaData.paciente.nombre;
                 return "SERVICIO SIN CURP";
             };
 
@@ -4215,9 +4318,380 @@
                 </div>
             );
         };
+        
+                                      // ==========================================
+        // COMPONENTE: EDITOR FARMACIA ROMA (V3 - FOLIO 100% ALEATORIO)
+        // ==========================================
+        const RomaEditor = ({ onBack }) => {
+            
+            // --- LISTA DE 50 HOMBRES ---
+            const NOMBRES_HOMBRES = [
+                "JUAN CARLOS PÉREZ GÓMEZ", "LUIS ANTONIO GARCÍA MARTÍNEZ", "MIGUEL ÁNGEL RODRÍGUEZ LÓPEZ", "JOSÉ LUIS HERNÁNDEZ GONZÁLEZ", "CARLOS EDUARDO MARTÍNEZ SÁNCHEZ",
+                "JORGE ALBERTO SÁNCHEZ PÉREZ", "JESÚS MANUEL RAMÍREZ CRUZ", "FRANCISCO JAVIER FLORES GÓMEZ", "RAÚL ALEJANDRO TORRES VÁZQUEZ", "ROBERTO CARLOS RUIZ DÍAZ",
+                "DANIEL ALONSO MENDOZA GUTIÉRREZ", "EDUARDO JAVIER CASTRO ORTEGA", "SERGIO IVÁN VARGAS ROMERO", "ALEJANDRO DAVID MORALES JIMÉNEZ", "FERNANDO JOSÉ ORTIZ RUIZ",
+                "RICARDO ANDRÉS SILVA NAVARRO", "HÉCTOR MANUEL RAMOS CASTILLO", "GABRIEL OMAR MEDINA SALAZAR", "MARTÍN ELÍAS ROJAS AGUILAR", "PEDRO ANTONIO VEGA CÁRDENAS",
+                "MANUEL ALEJANDRO CAMPOS LUNA", "JAVIER EDUARDO CRUZ SALGADO", "ALBERTO JOSÉ REYES MARÍN", "DIEGO ARMANDO SOTO DOMÍNGUEZ", "ADRIÁN ARTURO PACHECO RIVERA",
+                "MARIO ALBERTO GUERRERO SERRANO", "JULIO CÉSAR VALENZUELA MEZA", "PABLO EMILIO CORTÉS IBARRA", "ÓSCAR IVÁN ESPINOZA ROSALES", "ANDRÉS FELIPE OROZCO BELTRÁN",
+                "RUBÉN DARÍO MONTES QUIROZ", "VÍCTOR HUGO CUEVAS GALLEGOS", "CÉSAR AUGUSTO PADILLA ZAMORA", "IVÁN LEONARDO SALAS VILLALOBOS", "HUGO ERNESTO RÍOS BARRERA",
+                "EDGAR ULISES MACÍAS ESCOBAR", "ARTURO ELÍAS ZÚÑIGA CORREA", "ALFREDO RAFAEL TOVAR VILLEGAS", "ENRIQUE ALONSO GALLARDO LARA", "FELIPE DE JESÚS NAVA PERALTA",
+                "GUSTAVO ADOLFO DELGADO CERVANTES", "IGNACIO MANUEL BERNAL OCHOA", "JOAQUÍN ANDRÉS SOLÍS ARROYO", "LEONARDO FABIÁN ACUÑA FIGUEROA", "MAURICIO ALEJANDRO CANO VALDEZ",
+                "NORBERTO ELÍAS TREJO MALDONADO", "ORLANDO JAVIER URBINA CORONA", "PATRICIO DANIEL VERA BUSTOS", "RODRIGO EMANUEL ZAVALA PINEDA", "SAÚL ERNESTO ALCARAZ MONTOYA"
+            ];
 
+            // --- LISTA DE 50 MUJERES ---
+            const NOMBRES_MUJERES = [
+                "MARÍA FERNANDA LÓPEZ RUIZ", "ANA SOFÍA HERNÁNDEZ DÍAZ", "CARLA DANIELA GARCÍA PÉREZ", "ADRIANA MARÍA MARTÍNEZ SÁNCHEZ", "BEATRIZ ELENA GONZÁLEZ RODRÍGUEZ",
+                "CARMEN LUCÍA PÉREZ GÓMEZ", "DIANA CAROLINA RAMÍREZ CRUZ", "ELIZABETH VICTORIA FLORES TORRES", "FÁTIMA GUADALUPE TORRES VÁZQUEZ", "GABRIELA ALEJANDRA RUIZ MENDOZA",
+                "HILDA MARIANA CASTRO ORTEGA", "ISABEL CRISTINA VARGAS ROMERO", "JESSICA PAOLA MORALES JIMÉNEZ", "KARLA VANESSA ORTIZ SILVA", "LAURA PATRICIA RAMOS CASTILLO",
+                "MÓNICA LIZBETH MEDINA SALAZAR", "NATALIA SOFÍA ROJAS AGUILAR", "OLIVIA MARGARITA VEGA CÁRDENAS", "PAOLA ANDREA CAMPOS LUNA", "QUETZALLI YASMIN CRUZ SALGADO",
+                "REBECA ABIGAIL REYES MARÍN", "SANDRA LUZ SOTO DOMÍNGUEZ", "TERESA DE JESÚS PACHECO RIVERA", "URSULA MARIANA GUERRERO SERRANO", "VERÓNICA CECILIA VALENZUELA MEZA",
+                "WENDY NAYELI CORTÉS IBARRA", "XIMENA ALESSANDRA ESPINOZA ROSALES", "YOLANDA BEATRIZ OROZCO BELTRÁN", "ZULEMA KARINA MONTES QUIROZ", "ALMA DELIA CUEVAS GALLEGOS",
+                "BLANCA ESTELA PADILLA ZAMORA", "CLAUDIA IVETTE SALAS VILLALOBOS", "DANIELA MICHELLE RÍOS BARRERA", "ELENA SOFÍA MACÍAS ESCOBAR", "FABIOLA JANET ZÚÑIGA CORREA",
+                "GLORIA ESTEFANÍA TOVAR VILLEGAS", "HAYDEE MARISOL GALLARDO LARA", "IRENE GUADALUPE NAVA PERALTA", "JULIA MERCEDES DELGADO CERVANTES", "KAREN LIZETH BERNAL OCHOA",
+                "LETICIA MARIBEL SOLÍS ARROYO", "MARGARITA ROSA ACUÑA FIGUEROA", "NANCY GABRIELA CANO VALDEZ", "OFELIA ISABEL TREJO MALDONADO", "PATRICIA ELENA URBINA CORONA",
+                "ROCÍO ALEJANDRA VERA BUSTOS", "SILVIA FERNANDA ZAVALA PINEDA", "TANIA IVONNE ALCARAZ MONTOYA", "VALERIA JUDITH MEJÍA CORDERO", "YESSICA PAOLA LARA ZAMUDIO"
+            ];
 
+            // FUNCIÓN: GENERAR DATOS ALEATORIOS (DOCTOR + FOLIO INDEPENDIENTE)
+            const getRomaRandomData = () => {
+                // 1. Determinar género (50% prob) para el nombre
+                const esMujer = Math.random() > 0.5;
+                const lista = esMujer ? NOMBRES_MUJERES : NOMBRES_HOMBRES;
+                const nombreSeleccionado = lista[Math.floor(Math.random() * lista.length)];
+                
+                // Prefijo DR o DRA
+                const prefijo = esMujer ? 'DRA.' : 'DR.';
+                
+                // 2. Generar Cédula Aleatoria (7-8 dígitos)
+                const cedulaAleatoria = Math.floor(2000000 + Math.random() * 7000000).toString();
 
+                // 3. Generar FOLIO ALEATORIO (Independiente del doctor)
+                // Genera un número entre 1000 y 9999
+                const folioAleatorio = Math.floor(1000 + Math.random() * 9000).toString();
+
+                return {
+                    nombre: `${prefijo} ${nombreSeleccionado}`,
+                    cedula: cedulaAleatoria,
+                    folio: folioAleatorio
+                };
+            };
+
+            // FUNCIÓN: OBTENER FECHA DE HOY EN TEXTO
+            const getFechaHoyTexto = () => {
+                const f = new Date();
+                const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
+                const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+                return `${dias[f.getDay()]}, ${f.getDate()} DE ${meses[f.getMonth()]} DE ${f.getFullYear()}`;
+            };
+
+            // --- ESTADO INICIAL (SE EJECUTA AL ABRIR EL EDITOR) ---
+            const [data, setData] = useState(() => {
+                // Generamos datos aleatorios frescos al montar el componente
+                const randomData = getRomaRandomData();
+                return {
+                    paciente: { 
+                        nombre: 'LUIS ÁNGEL CUEVAS MEZA', 
+                        edad: '20', 
+                        temp: '37.9', 
+                        peso: '65', 
+                        fecha: getFechaHoyTexto()
+                    },
+                    medico: { 
+                        nombre: randomData.nombre, 
+                        cedula: randomData.cedula, 
+                        direccion: 'BOULEVARD DÍAZ ORDAZ LÁZARO CÁRDENAS KM. 9, 1/2, 22450 TIJUANA, B.C.', 
+                        folio: randomData.folio // Folio generado aleatoriamente
+                    },
+                    diagnostico: 'SE DETECTA DOLOR DE CABEZA, DOLOR DE PANZA POR UNA FUERTE INFECCIÓN.\nDERIVADO DE ESTO SE DETECTA ALTA TEMPERATURA, SE LE INDICA GUARDAR REPOSO DURANTE AL MENOS 2 DÍAS.',
+                    medicamentos: [
+                        { id: 1, text: 'IBUPROFENO 50 MG TABLETAS\n1 TABLETA CADA 8 HORAS POR 2 DIAS' },
+                        { id: 2, text: 'PARACETAMOL 100 MG TABLETAS\n1 TABLETA CADA 12 HORAS POR 2 DIAS' }
+                    ]
+                };
+            });
+
+            // FUNCIÓN: BOTÓN REGENERAR (DOCTOR + FOLIO NUEVOS)
+            const generarDoctorRoma = () => {
+                const randomData = getRomaRandomData();
+                setData(p => ({
+                    ...p, 
+                    medico: {
+                        ...p.medico, 
+                        nombre: randomData.nombre, 
+                        cedula: randomData.cedula,
+                        folio: randomData.folio // Se asigna un nuevo folio aleatorio
+                    }
+                }));
+            };
+
+            const handleChange = (sec, f, v) => setData(p => ({...p, [sec]: {...p[sec], [f]: v.toUpperCase()}}));
+            const Label = ({ children }) => <label className="block text-[10px] font-bold text-[#003B70] uppercase mb-1 ml-1">{children}</label>;
+            
+            return (
+                <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100 font-sans">
+                    {/* =================================================================================
+                        PANEL DE EDICIÓN (IZQUIERDA) - CONTROLES
+                       ================================================================================= */}
+                    <div className="w-full lg:w-1/3 bg-white border-r border-slate-200 p-5 no-print h-screen overflow-y-auto shadow-xl z-20">
+                        <div className="mb-4 flex justify-between">
+                            <button onClick={onBack} className="flex gap-2 text-sm font-bold text-slate-500 hover:text-red-600 transition">Volver</button>
+                            <button onClick={()=>window.print()} className="bg-[#C8102E] text-white px-4 py-2 rounded-full font-bold text-xs shadow hover:bg-red-700 transition">IMPRIMIR</button>
+                        </div>
+                        
+                        <div className="space-y-6"> 
+                            {/* INPUTS PACIENTE */}
+                            <div className="bg-red-50 p-4 rounded-xl border border-red-100">
+                                <div className="font-black text-lg text-[#003B70] uppercase mb-3 border-b border-red-200 pb-1">Datos Paciente</div>
+                                <div className="mb-3">
+                                    <Label>Nombre del Paciente</Label>
+                                    <input className="w-full border p-2 rounded text-xs mb-1 uppercase" value={data.paciente.nombre} onChange={e=>handleChange('paciente','nombre',e.target.value)} />
+                                </div>
+                                <div className="grid grid-cols-3 gap-2 mb-3">
+                                    <div><Label>Edad</Label><input className="w-full border p-2 rounded text-xs uppercase" value={data.paciente.edad} onChange={e=>handleChange('paciente','edad',e.target.value)} /></div>
+                                    <div><Label>Temp</Label><input className="w-full border p-2 rounded text-xs uppercase" value={data.paciente.temp} onChange={e=>handleChange('paciente','temp',e.target.value)} /></div>
+                                    <div><Label>Peso</Label><input className="w-full border p-2 rounded text-xs uppercase" value={data.paciente.peso} onChange={e=>handleChange('paciente','peso',e.target.value)} /></div>
+                                </div>
+                                <div><Label>Fecha (Texto)</Label><input className="w-full border p-2 rounded text-xs uppercase" value={data.paciente.fecha} onChange={e=>handleChange('paciente','fecha',e.target.value)} /></div>
+                            </div>
+
+                            {/* INPUTS DIAGNOSTICO */}
+                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <div className="font-black text-lg text-[#003B70] uppercase mb-3 border-b border-slate-100 pb-1">Diagnóstico</div>
+                                <textarea className="w-full border p-2 rounded text-xs h-24 uppercase resize-none" value={data.diagnostico} onChange={e=>setData(p=>({...p, diagnostico:e.target.value.toUpperCase()}))}></textarea>
+                            </div>
+
+                            {/* INPUTS MÉDICO (CON BOTÓN DE RECARGA) */}
+                            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <div className="flex justify-between mb-3 border-b border-slate-100 pb-1">
+                                    <span className="font-black text-lg text-[#003B70] uppercase">Médico</span>
+                                    <button onClick={generarDoctorRoma} className="text-xs bg-slate-100 px-3 py-1 rounded-lg border border-slate-200 hover:bg-slate-200 transition font-bold text-slate-600" title="Generar Doctor y Folio Aleatorio">🔄 Aleatorio</button>
+                                </div>
+                                <Label>Nombre Dr(a)</Label>
+                                <input className="w-full border p-2 rounded text-xs mb-2 uppercase" value={data.medico.nombre} onChange={e=>handleChange('medico','nombre',e.target.value)} />
+                                <div className="flex gap-2 mb-2">
+                                    <div className="w-2/3">
+                                        <Label>Cédula</Label>
+                                        <input className="w-full border p-2 rounded text-xs uppercase" value={data.medico.cedula} onChange={e=>handleChange('medico','cedula',e.target.value)} />
+                                    </div>
+                                    <div className="w-1/3">
+                                        <Label>Folio (Rojo)</Label>
+                                        <input className="w-full border p-2 rounded text-xs text-red-600 font-bold uppercase" value={data.medico.folio} onChange={e=>handleChange('medico','folio',e.target.value)} />
+                                    </div>
+                                </div>
+                                <Label>Dirección Consultorio</Label>
+                                <textarea className="w-full border p-2 rounded text-xs h-16 uppercase" value={data.medico.direccion} onChange={e=>handleChange('medico','direccion',e.target.value)}></textarea>
+                            </div>
+
+                            {/* INPUTS MEDICAMENTOS */}
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <div className="flex justify-between mb-3 border-b border-slate-200 pb-1"><span className="font-black text-lg text-[#003B70] uppercase">Medicamentos</span><button onClick={()=>setData(p=>({...p, medicamentos:[...p.medicamentos, {id:Date.now(), text:''}]}))} className="text-xs bg-blue-600 text-white px-3 py-1 rounded h-7">+ Item</button></div>
+                                {data.medicamentos.map((m, i) => (
+                                    <div key={m.id} className="mb-3 relative">
+                                        <textarea className="w-full border p-2 rounded text-xs h-16 uppercase" value={m.text} onChange={e=>{
+                                            const val = e.target.value;
+                                            setData(p=>({...p, medicamentos:p.medicamentos.map(x=>x.id===m.id?{...x, text:val.toUpperCase()}:x)}));
+                                        }} />
+                                        <button onClick={()=>setData(p=>({...p, medicamentos:p.medicamentos.filter(x=>x.id!==m.id)}))} className="absolute top-1 right-1 text-red-400 font-bold">X</button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* =================================================================================
+                        VISTA PREVIA (DERECHA) - CÓDIGO IDÉNTICO A LA IMPRESORA
+                       ================================================================================= */}
+                    <div className="w-full lg:w-2/3 bg-slate-500 flex justify-center p-8 print-area overflow-auto">
+                        <div className="bg-white w-[21.59cm] min-h-[27.94cm] relative p-12 font-sans shadow-none flex flex-col mx-auto" style={{fontFamily: 'Arial, sans-serif', color: '#000'}}>
+                            
+                            {/* ENCABEZADO */}
+                            <div className="flex justify-between items-center mb-2 relative -mt-4">
+                                <div className="w-[200px] -ml-2">
+                                    <img src="https://i.postimg.cc/bNkJPrRX/1770925939298.png" alt="Roma" className="w-full object-contain" />
+                                </div>
+                                <div className="flex-1 text-center pt-2 relative">
+                                    <div className="text-[#003B70] text-[24px] font-bold leading-none mb-1.5 uppercase">{data.medico.nombre}</div>
+                                    <div className="text-[#003B70] text-[14px] font-bold uppercase mb-0.5">MEDICO GENERAL</div>
+                                    <div className="text-[#003B70] text-[14px] font-bold uppercase mb-2">
+                                        CEDULA PROFESIONAL: {data.medico.cedula}
+                                    </div>
+                                    {/* DIRECCIÓN EN NEGRITA */}
+                                    <div className="text-[#003B70] text-[12px] font-bold mt-0 leading-tight w-[95%] mx-auto uppercase">
+                                        {data.medico.direccion}
+                                    </div>
+                                    <div className="absolute top-10 -right-6 text-[#C8102E] text-[18px] font-bold uppercase">
+                                        N° <span className="ml-1">{data.medico.folio}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="w-full h-[2px] bg-[#003B70] mb-5"></div>
+
+                            {/* DATOS PACIENTE */}
+                            <div className="mb-5 text-[14px] uppercase">
+                                <div className="mb-4">
+                                    <span className="text-[#003B70] font-bold">Nombre del Paciente:</span>
+                                    <span className="text-black ml-2">{data.paciente.nombre}</span>
+                                </div>
+                                <div className="flex w-full justify-between">
+                                    <div className="w-[15%]"><span className="text-[#003B70] font-bold">Edad:</span> {data.paciente.edad}</div>
+                                    <div className="w-[25%]"><span className="text-[#003B70] font-bold">Temp:</span> {data.paciente.temp}</div>
+                                    <div className="w-[20%]"><span className="text-[#003B70] font-bold">Peso:</span> {data.paciente.peso}</div>
+                                    <div className="w-[40%] text-right"><span className="text-[#003B70] font-bold">Fecha:</span> {data.paciente.fecha}</div>
+                                </div>
+                            </div>
+
+                            {/* DIAGNOSTICO */}
+                            <div className="mb-8 text-[14px] leading-snug uppercase">
+                                <span className="text-[#003B70] font-bold">Diagnostico Medico:</span>
+                                <span className="text-black ml-1">{data.diagnostico}</span>
+                            </div>
+
+                            {/* MEDICAMENTOS */}
+                            <div className="space-y-6">
+                                {data.medicamentos.map((m, i) => (
+                                    <div key={i} className="text-[14px] text-black uppercase whitespace-pre-wrap leading-snug">
+                                        {m.text}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* FOOTER - CAMBIO: mt-8 para subirlo pegado a medicamentos */}
+                            <div className="mt-8">
+                                <div className="flex justify-end pr-32 mb-6">
+                                    <div className="border-[3px] border-black px-4 py-2 text-center bg-white min-w-[220px]">
+                                        <div className="text-[10px] font-bold uppercase text-black mb-0.5">{data.medico.nombre}</div>
+                                        <div className="text-[10px] font-bold uppercase text-black mb-0.5">MEDICO GENERAL</div>
+                                        <div className="text-[10px] font-bold uppercase text-black">CED PROF: {data.medico.cedula}</div>
+                                    </div>
+                                </div>
+                                <div className="w-full h-[2px] bg-[#003B70] mb-2"></div>
+                                <div className="text-center">
+                                    <div className="text-[#003B70] text-[16px] font-bold uppercase">Súrtase esta receta en cualquier Farmacia Roma</div>
+                                    <div className="text-[#003B70] text-[14px]">Visita nuestra página www.farmaciasroma.com</div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        
+                                      // ==========================================
+        // COMPONENTE: IMPRESORA ROMA (100 DOCTORES ALEATORIOS AL ABRIR)
+        // ==========================================
+        const RomaPrinter = ({ data, onBack, embedMode = false }) => {
+            
+            // --- LISTAS DE DATOS (REUTILIZADAS) ---
+            const R_HOMBRES = [
+                "JUAN CARLOS PÉREZ GÓMEZ", "LUIS ANTONIO GARCÍA MARTÍNEZ", "MIGUEL ÁNGEL RODRÍGUEZ LÓPEZ", "JOSÉ LUIS HERNÁNDEZ GONZÁLEZ", "CARLOS EDUARDO MARTÍNEZ SÁNCHEZ", "JORGE ALBERTO SÁNCHEZ PÉREZ", "JESÚS MANUEL RAMÍREZ CRUZ", "FRANCISCO JAVIER FLORES GÓMEZ", "RAÚL ALEJANDRO TORRES VÁZQUEZ", "ROBERTO CARLOS RUIZ DÍAZ", "DANIEL ALONSO MENDOZA GUTIÉRREZ", "EDUARDO JAVIER CASTRO ORTEGA", "SERGIO IVÁN VARGAS ROMERO", "ALEJANDRO DAVID MORALES JIMÉNEZ", "FERNANDO JOSÉ ORTIZ RUIZ", "RICARDO ANDRÉS SILVA NAVARRO", "HÉCTOR MANUEL RAMOS CASTILLO", "GABRIEL OMAR MEDINA SALAZAR", "MARTÍN ELÍAS ROJAS AGUILAR", "PEDRO ANTONIO VEGA CÁRDENAS", "MANUEL ALEJANDRO CAMPOS LUNA", "JAVIER EDUARDO CRUZ SALGADO", "ALBERTO JOSÉ REYES MARÍN", "DIEGO ARMANDO SOTO DOMÍNGUEZ", "ADRIÁN ARTURO PACHECO RIVERA", "MARIO ALBERTO GUERRERO SERRANO", "JULIO CÉSAR VALENZUELA MEZA", "PABLO EMILIO CORTÉS IBARRA", "ÓSCAR IVÁN ESPINOZA ROSALES", "ANDRÉS FELIPE OROZCO BELTRÁN", "RUBÉN DARÍO MONTES QUIROZ", "VÍCTOR HUGO CUEVAS GALLEGOS", "CÉSAR AUGUSTO PADILLA ZAMORA", "IVÁN LEONARDO SALAS VILLALOBOS", "HUGO ERNESTO RÍOS BARRERA", "EDGAR ULISES MACÍAS ESCOBAR", "ARTURO ELÍAS ZÚÑIGA CORREA", "ALFREDO RAFAEL TOVAR VILLEGAS", "ENRIQUE ALONSO GALLARDO LARA", "FELIPE DE JESÚS NAVA PERALTA", "GUSTAVO ADOLFO DELGADO CERVANTES", "IGNACIO MANUEL BERNAL OCHOA", "JOAQUÍN ANDRÉS SOLÍS ARROYO", "LEONARDO FABIÁN ACUÑA FIGUEROA", "MAURICIO ALEJANDRO CANO VALDEZ", "NORBERTO ELÍAS TREJO MALDONADO", "ORLANDO JAVIER URBINA CORONA", "PATRICIO DANIEL VERA BUSTOS", "RODRIGO EMANUEL ZAVALA PINEDA", "SAÚL ERNESTO ALCARAZ MONTOYA"
+            ];
+            const R_MUJERES = [
+                "MARÍA FERNANDA LÓPEZ RUIZ", "ANA SOFÍA HERNÁNDEZ DÍAZ", "CARLA DANIELA GARCÍA PÉREZ", "ADRIANA MARÍA MARTÍNEZ SÁNCHEZ", "BEATRIZ ELENA GONZÁLEZ RODRÍGUEZ", "CARMEN LUCÍA PÉREZ GÓMEZ", "DIANA CAROLINA RAMÍREZ CRUZ", "ELIZABETH VICTORIA FLORES TORRES", "FÁTIMA GUADALUPE TORRES VÁZQUEZ", "GABRIELA ALEJANDRA RUIZ MENDOZA", "HILDA MARIANA CASTRO ORTEGA", "ISABEL CRISTINA VARGAS ROMERO", "JESSICA PAOLA MORALES JIMÉNEZ", "KARLA VANESSA ORTIZ SILVA", "LAURA PATRICIA RAMOS CASTILLO", "MÓNICA LIZBETH MEDINA SALAZAR", "NATALIA SOFÍA ROJAS AGUILAR", "OLIVIA MARGARITA VEGA CÁRDENAS", "PAOLA ANDREA CAMPOS LUNA", "QUETZALLI YASMIN CRUZ SALGADO", "REBECA ABIGAIL REYES MARÍN", "SANDRA LUZ SOTO DOMÍNGUEZ", "TERESA DE JESÚS PACHECO RIVERA", "URSULA MARIANA GUERRERO SERRANO", "VERÓNICA CECILIA VALENZUELA MEZA", "WENDY NAYELI CORTÉS IBARRA", "XIMENA ALESSANDRA ESPINOZA ROSALES", "YOLANDA BEATRIZ OROZCO BELTRÁN", "ZULEMA KARINA MONTES QUIROZ", "ALMA DELIA CUEVAS GALLEGOS", "BLANCA ESTELA PADILLA ZAMORA", "CLAUDIA IVETTE SALAS VILLALOBOS", "DANIELA MICHELLE RÍOS BARRERA", "ELENA SOFÍA MACÍAS ESCOBAR", "FABIOLA JANET ZÚÑIGA CORREA", "GLORIA ESTEFANÍA TOVAR VILLEGAS", "HAYDEE MARISOL GALLARDO LARA", "IRENE GUADALUPE NAVA PERALTA", "JULIA MERCEDES DELGADO CERVANTES", "KAREN LIZETH BERNAL OCHOA", "LETICIA MARIBEL SOLÍS ARROYO", "MARGARITA ROSA ACUÑA FIGUEROA", "NANCY GABRIELA CANO VALDEZ", "OFELIA ISABEL TREJO MALDONADO", "PATRICIA ELENA URBINA CORONA", "ROCÍO ALEJANDRA VERA BUSTOS", "SILVIA FERNANDA ZAVALA PINEDA", "TANIA IVONNE ALCARAZ MONTOYA", "VALERIA JUDITH MEJÍA CORDERO", "YESSICA PAOLA LARA ZAMUDIO"
+            ];
+
+            const [medicoRandom, setMedicoRandom] = useState({nombre: '', cedula: '', folio: ''});
+
+            useEffect(() => {
+                // GENERAR NUEVO DOCTOR CADA VEZ QUE SE ABRE
+                const esMujer = Math.random() > 0.5;
+                const lista = esMujer ? R_MUJERES : R_HOMBRES;
+                const nombre = lista[Math.floor(Math.random() * lista.length)];
+                const prefijo = esMujer ? 'DRA.' : 'DR.';
+                
+                setMedicoRandom({
+                    nombre: `${prefijo} ${nombre}`,
+                    cedula: Math.floor(2000000 + Math.random() * 7000000).toString(),
+                    folio: Math.floor(1000 + Math.random() * 8999).toString()
+                });
+
+                if(!embedMode) {
+                    const t = document.title; 
+                    document.title = data.paciente?.nombre || "RECETA_ROMA";
+                    setTimeout(()=>window.print(), 800);
+                    return ()=>document.title=t;
+                }
+            }, [data, embedMode]);
+
+            // Usamos el médico generado aleatoriamente, no el guardado, para asegurar que sea nuevo
+            const medicoFinal = medicoRandom.nombre ? medicoRandom : (data.medico || {});
+
+            return (
+                <div className="min-h-screen bg-white flex flex-col items-center justify-start pt-5">
+                    {!embedMode && <div className="no-print mb-6 flex gap-4">
+                        <button onClick={onBack} className="bg-slate-800 text-white px-6 py-2 rounded-full font-bold shadow-lg flex items-center gap-2">
+                           Volver al Historial
+                        </button>
+                    </div>}
+                    
+                    <div className="print-area bg-white w-[21.59cm] min-h-[27.94cm] relative p-12 font-sans shadow-none flex flex-col mx-auto" style={{fontFamily: 'Arial, sans-serif', color: '#000'}}>
+                        {/* ENCABEZADO */}
+                        <div className="flex justify-between items-center mb-2 relative -mt-4">
+                            <div className="w-[200px] -ml-2">
+                                <img src="https://i.postimg.cc/bNkJPrRX/1770925939298.png" alt="Roma" className="w-full object-contain" />
+                            </div>
+                            
+                            <div className="flex-1 text-center pt-2 relative -ml-10">
+                                <div className="text-[#003B70] text-[24px] font-bold leading-none mb-1.5 uppercase">{medicoFinal.nombre}</div>
+                                <div className="text-[#003B70] text-[14px] font-bold uppercase mb-0.5">MEDICO GENERAL</div>
+                                <div className="text-[#003B70] text-[14px] font-bold uppercase mb-2">CEDULA PROFESIONAL: {medicoFinal.cedula}</div>
+                                <div className="text-[#003B70] text-[12px] font-bold mt-0 leading-tight w-[95%] mx-auto uppercase">BOULEVARD DÍAZ ORDAZ LÁZARO CÁRDENAS KM. 9, 1/2, 22450 TIJUANA, B.C.</div>
+                                
+                                <div className="absolute top-10 right-0 text-[#C8102E] text-[18px] font-bold uppercase">N° <span className="ml-1">{medicoFinal.folio}</span></div>
+                            </div>
+                        </div>
+                        <div className="w-full h-[2px] bg-[#003B70] mb-5"></div>
+
+                        {/* DATOS PACIENTE */}
+                        <div className="mb-5 text-[14px] uppercase">
+                            <div className="mb-4">
+                                <span className="text-[#003B70] font-bold">Nombre del Paciente:</span>
+                                <span className="text-black ml-2">{data.paciente.nombre}</span>
+                            </div>
+                            <div className="flex w-full justify-between">
+                                <div className="w-[15%]"><span className="text-[#003B70] font-bold">Edad:</span> {data.paciente.edad}</div>
+                                <div className="w-[25%]"><span className="text-[#003B70] font-bold">Temp:</span> {data.paciente.temp}</div>
+                                <div className="w-[20%]"><span className="text-[#003B70] font-bold">Peso:</span> {data.paciente.peso}</div>
+                                <div className="w-[40%] text-right"><span className="text-[#003B70] font-bold">Fecha:</span> {data.paciente.fecha}</div>
+                            </div>
+                        </div>
+
+                        {/* DIAGNOSTICO */}
+                        <div className="mb-8 text-[14px] leading-snug uppercase">
+                            <span className="text-[#003B70] font-bold">Diagnostico Medico:</span>
+                            <span className="text-black ml-1 font-normal">{data.diagnostico}</span>
+                        </div>
+
+                        {/* MEDICAMENTOS */}
+                        <div className="space-y-6">
+                            {data.medicamentos.map((m, i) => (
+                                <div key={i} className="text-[14px] text-black uppercase font-normal whitespace-pre-wrap leading-snug">
+                                    {m.text}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* FOOTER */}
+                        <div className="mt-8">
+                            <div className="flex justify-end pr-32 mb-6">
+                                <div className="border-[3px] border-black px-4 py-2 text-center bg-white min-w-[220px]">
+                                    <div className="text-[10px] font-bold uppercase text-black mb-0.5">{medicoFinal.nombre}</div>
+                                    <div className="text-[10px] font-bold uppercase text-black mb-0.5">MEDICO GENERAL</div>
+                                    <div className="text-[10px] font-bold uppercase text-black">CED PROF: {medicoFinal.cedula}</div>
+                                </div>
+                            </div>
+                            <div className="w-full h-[2px] bg-[#003B70] mb-2"></div>
+                            <div className="text-center">
+                                <div className="text-[#003B70] text-[16px] font-bold uppercase">Súrtase esta receta en cualquier Farmacia Roma</div>
+                                <div className="text-[#003B70] text-[14px]">Visita nuestra página www.farmaciasroma.com</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
                                                                          // ==========================================
         // COMPONENTE PRINCIPAL (MAIN APP) - FINAL
@@ -4247,6 +4721,7 @@
                 else if (type === 'farmacia') setView('print_farmacia');
                 else if (type === 'cruz_roja') setView('print_cruz_roja');
                 else if (type === 'similares') setView('print_similares'); // <--- NUEVA RUTA
+                 else if (type === 'roma') setView('print_roma'); // NUEVA RUTA
                 else setView('print_recipe');
             };
 
@@ -4259,6 +4734,8 @@
                             if (tipo === 'farmacia') setView('editor_farmacia');
                             else if (tipo === 'cruz_roja') setView('editor_cruz_roja');
                             else if (tipo === 'similares') setView('editor_similares'); // <--- NUEVA RUTA
+                            else if (tipo === 'roma') setView('editor_roma');
+                            
                             else setView('editor');
                         }} 
                         onSelectCovid={() => setView('covid')} 
@@ -4269,6 +4746,8 @@
                     case 'editor_farmacia': return <FarmaciaEditor onBack={() => setView('store')} />;
                     case 'editor_cruz_roja': return <CruzRojaEditor onBack={() => setView('store')} />;
                     case 'editor_similares': return <SimilaresEditor onBack={() => setView('store')} />; // <--- NUEVO EDITOR
+                    
+                    case 'editor_roma': return <RomaEditor onBack={() => setView('store')} />;
 
                     case 'covid': return <CovidEditor onBack={() => setView('store')} />;
                     case 'recharge': return <RechargeFlow onBack={() => setView('store')} />;
@@ -4281,6 +4760,7 @@
                     case 'print_farmacia': return <FarmaciaPrinter data={printData} onBack={() => setView('history')} />;
                     case 'print_cruz_roja': return <CruzRojaPrinter data={printData} onBack={() => setView('history')} />;
                     case 'print_similares': return <SimilaresPrinter data={printData} onBack={() => setView('history')} />; // <--- NUEVA IMPRESORA
+                    case 'print_roma': return <RomaPrinter data={printData} onBack={() => setView('history')} />;
                     
                     default: return <LoginScreen onLogin={() => setView('store')} />;
                 }
