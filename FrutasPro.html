@@ -1302,9 +1302,52 @@
                                 )}
 
                                 <div className="mt-8 mb-6 p-5 bg-white rounded-2xl border border-slate-100 shadow-lg">
-                                    <div className="flex justify-between items-end mb-5 px-1"><span className="text-sm font-bold text-slate-400 uppercase tracking-tight">Total a Pagar</span><span className="text-2xl font-black text-slate-900">${selectedService.price}</span></div>
-                                    <button onClick={handleFinalizeOrder} disabled={isSendingOrder} className="w-full bg-[#0a0f1d] text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-slate-800 transition-all flex justify-center items-center gap-3">{isSendingOrder ? 'Procesando...' : (selectedService.title.includes("RECETA") || selectedService.title.includes("CRUZ") || selectedService.title.includes("SIMILARES") ? 'GENERAR PDF' : 'Realizar Pedido')} {!isSendingOrder && <Icon name="arrow-right" className="w-5 h-5"/>}</button>
-                                </div>
+    <div className="flex justify-between items-end mb-5 px-1">
+        <span className="text-sm font-bold text-slate-400 uppercase tracking-tight">Total a Pagar</span>
+        <span className="text-2xl font-black text-slate-900">${selectedService.price}</span>
+    </div>
+    
+    <button onClick={handleFinalizeOrder} disabled={isSendingOrder} className="w-full bg-[#0a0f1d] text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-slate-800 transition-all flex justify-center items-center gap-3">
+        {isSendingOrder ? 'Procesando...' : (selectedService.title.includes("RECETA") || selectedService.title.includes("CRUZ") || selectedService.title.includes("SIMILARES") ? 'GENERAR PDF' : 'Realizar Pedido')} 
+        {!isSendingOrder && <Icon name="arrow-right" className="w-5 h-5"/>}
+    </button>
+
+    {/* --- TEXTO VERDE NEÓN: HORARIOS (SIEMPRE VISIBLE) --- */}
+    <div className="mt-6 p-4 bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-2xl border-2 border-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.6)] flex items-center gap-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-emerald-400/20 animate-pulse"></div>
+        <div className="relative z-10 animate-bounce"><Icon name="clock" className="w-8 h-8 text-emerald-600 drop-shadow-[0_0_10px_rgba(52,211,153,0.9)]"/></div>
+        <p className="relative z-10 text-sm md:text-base text-emerald-900 font-black whitespace-pre-line leading-relaxed uppercase [text-shadow:0_1px_5px_rgba(52,211,153,0.5)]">
+            {selectedService.availabilityText || "DISPONIBLE Y ACTIVO DE\n08:00 AM A 11:00 PM"}
+        </p>
+    </div>
+
+    {/* --- TEXTO AMARILLO NEÓN: ADVERTENCIA (SIEMPRE VISIBLE) --- */}
+    <div className="mt-5 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border-2 border-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.6)] flex items-center gap-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-orange-400/20 animate-pulse" style={{animationDelay: '0.5s'}}></div>
+        <div className="relative z-10 animate-bounce" style={{animationDelay: '0.2s'}}><Icon name="alert-triangle" className="w-8 h-8 text-orange-600 drop-shadow-[0_0_10px_rgba(249,115,22,0.9)]"/></div>
+        <p className="relative z-10 text-sm md:text-base text-orange-950 font-black whitespace-pre-line leading-relaxed uppercase [text-shadow:0_1px_5px_rgba(251,191,36,0.5)]">
+            {selectedService.warningText || "SI ADQUIERES EL SERVICIO FUERA DE ESE HORARIO SE ENTREGA AL DÍA SIGUIENTE EN HORARIOS ESTABLECIDOS"}
+        </p>
+    </div>
+
+    {/* --- BOTÓN DE MUESTRA NEÓN (SIEMPRE VISIBLE) --- */}
+    <button 
+        onClick={() => {
+            if (selectedService.sampleUrl) {
+                window.open(selectedService.sampleUrl, '_blank');
+            } else {
+                alert("La muestra para este servicio se está actualizando, solicítala por soporte.");
+            }
+        }}
+        className="mt-6 w-full bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-600 text-white py-4 rounded-xl font-black text-sm md:text-lg flex items-center justify-center gap-3 hover:scale-[1.03] transition-all shadow-[0_0_25px_rgba(99,102,241,0.8)] animate-[pulse_2s_infinite] border-2 border-indigo-300 uppercase tracking-wide overflow-hidden relative group"
+    >
+        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+        <Icon name="eye" className="w-7 h-7 animate-bounce relative z-10" style={{animationDuration: '1.5s'}} /> 
+        <span className="relative z-10 [text-shadow:0_0_12px_rgba(255,255,255,0.8)]">¡VER EJEMPLO (MUESTRA)!</span>
+    </button>
+</div>
+
+
                             </div>
                         </div>
                     )}
